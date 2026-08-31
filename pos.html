@@ -1,395 +1,383 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lucie Closet · POS System</title>
-    
-    <!-- Fonts & Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    
-    <!-- Supabase -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucie Closet · POS + Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Styles -->
-    <link rel="stylesheet" href="pos.css" />
+    <link rel="stylesheet" href="pos.css">
 </head>
 <body>
-    <!-- ============================================================
-    SIDEBAR
-    ============================================================ -->
-    <aside class="sidebar" id="sidebar">
-        <div class="brand">
-            <i class="fas fa-crown"></i>
-            <div>
-                <span class="brand-text">Lucie Closet</span>
-                <span class="brand-sub">Point of Sale</span>
-            </div>
-        </div>
-
-        <div class="nav-section">Main</div>
-        <a class="nav-item active" onclick="switchTab('pos')" id="navPos">
-            <i class="fas fa-cash-register"></i> POS
-            <span class="badge" id="cartCountBadge">0</span>
-        </a>
-        <a class="nav-item" onclick="switchTab('products')" id="navProducts">
-            <i class="fas fa-tshirt"></i> Products
-        </a>
-        <a class="nav-item" onclick="switchTab('orders')" id="navOrders">
-            <i class="fas fa-receipt"></i> Orders
-            <span class="badge" id="orderCountBadge">0</span>
-        </a>
-
-        <div class="nav-section">Reports</div>
-        <a class="nav-item" onclick="switchTab('sales')" id="navSales">
-            <i class="fas fa-chart-line"></i> Sales
-        </a>
-        <a class="nav-item" onclick="switchTab('inventory')" id="navInventory">
-            <i class="fas fa-boxes"></i> Inventory
-        </a>
-
-        <div class="bottom">
-            <a href="#" onclick="switchTab('pos')">
-                <i class="fas fa-store"></i> Store Mode
-            </a>
-        </div>
-    </aside>
 
     <!-- ============================================================
-    MAIN CONTENT
+    LOGIN SCREEN
     ============================================================ -->
-    <main class="main-content">
-        <!-- Top Bar -->
-        <div class="top-bar">
-            <div>
-                <h1 id="pageTitle"><i class="fas fa-cash-register"></i> Point of Sale</h1>
-                <div class="store-info" id="storeInfo">
-                    <span><i class="fas fa-store"></i> Eastleigh 5th St, Micki Mall, Rm S12</span>
-                    <span><i class="fas fa-clock"></i> <span id="clock">00:00:00</span></span>
-                </div>
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo-icon"><i class="fas fa-crown"></i></div>
+                <h1>Lucie Closet</h1>
+                <p>Premium Fashion</p>
+                <span class="subtitle">Point of Sale System</span>
             </div>
-            <div class="admin-info">
-                <div>
-                    <div class="admin-name">Cashier</div>
-                    <div class="admin-role" id="cashierName">📍 Station #1</div>
-                </div>
-                <div class="avatar">C</div>
-            </div>
-        </div>
 
-        <!-- Stats -->
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
-                <div class="stat-number" id="todaySales">KSh 0</div>
-                <div class="stat-label">Today's Sales</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="color:var(--gold);"><i class="fas fa-receipt"></i></div>
-                <div class="stat-number" id="todayOrders">0</div>
-                <div class="stat-label">Today's Orders</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="color:#22C55E;"><i class="fas fa-users"></i></div>
-                <div class="stat-number" id="totalCustomers">0</div>
-                <div class="stat-label">Customers Today</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="color:#3B82F6;"><i class="fas fa-box"></i></div>
-                <div class="stat-number" id="lowStockItems">0</div>
-                <div class="stat-label">Low Stock Items</div>
-            </div>
-        </div>
-
-        <!-- ===== POS TAB ===== -->
-        <div id="tabPos" class="tab-content">
-            <div class="pos-layout">
-                <!-- Left: Product Grid -->
-                <div class="pos-products">
-                    <div class="pos-toolbar">
-                        <div class="search-box">
-                            <input type="text" id="posSearch" placeholder="Search products by name or code..." oninput="filterPOSProducts()">
-                            <button><i class="fas fa-search"></i></button>
-                        </div>
-                        <div class="pos-filters">
-                            <select id="posCategoryFilter" onchange="filterPOSProducts()">
-                                <option value="all">All Categories</option>
-                                <option value="dress">Dresses</option>
-                                <option value="top">Tops</option>
-                                <option value="sweater">Sweaters</option>
-                                <option value="suit">Suits</option>
-                                <option value="shoes">Shoes</option>
-                                <option value="accessories">Accessories</option>
-                            </select>
-                            <button class="btn-primary gold small" onclick="showAllProducts()">
-                                <i class="fas fa-undo"></i> Reset
-                            </button>
-                        </div>
-                    </div>
-                    <div class="pos-product-grid" id="posProductGrid">
-                        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">
-                            <i class="fas fa-spinner fa-spin" style="font-size:32px;display:block;margin-bottom:12px;"></i>
-                            Loading products...
-                        </div>
-                    </div>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="loginEmail" placeholder="admin@luciecloset.co.ke" required>
                 </div>
-
-                <!-- Right: Cart / Checkout -->
-                <div class="pos-cart">
-                    <div class="cart-header">
-                        <h3><i class="fas fa-shopping-cart"></i> Cart</h3>
-                        <span class="cart-item-count" id="posCartCount">0 items</span>
-                    </div>
-                    <div class="cart-items" id="posCartItems">
-                        <div style="text-align:center;padding:40px 0;color:var(--text-muted);">
-                            <i class="fas fa-plus-circle" style="font-size:32px;display:block;margin-bottom:12px;"></i>
-                            Add items from the left
-                        </div>
-                    </div>
-                    <div class="cart-footer">
-                        <div class="cart-total">
-                            <span>Total</span>
-                            <span id="posCartTotal">KSh 0</span>
-                        </div>
-                        <div class="cart-actions">
-                            <button class="btn-outline" onclick="clearCart()">
-                                <i class="fas fa-trash-alt"></i> Clear
-                            </button>
-                            <button class="btn-primary" onclick="openCheckout()" id="checkoutBtn">
-                                <i class="fas fa-credit-card"></i> Checkout
-                            </button>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
                 </div>
-            </div>
-        </div>
-
-        <!-- ===== PRODUCTS TAB ===== -->
-        <div id="tabProducts" class="tab-content" style="display:none;">
-            <div class="section-header">
-                <h2><i class="fas fa-tshirt"></i> Manage Products</h2>
-                <button class="btn-primary" onclick="openProductModal()">
-                    <i class="fas fa-plus"></i> Add Product
+                <div class="form-group">
+                    <label><i class="fas fa-key"></i> PIN (4 digits)</label>
+                    <input type="password" id="loginPin" maxlength="4" placeholder="Enter 4-digit PIN" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Login
                 </button>
-            </div>
-            <div class="table-container">
-                <div class="table-header">
-                    <div class="search-box">
-                        <input type="text" id="productSearch" placeholder="Search products..." oninput="renderProductTable()">
-                        <button><i class="fas fa-search"></i></button>
-                    </div>
-                </div>
-                <div class="table-scroll">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Code</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="productTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== ORDERS TAB ===== -->
-        <div id="tabOrders" class="tab-content" style="display:none;">
-            <div class="section-header">
-                <h2><i class="fas fa-receipt"></i> Order History</h2>
-            </div>
-            <div class="table-container">
-                <div class="table-header">
-                    <div class="search-box">
-                        <input type="text" id="orderSearch" placeholder="Search orders..." oninput="renderOrderTable()">
-                        <button><i class="fas fa-search"></i></button>
-                    </div>
-                    <select id="orderStatusFilter" onchange="renderOrderTable()" style="padding:8px 14px;border:2px solid var(--border);border-radius:50px;font-family:var(--font);font-size:13px;background:var(--card);">
-                        <option value="all">All Status</option>
-                        <option value="pending">Pending</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                </div>
-                <div class="table-scroll">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order #</th>
-                                <th>Customer</th>
-                                <th>Items</th>
-                                <th>Total</th>
-                                <th>Payment</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="orderTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== SALES TAB ===== -->
-        <div id="tabSales" class="tab-content" style="display:none;">
-            <div class="section-header">
-                <h2><i class="fas fa-chart-line"></i> Sales Report</h2>
-                <div style="display:flex;gap:8px;">
-                    <button class="btn-outline small" onclick="loadSalesData('today')">Today</button>
-                    <button class="btn-outline small" onclick="loadSalesData('week')">This Week</button>
-                    <button class="btn-outline small" onclick="loadSalesData('month')">This Month</button>
-                </div>
-            </div>
-            <div class="sales-dashboard" id="salesDashboard">
-                <div class="sales-summary">
-                    <div class="sales-stat">
-                        <span class="label">Total Revenue</span>
-                        <span class="value" id="salesRevenue">KSh 0</span>
-                    </div>
-                    <div class="sales-stat">
-                        <span class="label">Total Orders</span>
-                        <span class="value" id="salesOrders">0</span>
-                    </div>
-                    <div class="sales-stat">
-                        <span class="label">Average Order</span>
-                        <span class="value" id="salesAverage">KSh 0</span>
-                    </div>
-                    <div class="sales-stat">
-                        <span class="label">Top Category</span>
-                        <span class="value" id="salesTopCategory">-</span>
-                    </div>
-                </div>
-                <div class="sales-table-container">
-                    <h4>Recent Orders</h4>
-                    <div class="table-scroll">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Order #</th>
-                                    <th>Amount</th>
-                                    <th>Payment</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody id="salesTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== INVENTORY TAB ===== -->
-        <div id="tabInventory" class="tab-content" style="display:none;">
-            <div class="section-header">
-                <h2><i class="fas fa-boxes"></i> Inventory Management</h2>
-            </div>
-            <div class="inventory-grid" id="inventoryGrid">
-                <div class="inventory-card" id="lowStockCard">
-                    <h4><i class="fas fa-exclamation-triangle" style="color:#EF4444;"></i> Low Stock Alerts</h4>
-                    <div id="lowStockList"></div>
-                </div>
-                <div class="inventory-card">
-                    <h4><i class="fas fa-tshirt"></i> Stock by Category</h4>
-                    <div id="categoryStockList"></div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- ============================================================
-    CHECKOUT MODAL
-    ============================================================ -->
-    <div class="modal-overlay" id="checkoutModal">
-        <div class="modal modal-lg">
-            <div class="modal-header">
-                <h3><i class="fas fa-credit-card"></i> Checkout</h3>
-                <button class="close-modal" onclick="closeCheckout()"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="checkout-layout">
-                <div class="checkout-left">
-                    <div class="form-group">
-                        <label>Customer Name</label>
-                        <input type="text" id="checkoutName" placeholder="Walk-in Customer">
-                    </div>
-                    <div class="form-group">
-                        <label>Phone Number</label>
-                        <input type="tel" id="checkoutPhone" placeholder="0712345678">
-                    </div>
-                    <div class="form-group">
-                        <label>Payment Method</label>
-                        <div class="payment-methods">
-                            <button class="method active" data-method="mpesa" onclick="selectPaymentMethod('mpesa')">
-                                <i class="fas fa-mobile-alt"></i> M-Pesa
-                            </button>
-                            <button class="method" data-method="cash" onclick="selectPaymentMethod('cash')">
-                                <i class="fas fa-money-bill-wave"></i> Cash
-                            </button>
-                            <button class="method" data-method="card" onclick="selectPaymentMethod('card')">
-                                <i class="fas fa-credit-card"></i> Card
-                            </button>
-                            <button class="method" data-method="bank" onclick="selectPaymentMethod('bank')">
-                                <i class="fas fa-university"></i> Bank
-                            </button>
-                        </div>
-                    </div>
-                    <div class="form-group" id="mpesaForm" style="display:none;">
-                        <label>M-Pesa Transaction Code</label>
-                        <input type="text" id="mpesaCode" placeholder="e.g. QWERTY123">
-                    </div>
-                    <div class="form-group" id="cashForm" style="display:none;">
-                        <label>Amount Paid</label>
-                        <input type="number" id="cashPaid" placeholder="0" oninput="calculateChange()">
-                        <div id="changeDisplay" style="margin-top:8px;font-weight:700;font-size:18px;color:var(--primary);"></div>
-                    </div>
-                </div>
-                <div class="checkout-right">
-                    <h4>Order Summary</h4>
-                    <div id="checkoutItems"></div>
-                    <div class="checkout-total">
-                        <span>Total</span>
-                        <span id="checkoutTotal">KSh 0</span>
-                    </div>
-                    <button class="btn-primary" onclick="completeOrder()" style="width:100%;padding:14px;font-size:16px;justify-content:center;">
-                        <i class="fas fa-check"></i> Complete Sale
-                    </button>
-                </div>
-            </div>
+                <div id="loginError" class="login-error"></div>
+            </form>
         </div>
     </div>
 
     <!-- ============================================================
-    PRODUCT MODAL (Admin)
+    DASHBOARD - Hidden until login
     ============================================================ -->
+    <div id="dashboardScreen" style="display:none;">
+
+        <!-- ===== SIDEBAR ===== -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="logo-icon"><i class="fas fa-crown"></i></div>
+                <div>
+                    <span class="brand-text">Lucie Closet</span>
+                    <span class="brand-sub">POS + Admin</span>
+                </div>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="menu-label">Main</li>
+                <li class="active" data-section="dashboard"><i class="fas fa-th-large"></i> Dashboard</li>
+                <li data-section="pos"><i class="fas fa-cash-register"></i> POS <span class="badge">Live</span></li>
+                <li data-section="orders"><i class="fas fa-clipboard-list"></i> Orders <span class="badge" id="orderBadge">0</span></li>
+                <li class="menu-label">Management</li>
+                <li data-section="products"><i class="fas fa-boxes"></i> Products</li>
+                <li data-section="inventory"><i class="fas fa-warehouse"></i> Inventory</li>
+                <li data-section="customers"><i class="fas fa-user-friends"></i> Customers</li>
+                <li class="menu-label">Analytics</li>
+                <li data-section="reports"><i class="fas fa-chart-bar"></i> Reports</li>
+                <li data-section="profit"><i class="fas fa-coins"></i> Profit/Loss</li>
+                <li data-section="audit"><i class="fas fa-history"></i> Audit Trail</li>
+                <li data-section="settings"><i class="fas fa-cog"></i> Settings</li>
+                <li class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</li>
+            </ul>
+        </nav>
+
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <div class="main-content">
+
+            <!-- ===== TOP BAR ===== -->
+            <header class="top-bar">
+                <div class="page-title">
+                    <h1 id="pageTitle">📊 Dashboard</h1>
+                    <p id="pageSubtitle">Complete business overview</p>
+                </div>
+                <div class="page-actions">
+                    <span class="time-display" id="currentTime">--:--:--</span>
+                    <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
+                    <div class="user-profile">
+                        <div class="avatar" id="userAvatar">A</div>
+                        <div>
+                            <div class="user-name" id="userName">Admin</div>
+                            <div class="user-role" id="userRole">Administrator</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ===== DASHBOARD SECTION ===== -->
+            <section id="dashboardSection" class="section-page active">
+                <div id="greetingContainer"></div>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-glow"></div>
+                        <div class="stat-icon purple"><i class="fas fa-money-bill-wave"></i></div>
+                        <div class="stat-value" id="todaySales">KES 0</div>
+                        <div class="stat-label">Today's Sales</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon gold"><i class="fas fa-star"></i></div>
+                        <div class="stat-value" id="bestQualityCount">0</div>
+                        <div class="stat-label">Best Quality Items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i class="fas fa-shopping-bag"></i></div>
+                        <div class="stat-value" id="totalOrders">0</div>
+                        <div class="stat-label">Total Orders</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="stat-value" id="lowStock">0</div>
+                        <div class="stat-label">Low Stock Items</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>📈 Sales Overview</h3>
+                            <button class="card-action" onclick="refreshAll()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        </div>
+                        <canvas id="salesChart" height="200"></canvas>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>🏆 Top Products</h3></div>
+                        <div id="topProductsList"><div class="empty-state"><p>Loading...</p></div></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📋 Recent Orders</h3>
+                        <button class="card-action" onclick="navigateTo('orders')">View All →</button>
+                    </div>
+                    <div id="recentOrdersTable"><div class="empty-state"><p>Loading orders...</p></div></div>
+                </div>
+            </section>
+
+            <!-- ===== POS SECTION ===== -->
+            <section id="posSection" class="section-page">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🛒 Point of Sale</h3>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn btn-sm btn-primary" onclick="switchCategory('all')">All</button>
+                            <button class="btn btn-sm btn-success" onclick="switchCategory('dress')">Dresses</button>
+                            <button class="btn btn-sm btn-warning" onclick="switchCategory('top')">Tops</button>
+                            <button class="btn btn-sm btn-info" onclick="switchCategory('sweater')">Sweaters</button>
+                            <button class="btn btn-sm btn-danger" onclick="switchCategory('suit')">Suits</button>
+                        </div>
+                    </div>
+                    <div id="posContainer">
+                        <div class="pos-layout">
+                            <div class="pos-products">
+                                <div class="pos-toolbar">
+                                    <div class="search-box">
+                                        <input type="text" id="posSearch" placeholder="Search products..." oninput="filterPOSProducts()">
+                                        <button><i class="fas fa-search"></i></button>
+                                    </div>
+                                </div>
+                                <div class="pos-product-grid" id="posProductGrid">
+                                    <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading products...</p></div>
+                                </div>
+                            </div>
+                            <div class="pos-cart">
+                                <div class="cart-header">
+                                    <h3><i class="fas fa-shopping-cart"></i> Cart</h3>
+                                    <span class="cart-item-count" id="posCartCount">0 items</span>
+                                </div>
+                                <div class="cart-items" id="posCartItems">
+                                    <div class="empty-state"><i class="fas fa-plus-circle"></i><p>Add items from the left</p></div>
+                                </div>
+                                <div class="cart-footer">
+                                    <div class="cart-total">
+                                        <span>Total</span>
+                                        <span id="posCartTotal">KES 0</span>
+                                    </div>
+                                    <div class="cart-actions">
+                                        <button class="btn btn-outline" onclick="clearCart()"><i class="fas fa-trash-alt"></i> Clear</button>
+                                        <button class="btn btn-primary" onclick="openCheckout()"><i class="fas fa-credit-card"></i> Checkout</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== ORDERS SECTION ===== -->
+            <section id="ordersSection" class="section-page">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📋 All Orders</h3>
+                        <span class="badge primary" id="orderCount">0</span>
+                    </div>
+                    <div class="filter-tabs" id="orderFilters">
+                        <button class="filter-btn active" data-filter="all">All <span class="count" id="countAll">0</span></button>
+                        <button class="filter-btn" data-filter="pending">⏳ Pending <span class="count" id="countPending">0</span></button>
+                        <button class="filter-btn" data-filter="completed">✅ Completed <span class="count" id="countCompleted">0</span></button>
+                        <button class="filter-btn" data-filter="cancelled">❌ Cancelled <span class="count" id="countCancelled">0</span></button>
+                    </div>
+                    <div id="ordersContainer"><div class="empty-state"><i class="fas fa-inbox"></i><p>No orders found</p></div></div>
+                </div>
+            </section>
+
+            <!-- ===== PRODUCTS SECTION ===== -->
+            <section id="productsSection" class="section-page">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📦 Products</h3>
+                        <button class="btn btn-primary" onclick="openProductModal()"><i class="fas fa-plus"></i> Add Product</button>
+                    </div>
+                    <div id="productsTable"><div class="empty-state"><p>Loading products...</p></div></div>
+                </div>
+            </section>
+
+            <!-- ===== INVENTORY SECTION ===== -->
+            <section id="inventorySection" class="section-page">
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>🏪 Inventory</h3>
+                            <button class="btn btn-warning btn-sm" onclick="openStockModal()"><i class="fas fa-edit"></i> Adjust Stock</button>
+                        </div>
+                        <div id="inventoryTable"><div class="empty-state"><p>Loading inventory...</p></div></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>📊 Stock by Category</h3></div>
+                        <div id="categoryStockList"><div class="empty-state"><p>Loading...</p></div></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== CUSTOMERS SECTION ===== -->
+            <section id="customersSection" class="section-page">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>👤 Customers</h3>
+                        <button class="btn btn-primary" onclick="openCustomerModal()"><i class="fas fa-user-plus"></i> Add Customer</button>
+                    </div>
+                    <div id="customersTable"><div class="empty-state"><p>Loading customers...</p></div></div>
+                </div>
+            </section>
+
+            <!-- ===== REPORTS SECTION ===== -->
+            <section id="reportsSection" class="section-page">
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header"><h3>📊 Sales Report</h3></div>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                            <input type="date" id="reportStart" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+                            <input type="date" id="reportEnd" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);">
+                            <button class="btn btn-primary" onclick="generateReport()"><i class="fas fa-search"></i> Generate</button>
+                        </div>
+                        <div id="reportContent"><div class="empty-state"><i class="fas fa-calendar-alt"></i><p>Select date range and click Generate</p></div></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>📤 Export</h3></div>
+                        <div style="display:flex;flex-direction:column;gap:10px;">
+                            <button class="btn btn-success btn-block" onclick="exportReport('pdf')"><i class="fas fa-file-pdf"></i> Export PDF</button>
+                            <button class="btn btn-primary btn-block" onclick="exportReport('csv')"><i class="fas fa-file-csv"></i> Export CSV</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== PROFIT/LOSS SECTION ===== -->
+            <section id="profitSection" class="section-page">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>💰 Profit & Loss</h3>
+                        <button class="card-action" onclick="refreshProfitData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;">
+                        <div class="profit-stat">
+                            <div style="font-size:12px;color:var(--text-muted);">Total Revenue</div>
+                            <div style="font-size:24px;font-weight:700;color:var(--success);" id="totalRevenue">KES 0</div>
+                        </div>
+                        <div class="profit-stat">
+                            <div style="font-size:12px;color:var(--text-muted);">Total Cost</div>
+                            <div style="font-size:24px;font-weight:700;color:var(--danger);" id="totalCost">KES 0</div>
+                        </div>
+                        <div class="profit-stat">
+                            <div style="font-size:12px;color:var(--text-muted);">Net Profit</div>
+                            <div style="font-size:24px;font-weight:700;color:var(--primary);" id="netProfit">KES 0</div>
+                        </div>
+                    </div>
+                    <div style="background:var(--bg);border-radius:var(--radius-sm);padding:20px;">
+                        <canvas id="profitChart" height="200"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== AUDIT SECTION ===== -->
+            <section id="auditSection" class="section-page">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📜 Audit Trail</h3>
+                        <button class="btn btn-sm btn-primary" onclick="loadAuditLogs()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div id="auditTable"><div class="empty-state"><i class="fas fa-history"></i><p>Loading audit logs...</p></div></div>
+                </div>
+            </section>
+
+            <!-- ===== SETTINGS SECTION ===== -->
+            <section id="settingsSection" class="section-page">
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header"><h3>🏢 Business Settings</h3></div>
+                        <form id="settingsForm">
+                            <div class="form-group"><label>Business Name</label><input type="text" id="businessName" value="Lucie Closet"></div>
+                            <div class="form-group"><label>Phone</label><input type="text" id="businessPhone" value="+254 794 789 345"></div>
+                            <div class="form-group"><label>Email</label><input type="email" id="businessEmail" value="info@luciecloset.co.ke"></div>
+                            <div class="form-group"><label>Location</label><input type="text" id="businessLocation" value="Eastleigh 5th St, Micki Mall, Rm S12"></div>
+                            <div class="form-group"><label>Receipt Footer</label><input type="text" id="receiptFooter" value="Thank you for shopping at Lucie Closet! 👗"></div>
+                            <button type="submit" class="btn btn-primary btn-block">💾 Save Settings</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>📱 Payment Configuration</h3></div>
+                        <form id="paymentForm">
+                            <div class="form-group"><label>Default Payment Method</label>
+                                <select id="defaultPayment">
+                                    <option value="mpesa">M-Pesa</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="card">Card</option>
+                                    <option value="bank">Bank Transfer</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label>M-Pesa Shortcode</label><input type="text" id="mpesaShortcode" placeholder="174379"></div>
+                            <button type="submit" class="btn btn-primary btn-block">💾 Save Payment Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- ============================================================
+    MODALS
+    ============================================================ -->
+
+    <!-- Product Modal -->
     <div class="modal-overlay" id="productModal">
         <div class="modal">
             <div class="modal-header">
-                <h3 id="productModalTitle"><i class="fas fa-plus-circle"></i> Add Product</h3>
-                <button class="close-modal" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
+                <h3 id="productModalTitle">📦 Add Product</h3>
+                <button class="close" onclick="closeModal('productModal')">&times;</button>
             </div>
             <form id="productForm" onsubmit="saveProduct(event)">
                 <input type="hidden" id="editProductId">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Product Name <span class="required">*</span></label>
-                        <input type="text" id="productName" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Code <span class="required">*</span></label>
-                        <input type="text" id="productCode" required>
-                    </div>
+                <div class="form-group">
+                    <label>Product Name *</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label>Product Code *</label>
+                    <input type="text" id="productCode" required>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Category <span class="required">*</span></label>
+                        <label>Category *</label>
                         <select id="productCategory" required>
                             <option value="">Select</option>
                             <option value="dress">Dress</option>
@@ -411,11 +399,11 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Price (KSh) <span class="required">*</span></label>
+                        <label>Price (KES) *</label>
                         <input type="number" id="productPrice" required min="0">
                     </div>
                     <div class="form-group">
-                        <label>Stock <span class="required">*</span></label>
+                        <label>Stock *</label>
                         <input type="number" id="productStock" required min="0">
                     </div>
                 </div>
@@ -425,28 +413,126 @@
                     </label>
                 </div>
                 <div class="form-group">
-                    <label>Image</label>
+                    <label>Product Image</label>
                     <input type="file" id="productImage" accept="image/*">
                     <div class="image-preview" id="imagePreview"></div>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn-outline" onclick="closeProductModal()">Cancel</button>
-                    <button type="submit" class="btn-primary" id="saveProductBtn">
-                        <i class="fas fa-save"></i> Save
-                    </button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('productModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveProductBtn"><i class="fas fa-save"></i> Save</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ============================================================
-    TOAST
-    ============================================================ -->
+    <!-- Checkout Modal -->
+    <div class="modal-overlay" id="checkoutModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h3>💳 Checkout</h3>
+                <button class="close" onclick="closeModal('checkoutModal')">&times;</button>
+            </div>
+            <div class="checkout-layout">
+                <div class="checkout-left">
+                    <div class="form-group"><label>Customer Name</label><input type="text" id="checkoutName" placeholder="Walk-in Customer"></div>
+                    <div class="form-group"><label>Phone</label><input type="tel" id="checkoutPhone" placeholder="0712345678"></div>
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <div class="payment-methods">
+                            <button type="button" class="method active" data-method="mpesa" onclick="selectPayment('mpesa')"><i class="fas fa-mobile-alt"></i> M-Pesa</button>
+                            <button type="button" class="method" data-method="cash" onclick="selectPayment('cash')"><i class="fas fa-money-bill-wave"></i> Cash</button>
+                            <button type="button" class="method" data-method="card" onclick="selectPayment('card')"><i class="fas fa-credit-card"></i> Card</button>
+                            <button type="button" class="method" data-method="bank" onclick="selectPayment('bank')"><i class="fas fa-university"></i> Bank</button>
+                        </div>
+                    </div>
+                    <div id="mpesaForm" style="display:none;">
+                        <div class="form-group"><label>M-Pesa Transaction Code</label><input type="text" id="mpesaCode" placeholder="e.g. QWERTY123"></div>
+                    </div>
+                    <div id="cashForm" style="display:none;">
+                        <div class="form-group"><label>Amount Paid</label><input type="number" id="cashPaid" oninput="calculateChange()"></div>
+                        <div id="changeDisplay"></div>
+                    </div>
+                </div>
+                <div class="checkout-right">
+                    <h4>Order Summary</h4>
+                    <div id="checkoutItems"></div>
+                    <div class="checkout-total">
+                        <span>Total</span>
+                        <span id="checkoutTotal">KES 0</span>
+                    </div>
+                    <button class="btn btn-primary btn-block" onclick="completeOrder()"><i class="fas fa-check"></i> Complete Sale</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Modal -->
+    <div class="modal-overlay" id="customerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="customerModalTitle">👤 Add Customer</h3>
+                <button class="close" onclick="closeModal('customerModal')">&times;</button>
+            </div>
+            <form id="customerForm" onsubmit="saveCustomer(event)">
+                <input type="hidden" id="editCustomerId">
+                <div class="form-group"><label>Full Name *</label><input type="text" id="customerName" required></div>
+                <div class="form-group"><label>Phone *</label><input type="tel" id="customerPhone" required></div>
+                <div class="form-group"><label>Email</label><input type="email" id="customerEmail"></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('customerModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stock Modal -->
+    <div class="modal-overlay" id="stockModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>📦 Adjust Stock</h3>
+                <button class="close" onclick="closeModal('stockModal')">&times;</button>
+            </div>
+            <form id="stockForm" onsubmit="adjustStock(event)">
+                <div class="form-group"><label>Product *</label><select id="stockProduct" required></select></div>
+                <div class="form-group"><label>Adjustment Type *</label>
+                    <select id="adjustmentType" required>
+                        <option value="add">➕ Add Stock</option>
+                        <option value="remove">➖ Remove Stock</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Quantity *</label><input type="number" id="adjustmentQty" step="0.001" required></div>
+                <div class="form-group"><label>Reason</label><input type="text" id="adjustmentReason" placeholder="e.g., Restock, Spoilage"></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('stockModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div class="modal-overlay" id="receiptModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>🧾 Receipt</h3>
+                <button class="close" onclick="closeModal('receiptModal')">&times;</button>
+            </div>
+            <div id="receiptContent" class="receipt-content"></div>
+            <div style="display:flex;gap:10px;margin-top:16px;">
+                <button class="btn btn-primary" style="flex:1;" onclick="printReceipt()"><i class="fas fa-print"></i> Print</button>
+                <button class="btn btn-outline" style="flex:1;" onclick="closeModal('receiptModal')"><i class="fas fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
     <!-- ============================================================
     SCRIPTS
     ============================================================ -->
     <script src="pos.js"></script>
+
 </body>
 </html>
