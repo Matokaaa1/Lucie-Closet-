@@ -4,12 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lucie Closet · Premium Fashion</title>
-  <!-- Google Fonts + Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -24,7 +22,6 @@
     html { scroll-behavior:smooth; }
     body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; }
 
-    /* top bar */
     .top-bar { background:var(--text); padding:8px 24px; color:rgba(255,255,255,0.7); font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05); }
     .top-bar-inner { max-width:1280px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
     .top-bar .contact-info { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
@@ -35,7 +32,6 @@
     .top-bar .social-icons a { color:rgba(255,255,255,0.5); font-size:14px; transition:var(--transition); }
     .top-bar .social-icons a:hover { color:var(--gold); }
 
-    /* header */
     .header { background:var(--card); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; padding:0 24px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
     .header-inner { max-width:1280px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; height:72px; }
     .logo { text-decoration:none; display:flex; align-items:center; gap:10px; }
@@ -59,7 +55,6 @@
     .btn-outline { padding:10px 24px; border:2px solid var(--border); border-radius:var(--radius-sm); font-family:var(--font); font-weight:600; font-size:14px; background:transparent; color:var(--text-secondary); cursor:pointer; transition:var(--transition); text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
     .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
 
-    /* hero */
     .hero { background:linear-gradient(135deg,#1A1A2E 0%,#2D1B2E 50%,#3D1F2E 100%); padding:80px 24px 60px; text-align:center; color:#fff; position:relative; overflow:hidden; }
     .hero::before { content:''; position:absolute; top:-50%; right:-20%; width:600px; height:600px; background:radial-gradient(circle,rgba(198,40,40,0.12),transparent 70%); border-radius:50%; pointer-events:none; }
     .hero-inner { max-width:720px; margin:0 auto; position:relative; z-index:1; }
@@ -72,7 +67,6 @@
     .hero .btn-outline { border-color:rgba(255,255,255,0.2); color:rgba(255,255,255,0.8); padding:14px 40px; border-radius:var(--radius-sm); font-family:var(--font); font-weight:600; font-size:16px; background:transparent; cursor:pointer; transition:var(--transition); text-decoration:none; border:2px solid rgba(255,255,255,0.2); }
     .hero .btn-outline:hover { border-color:#fff; color:#fff; }
 
-    /* store info */
     .store-info { max-width:1280px; margin:-30px auto 0; padding:0 24px; position:relative; z-index:2; }
     .store-info-inner { background:linear-gradient(135deg,var(--text),#2D1B2E); border-radius:var(--radius); padding:20px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; box-shadow:0 12px 48px rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); }
     .store-info-inner .left { display:flex; align-items:center; gap:16px; }
@@ -84,7 +78,6 @@
     .store-info-inner .right .contact-item i { color:var(--gold); }
     .store-info-inner .badge { background:rgba(212,165,116,0.15); color:var(--gold-light); padding:6px 16px; border-radius:50px; font-weight:600; font-size:12px; border:1px solid rgba(212,165,116,0.2); display:flex; align-items:center; gap:8px; }
 
-    /* featured banner */
     .featured-banner { max-width:1280px; margin:24px auto 0; padding:0 24px; }
     .featured-banner-inner { background:linear-gradient(135deg,var(--gold),var(--gold-light)); border-radius:var(--radius); padding:20px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; box-shadow:0 8px 32px rgba(212,165,116,0.25); }
     .featured-banner-inner .left { display:flex; align-items:center; gap:16px; }
@@ -93,7 +86,6 @@
     .featured-banner-inner .left p { font-size:13px; color:#92400E; opacity:0.8; }
     .featured-banner-inner .badge { background:#78350F; color:var(--gold-light); padding:6px 20px; border-radius:50px; font-weight:700; font-size:13px; display:flex; align-items:center; gap:8px; }
 
-    /* filters */
     .filters { max-width:1280px; margin:32px auto 0; padding:0 24px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .filters .filter-btn { padding:8px 18px; border:2px solid var(--border); border-radius:50px; font-family:var(--font); font-weight:500; font-size:13px; background:var(--card); color:var(--text-secondary); cursor:pointer; transition:var(--transition); }
     .filters .filter-btn:hover { border-color:var(--primary); color:var(--primary); }
@@ -109,7 +101,6 @@
     .filters .search-box input::placeholder { color:var(--text-muted); }
     .filters .search-box button { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; padding:8px; }
 
-    /* products grid */
     .products-section { max-width:1280px; margin:32px auto 60px; padding:0 24px; }
     .products-section .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
     .products-section .section-header h2 { font-size:24px; font-weight:800; display:flex; align-items:center; gap:12px; }
@@ -138,7 +129,6 @@
     .product-card.best-quality .product-info .add-to-cart { background:rgba(212,165,116,0.15); color:#78350F; }
     .product-card.best-quality .product-info .add-to-cart:hover { background:var(--gold); color:#78350F; }
 
-    /* cart sidebar */
     .cart-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:200; opacity:0; visibility:hidden; transition:var(--transition); }
     .cart-overlay.open { opacity:1; visibility:visible; }
     .cart-sidebar { position:fixed; top:0; right:0; width:100%; max-width:420px; height:100%; background:var(--card); z-index:201; transform:translateX(100%); transition:var(--transition); display:flex; flex-direction:column; box-shadow:-8px 0 40px rgba(0,0,0,0.1); }
@@ -168,7 +158,6 @@
     .checkout-btn { width:100%; padding:14px; border:none; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; font-family:var(--font); font-weight:700; font-size:16px; cursor:pointer; transition:var(--transition); display:flex; align-items:center; justify-content:center; gap:10px; }
     .checkout-btn:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(var(--primary-rgb),0.3); }
 
-    /* payment modal */
     .payment-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:300; align-items:center; justify-content:center; padding:20px; }
     .payment-modal.open { display:flex; }
     .payment-modal-content { background:var(--card); border-radius:var(--radius); padding:32px; max-width:500px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,0.3); animation:modalSlide 0.3s ease; }
@@ -221,469 +210,457 @@
   </style>
 </head>
 <body>
-<!-- top bar -->
-<div class="top-bar">
-  <div class="top-bar-inner">
-    <div class="contact-info">
-      <a href="tel:+254794789345"><i class="fas fa-phone"></i> 0794 789 345</a>
-      <a href="tel:+254726945270"><i class="fas fa-phone"></i> 0726 945 270</a>
-      <a href="mailto:info@luciecloset.co.ke"><i class="fas fa-envelope"></i> info@luciecloset.co.ke</a>
-      <span><i class="fas fa-map-marker-alt"></i> Eastleigh 5th St, Micki Mall, Rm S12</span>
-    </div>
-    <div class="social-icons">
-      <a href="#"><i class="fab fa-facebook"></i></a>
-      <a href="#"><i class="fab fa-instagram"></i></a>
-      <a href="#"><i class="fab fa-twitter"></i></a>
-      <a href="#"><i class="fab fa-tiktok"></i></a>
-    </div>
-  </div>
-</div>
-
-<!-- header -->
-<header class="header">
-  <div class="header-inner">
-    <a href="#" class="logo">
-      <i class="fas fa-crown"></i>
-      <div><span class="brand-text">Lucie Closet</span><span class="brand-sub">Premium Fashion</span></div>
-    </a>
-    <ul class="nav-links">
-      <li><a href="#" onclick="filterProducts('all')">Home</a></li>
-      <li><a href="#" onclick="filterProducts('dress')">Dresses</a></li>
-      <li><a href="#" onclick="filterProducts('top')">Tops</a></li>
-      <li><a href="#" onclick="filterProducts('sweater')">Sweaters</a></li>
-      <li><a href="#" onclick="filterProducts('suit')">Suits</a></li>
-      <li><a href="#" onclick="filterProducts('best')" class="best-link"><i class="fas fa-star"></i> Best Quality</a></li>
-    </ul>
-    <div class="header-actions">
-      <button class="icon-btn" onclick="toggleCart()"><i class="fas fa-shopping-bag"></i><span class="cart-badge" id="cartCount">0</span></button>
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-bar-inner">
+      <div class="contact-info">
+        <a href="tel:+254794789345"><i class="fas fa-phone"></i> 0794 789 345</a>
+        <a href="tel:+254726945270"><i class="fas fa-phone"></i> 0726 945 270</a>
+        <a href="mailto:info@luciecloset.co.ke"><i class="fas fa-envelope"></i> info@luciecloset.co.ke</a>
+        <span><i class="fas fa-map-marker-alt"></i> Eastleigh 5th St, Micki Mall, Rm S12</span>
+      </div>
+      <div class="social-icons">
+        <a href="#"><i class="fab fa-facebook"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-tiktok"></i></a>
+      </div>
     </div>
   </div>
-</header>
 
-<!-- hero -->
-<section class="hero">
-  <div class="hero-inner">
-    <div class="hero-badge"><i class="fas fa-crown"></i> Since 2025</div>
-    <h1>Discover <span class="brand-highlight">Premium</span> <span class="highlight">Fashion</span></h1>
-    <p>Curated collections for men, women &amp; accessories – every piece tells a story of elegance.</p>
-    <div class="hero-buttons">
-      <button class="btn-primary" onclick="filterProducts('all')"><i class="fas fa-tshirt"></i> Shop Now</button>
-      <button class="btn-outline" onclick="filterProducts('best')"><i class="fas fa-star"></i> Best Quality</button>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <i class="fas fa-crown"></i>
+        <div><span class="brand-text">Lucie Closet</span><span class="brand-sub">Premium Fashion</span></div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#" onclick="filterProducts('all')">Home</a></li>
+        <li><a href="#" onclick="filterProducts('dress')">Dresses</a></li>
+        <li><a href="#" onclick="filterProducts('top')">Tops</a></li>
+        <li><a href="#" onclick="filterProducts('sweater')">Sweaters</a></li>
+        <li><a href="#" onclick="filterProducts('suit')">Suits</a></li>
+        <li><a href="#" onclick="filterProducts('best')" class="best-link"><i class="fas fa-star"></i> Best Quality</a></li>
+      </ul>
+      <div class="header-actions">
+        <button class="icon-btn" onclick="toggleCart()"><i class="fas fa-shopping-bag"></i><span class="cart-badge" id="cartCount">0</span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge"><i class="fas fa-crown"></i> Since 2025</div>
+      <h1>Discover <span class="brand-highlight">Premium</span> <span class="highlight">Fashion</span></h1>
+      <p>Curated collections for men, women &amp; accessories – every piece tells a story of elegance.</p>
+      <div class="hero-buttons">
+        <button class="btn-primary" onclick="filterProducts('all')"><i class="fas fa-tshirt"></i> Shop Now</button>
+        <button class="btn-outline" onclick="filterProducts('best')"><i class="fas fa-star"></i> Best Quality</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STORE INFO -->
+  <div class="store-info">
+    <div class="store-info-inner">
+      <div class="left"><span class="icon"><i class="fas fa-store"></i></span><div><h3>Lucie Closet Boutique</h3><p>Eastleigh 5th St, Micki Mall, Rm S12</p></div></div>
+      <div class="right">
+        <span class="contact-item"><i class="fas fa-phone"></i> 0794 789 345</span>
+        <span class="contact-item"><i class="fas fa-phone"></i> 0726 945 270</span>
+        <span class="badge"><i class="fas fa-check-circle"></i> Verified Store</span>
+      </div>
     </div>
   </div>
-</section>
 
-<!-- store info -->
-<div class="store-info">
-  <div class="store-info-inner">
-    <div class="left"><span class="icon"><i class="fas fa-store"></i></span><div><h3>Lucie Closet Boutique</h3><p>Eastleigh 5th St, Micki Mall, Rm S12</p></div></div>
-    <div class="right">
-      <span class="contact-item"><i class="fas fa-phone"></i> 0794 789 345</span>
-      <span class="contact-item"><i class="fas fa-phone"></i> 0726 945 270</span>
-      <span class="badge"><i class="fas fa-check-circle"></i> Verified Store</span>
+  <!-- FEATURED BANNER -->
+  <div class="featured-banner">
+    <div class="featured-banner-inner">
+      <div class="left"><span class="icon"><i class="fas fa-crown"></i></span><div><h3>Best Quality Collection</h3><p>Handpicked premium pieces with the finest fabrics</p></div></div>
+      <span class="badge"><i class="fas fa-star"></i> Premium Items</span>
     </div>
   </div>
-</div>
 
-<!-- featured banner -->
-<div class="featured-banner">
-  <div class="featured-banner-inner">
-    <div class="left"><span class="icon"><i class="fas fa-crown"></i></span><div><h3>Best Quality Collection</h3><p>Handpicked premium pieces with the finest fabrics</p></div></div>
-    <span class="badge"><i class="fas fa-star"></i> 12+ Premium Items</span>
-  </div>
-</div>
-
-<!-- filters -->
-<div class="filters" id="filterBar">
-  <button class="filter-btn active" data-filter="all" onclick="filterProducts('all')">All</button>
-  <button class="filter-btn" data-filter="dress" onclick="filterProducts('dress')">Dresses</button>
-  <button class="filter-btn" data-filter="top" onclick="filterProducts('top')">Tops</button>
-  <button class="filter-btn" data-filter="sweater" onclick="filterProducts('sweater')">Sweaters</button>
-  <button class="filter-btn" data-filter="suit" onclick="filterProducts('suit')">Suits</button>
-  <button class="filter-btn best-quality" data-filter="best" onclick="filterProducts('best')"><i class="fas fa-star"></i> Best</button>
-  <div class="gender-filter">
-    <button class="gender-btn active" data-gender="all" onclick="filterGender('all')">All</button>
-    <button class="gender-btn" data-gender="women" onclick="filterGender('women')"><i class="fas fa-female"></i> Women</button>
-    <button class="gender-btn" data-gender="men" onclick="filterGender('men')"><i class="fas fa-male"></i> Men</button>
-    <button class="gender-btn" data-gender="unisex" onclick="filterGender('unisex')"><i class="fas fa-people-arrows"></i> Unisex</button>
-  </div>
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Search products..." oninput="filterProducts(currentCategory)">
-    <button><i class="fas fa-search"></i></button>
-  </div>
-</div>
-
-<!-- products -->
-<section class="products-section">
-  <div class="section-header">
-    <h2 id="sectionTitle"><i class="fas fa-tshirt"></i> All Collections <span class="gold-star"><i class="fas fa-star"></i></span></h2>
-    <span class="count" id="productCount">0 items</span>
-  </div>
-  <div class="product-grid" id="productGrid"></div>
-</section>
-
-<!-- footer -->
-<footer class="footer">
-  <div class="footer-inner">
-    <div class="col"><h4>Lucie Closet</h4><p style="max-width:220px;">Premium fashion boutique in Eastleigh, Nairobi. Quality apparel for every occasion.</p></div>
-    <div class="col"><h4>Quick Links</h4><a href="#" onclick="filterProducts('all')">Home</a><a href="#" onclick="filterProducts('dress')">Dresses</a><a href="#" onclick="filterProducts('top')">Tops</a><a href="#" onclick="filterProducts('best')">Best Quality</a></div>
-    <div class="col"><h4>Contact</h4><a href="tel:+254794789345"><i class="fas fa-phone"></i> 0794 789 345</a><a href="tel:+254726945270"><i class="fas fa-phone"></i> 0726 945 270</a><a href="mailto:info@luciecloset.co.ke"><i class="fas fa-envelope"></i> info@luciecloset.co.ke</a></div>
-  </div>
-  <div class="footer-bottom">© 2025 Lucie Closet · Premium Fashion. All rights reserved.</div>
-</footer>
-
-<!-- cart overlay + sidebar -->
-<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
-<div class="cart-sidebar" id="cartSidebar">
-  <div class="cart-header"><h3><i class="fas fa-shopping-bag"></i> Your Cart</h3><button class="close-btn" onclick="toggleCart()"><i class="fas fa-times"></i></button></div>
-  <div class="cart-items" id="cartItems"><div style="text-align:center;color:var(--text-muted);padding:40px 0;"><i class="fas fa-shopping-bag" style="font-size:32px;display:block;margin-bottom:12px;"></i>Your cart is empty</div></div>
-  <div class="cart-footer">
-    <div class="payment-options"><span class="payment-badge"><i class="fas fa-mobile-alt"></i> M-Pesa</span><span class="payment-badge"><i class="fas fa-credit-card"></i> Card</span><span class="payment-badge"><i class="fas fa-building"></i> Bank</span></div>
-    <div class="cart-total"><span>Total</span><span id="cartTotal">KSh 0</span></div>
-    <button class="checkout-btn" onclick="openPaymentModal()"><i class="fas fa-lock"></i> Proceed to Checkout</button>
-  </div>
-</div>
-
-<!-- payment modal -->
-<div class="payment-modal" id="paymentModal">
-  <div class="payment-modal-content">
-    <div class="modal-header"><h3><i class="fas fa-credit-card"></i> Complete Order</h3><button class="close-modal" onclick="closePaymentModal()"><i class="fas fa-times"></i></button></div>
-    <div class="order-summary" id="paymentItems"></div>
-    <div class="form-group"><label>Full Name</label><input type="text" id="customerName" placeholder="John Doe"></div>
-    <div class="form-group"><label>Phone Number</label><input type="tel" id="customerPhone" placeholder="0712345678"></div>
-    <div class="form-group"><label>Email (optional)</label><input type="email" id="customerEmail" placeholder="john@example.com"></div>
-    <div class="payment-methods">
-      <div class="method active" data-method="mpesa" onclick="selectPayment('mpesa')"><i class="fas fa-mobile-alt"></i> M-Pesa</div>
-      <div class="method" data-method="card" onclick="selectPayment('card')"><i class="fas fa-credit-card"></i> Card</div>
-      <div class="method" data-method="bank" onclick="selectPayment('bank')"><i class="fas fa-university"></i> Bank</div>
-      <div class="method" data-method="cash" onclick="selectPayment('cash')"><i class="fas fa-money-bill-wave"></i> Cash</div>
+  <!-- FILTERS -->
+  <div class="filters" id="filterBar">
+    <button class="filter-btn active" data-filter="all" onclick="filterProducts('all')">All</button>
+    <button class="filter-btn" data-filter="dress" onclick="filterProducts('dress')">Dresses</button>
+    <button class="filter-btn" data-filter="top" onclick="filterProducts('top')">Tops</button>
+    <button class="filter-btn" data-filter="sweater" onclick="filterProducts('sweater')">Sweaters</button>
+    <button class="filter-btn" data-filter="suit" onclick="filterProducts('suit')">Suits</button>
+    <button class="filter-btn best-quality" data-filter="best" onclick="filterProducts('best')"><i class="fas fa-star"></i> Best</button>
+    <div class="gender-filter">
+      <button class="gender-btn active" data-gender="all" onclick="filterGender('all')">All</button>
+      <button class="gender-btn" data-gender="women" onclick="filterGender('women')"><i class="fas fa-female"></i> Women</button>
+      <button class="gender-btn" data-gender="men" onclick="filterGender('men')"><i class="fas fa-male"></i> Men</button>
+      <button class="gender-btn" data-gender="unisex" onclick="filterGender('unisex')"><i class="fas fa-people-arrows"></i> Unisex</button>
     </div>
-    <button class="btn-primary" onclick="placeOrder()"><i class="fas fa-check"></i> Place Order · <span id="paymentTotal">KSh 0</span></button>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search products..." oninput="renderProducts()">
+      <button><i class="fas fa-search"></i></button>
+    </div>
   </div>
-</div>
 
-<!-- toast container -->
-<div class="toast-container" id="toastContainer"></div>
+  <!-- PRODUCTS -->
+  <section class="products-section">
+    <div class="section-header">
+      <h2 id="sectionTitle"><i class="fas fa-tshirt"></i> All Collections <span class="gold-star"><i class="fas fa-star"></i></span></h2>
+      <span class="count" id="productCount">0 items</span>
+    </div>
+    <div class="product-grid" id="productGrid"></div>
+  </section>
 
-<script>
-  // ============================================================
-  // SUPABASE CONFIG
-  // ============================================================
-  const SUPABASE_URL = 'https://tlsldwshtxofckvkixxz.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsc2xkd3NodHhvZmNrdmtpeHh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTksImV4cCI6MjEwMzc4NzU1OX0.BAfgQG4Z28bgKSfL9Li7Gbgp62sTM-5NxB4qVQ-b0H4';
-  const supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="col"><h4>Lucie Closet</h4><p style="max-width:220px;">Premium fashion boutique in Eastleigh, Nairobi. Quality apparel for every occasion.</p></div>
+      <div class="col"><h4>Quick Links</h4><a href="#" onclick="filterProducts('all')">Home</a><a href="#" onclick="filterProducts('dress')">Dresses</a><a href="#" onclick="filterProducts('top')">Tops</a><a href="#" onclick="filterProducts('best')">Best Quality</a></div>
+      <div class="col"><h4>Contact</h4><a href="tel:+254794789345"><i class="fas fa-phone"></i> 0794 789 345</a><a href="tel:+254726945270"><i class="fas fa-phone"></i> 0726 945 270</a><a href="mailto:info@luciecloset.co.ke"><i class="fas fa-envelope"></i> info@luciecloset.co.ke</a></div>
+    </div>
+    <div class="footer-bottom">© 2025 Lucie Closet · Premium Fashion. All rights reserved.</div>
+  </footer>
 
-  // ============================================================
-  // STATE
-  // ============================================================
-  let products = [];
-  let cart = [];
-  let currentCategory = 'all';
-  let currentGender = 'all';
-  let searchQuery = '';
+  <!-- CART -->
+  <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+  <div class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header"><h3><i class="fas fa-shopping-bag"></i> Your Cart</h3><button class="close-btn" onclick="toggleCart()"><i class="fas fa-times"></i></button></div>
+    <div class="cart-items" id="cartItems"><div style="text-align:center;color:var(--text-muted);padding:40px 0;"><i class="fas fa-shopping-bag" style="font-size:32px;display:block;margin-bottom:12px;"></i>Your cart is empty</div></div>
+    <div class="cart-footer">
+      <div class="payment-options"><span class="payment-badge"><i class="fas fa-mobile-alt"></i> M-Pesa</span><span class="payment-badge"><i class="fas fa-credit-card"></i> Card</span><span class="payment-badge"><i class="fas fa-building"></i> Bank</span></div>
+      <div class="cart-total"><span>Total</span><span id="cartTotal">KSh 0</span></div>
+      <button class="checkout-btn" onclick="openPaymentModal()"><i class="fas fa-lock"></i> Proceed to Checkout</button>
+    </div>
+  </div>
 
-  // ============================================================
-  // DOM REFS
-  // ============================================================
-  const grid = document.getElementById('productGrid');
-  const countEl = document.getElementById('productCount');
-  const sectionTitle = document.getElementById('sectionTitle');
-  const cartItemsEl = document.getElementById('cartItems');
-  const cartTotalEl = document.getElementById('cartTotal');
-  const cartCountEl = document.getElementById('cartCount');
-  const overlay = document.getElementById('cartOverlay');
-  const sidebar = document.getElementById('cartSidebar');
-  const searchInput = document.getElementById('searchInput');
-  const paymentModal = document.getElementById('paymentModal');
-  const paymentTotal = document.getElementById('paymentTotal');
-  const paymentItems = document.getElementById('paymentItems');
-  const toastContainer = document.getElementById('toastContainer');
+  <!-- PAYMENT MODAL -->
+  <div class="payment-modal" id="paymentModal">
+    <div class="payment-modal-content">
+      <div class="modal-header"><h3><i class="fas fa-credit-card"></i> Complete Order</h3><button class="close-modal" onclick="closePaymentModal()"><i class="fas fa-times"></i></button></div>
+      <div class="order-summary" id="paymentItems"></div>
+      <div class="form-group"><label>Full Name</label><input type="text" id="customerName" placeholder="John Doe"></div>
+      <div class="form-group"><label>Phone Number</label><input type="tel" id="customerPhone" placeholder="0712345678"></div>
+      <div class="form-group"><label>Email (optional)</label><input type="email" id="customerEmail" placeholder="john@example.com"></div>
+      <div class="payment-methods">
+        <div class="method active" data-method="mpesa" onclick="selectPayment('mpesa')"><i class="fas fa-mobile-alt"></i> M-Pesa</div>
+        <div class="method" data-method="card" onclick="selectPayment('card')"><i class="fas fa-credit-card"></i> Card</div>
+        <div class="method" data-method="bank" onclick="selectPayment('bank')"><i class="fas fa-university"></i> Bank</div>
+        <div class="method" data-method="cash" onclick="selectPayment('cash')"><i class="fas fa-money-bill-wave"></i> Cash</div>
+      </div>
+      <button class="btn-primary" onclick="placeOrder()"><i class="fas fa-check"></i> Place Order · <span id="paymentTotal">KSh 0</span></button>
+    </div>
+  </div>
 
-  // ============================================================
-  // LOAD PRODUCTS FROM SUPABASE
-  // ============================================================
-  async function loadProducts() {
-    try {
-      const { data, error } = await supabase.from('products').select('*').order('id', { ascending: true });
-      if (error) throw error;
-      if (data && data.length) {
-        products = data;
-        localStorage.setItem('luciecloset_products', JSON.stringify(products));
-      } else {
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // ============================================================
+    // YOUR SUPABASE CREDENTIALS (UPDATED)
+    // ============================================================
+    const SUPABASE_URL = 'https://tlsldwshtxofckvkixxz.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsc2xkd3NodHhvZmNrdmtpeHh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTksImV4cCI6MjEwMzc4NzU1OX0.BAfgQG4Z28bgKSfL9Li7Gbgp62sTM-5NxB4qVQ-b0H4';
+
+    const supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ============================================================
+    // STATE
+    // ============================================================
+    let products = [];
+    let cart = [];
+    let currentCategory = 'all';
+    let currentGender = 'all';
+
+    // ============================================================
+    // DOM REFS
+    // ============================================================
+    const grid = document.getElementById('productGrid');
+    const countEl = document.getElementById('productCount');
+    const sectionTitle = document.getElementById('sectionTitle');
+    const cartItemsEl = document.getElementById('cartItems');
+    const cartTotalEl = document.getElementById('cartTotal');
+    const cartCountEl = document.getElementById('cartCount');
+    const overlay = document.getElementById('cartOverlay');
+    const sidebar = document.getElementById('cartSidebar');
+    const searchInput = document.getElementById('searchInput');
+    const paymentModal = document.getElementById('paymentModal');
+    const paymentTotal = document.getElementById('paymentTotal');
+    const paymentItems = document.getElementById('paymentItems');
+    const toastContainer = document.getElementById('toastContainer');
+
+    // ============================================================
+    // LOAD PRODUCTS FROM SUPABASE
+    // ============================================================
+    async function loadProducts() {
+      try {
+        const { data, error } = await supabase.from('products').select('*').order('id', { ascending: true });
+        if (error) throw error;
+        if (data && data.length) {
+          products = data;
+          localStorage.setItem('luciecloset_products', JSON.stringify(products));
+        } else {
+          loadFromLocalStorage();
+        }
+      } catch (e) {
+        console.warn('Supabase fallback → localStorage', e);
         loadFromLocalStorage();
       }
-    } catch (e) {
-      console.warn('Supabase fallback → localStorage', e);
-      loadFromLocalStorage();
+      renderProducts();
+      updateCartUI();
     }
-    renderProducts();
-    updateCartUI();
-  }
 
-  function loadFromLocalStorage() {
-    const stored = localStorage.getItem('luciecloset_products');
-    if (stored) { products = JSON.parse(stored); } 
-    else { products = getDefaultProducts(); localStorage.setItem('luciecloset_products', JSON.stringify(products)); }
-  }
-
-  function getDefaultProducts() {
-    return [
-      { id:1, code:'0001#', name:'Classic Silk Dress', category:'dress', gender:'women', price:500, stock:12, image_url:null, best_quality:true, rating:4.8 },
-      { id:2, code:'6195-1#', name:'Summer Floral Dress', category:'dress', gender:'women', price:500, stock:6, image_url:null, best_quality:false, rating:4.2 },
-      { id:3, code:'6169-145A', name:'Elegant Evening Gown', category:'dress', gender:'women', price:600, stock:6, image_url:null, best_quality:true, rating:4.9 },
-      { id:4, code:'8457-77', name:'Chiffon Maxi Dress', category:'dress', gender:'women', price:600, stock:6, image_url:null, best_quality:false, rating:4.3 },
-      { id:5, code:'5850#', name:'A-Line Mini Dress', category:'dress', gender:'women', price:550, stock:12, image_url:null, best_quality:true, rating:4.6 },
-      { id:6, code:'5150-145-12', name:'Casual Day Dress', category:'dress', gender:'women', price:450, stock:12, image_url:null, best_quality:false, rating:4.0 },
-      { id:7, code:'6169-145', name:'Silk Evening Dress', category:'dress', gender:'women', price:600, stock:12, image_url:null, best_quality:true, rating:4.7 },
-      { id:8, code:'2668', name:'Premium Party Dress', category:'dress', gender:'women', price:600, stock:12, image_url:null, best_quality:true, rating:4.8 },
-      { id:9, code:'262564', name:'Designer Diess', category:'dress', gender:'women', price:600, stock:3, image_url:null, best_quality:false, rating:4.1 },
-      { id:10, code:'5918', name:'Pie Top', category:'top', gender:'women', price:600, stock:10, image_url:null, best_quality:false, rating:4.2 },
-      { id:11, code:'5918 1', name:'Polo Top with A-Top', category:'top', gender:'unisex', price:700, stock:10, image_url:null, best_quality:true, rating:4.6 },
-      { id:12, code:'8300+', name:'Sweetes Top', category:'top', gender:'women', price:500, stock:10, image_url:null, best_quality:false, rating:4.0 },
-      { id:13, code:'02602', name:'Shiffon Kop Top', category:'top', gender:'women', price:600, stock:10, image_url:null, best_quality:true, rating:4.5 },
-      { id:14, code:'25322-1', name:'Polo Dress (restock)', category:'top', gender:'unisex', price:600, stock:12, image_url:null, best_quality:false, rating:4.3 },
-      { id:15, code:'13801', name:'Warm Knit Sweater', category:'sweater', gender:'unisex', price:500, stock:12, image_url:null, best_quality:false, rating:4.1 },
-      { id:16, code:'13802', name:'Cashmere Blend Sweater', category:'sweater', gender:'men', price:650, stock:8, image_url:null, best_quality:true, rating:4.7 },
-      { id:17, code:'S001', name:'Tailored Wool Suit', category:'suit', gender:'men', price:1200, stock:5, image_url:null, best_quality:true, rating:4.9 },
-      { id:18, code:'S002', name:'Classic Blazer Suit', category:'suit', gender:'men', price:1100, stock:4, image_url:null, best_quality:false, rating:4.3 },
-    ];
-  }
-
-  // ============================================================
-  // RENDER PRODUCTS
-  // ============================================================
-  function renderProducts() {
-    let filtered = [...products];
-    // category filter
-    if (currentCategory === 'best') {
-      filtered = filtered.filter(p => p.best_quality === true);
-      sectionTitle.innerHTML = `<i class="fas fa-star gold-star"></i> Best Quality Collection`;
-    } else if (currentCategory !== 'all') {
-      filtered = filtered.filter(p => p.category === currentCategory);
-      sectionTitle.innerHTML = `<i class="fas fa-tag"></i> ${currentCategory.charAt(0).toUpperCase()+currentCategory.slice(1)}s`;
-    } else {
-      sectionTitle.innerHTML = `<i class="fas fa-tshirt"></i> All Collections <span class="gold-star"><i class="fas fa-star"></i></span>`;
+    function loadFromLocalStorage() {
+      const stored = localStorage.getItem('luciecloset_products');
+      if (stored) { products = JSON.parse(stored); } 
+      else { products = getDefaultProducts(); localStorage.setItem('luciecloset_products', JSON.stringify(products)); }
     }
-    // gender
-    if (currentGender !== 'all') {
-      filtered = filtered.filter(p => p.gender === currentGender);
+
+    function getDefaultProducts() {
+      return [
+        { id:1, code:'0001#', name:'Classic Silk Dress', category:'dress', gender:'women', price:500, stock:12, image_url:null, best_quality:true, rating:4.8 },
+        { id:2, code:'6195-1#', name:'Summer Floral Dress', category:'dress', gender:'women', price:500, stock:6, image_url:null, best_quality:false, rating:4.2 },
+        { id:3, code:'6169-145A', name:'Elegant Evening Gown', category:'dress', gender:'women', price:600, stock:6, image_url:null, best_quality:true, rating:4.9 },
+        { id:4, code:'8457-77', name:'Chiffon Maxi Dress', category:'dress', gender:'women', price:600, stock:6, image_url:null, best_quality:false, rating:4.3 },
+        { id:5, code:'5850#', name:'A-Line Mini Dress', category:'dress', gender:'women', price:550, stock:12, image_url:null, best_quality:true, rating:4.6 },
+        { id:6, code:'5150-145-12', name:'Casual Day Dress', category:'dress', gender:'women', price:450, stock:12, image_url:null, best_quality:false, rating:4.0 },
+        { id:7, code:'6169-145', name:'Silk Evening Dress', category:'dress', gender:'women', price:600, stock:12, image_url:null, best_quality:true, rating:4.7 },
+        { id:8, code:'2668', name:'Premium Party Dress', category:'dress', gender:'women', price:600, stock:12, image_url:null, best_quality:true, rating:4.8 },
+        { id:9, code:'262564', name:'Designer Diess', category:'dress', gender:'women', price:600, stock:3, image_url:null, best_quality:false, rating:4.1 },
+        { id:10, code:'5918', name:'Pie Top', category:'top', gender:'women', price:600, stock:10, image_url:null, best_quality:false, rating:4.2 },
+        { id:11, code:'5918 1', name:'Polo Top with A-Top', category:'top', gender:'unisex', price:700, stock:10, image_url:null, best_quality:true, rating:4.6 },
+        { id:12, code:'8300+', name:'Sweetes Top', category:'top', gender:'women', price:500, stock:10, image_url:null, best_quality:false, rating:4.0 },
+        { id:13, code:'02602', name:'Shiffon Kop Top', category:'top', gender:'women', price:600, stock:10, image_url:null, best_quality:true, rating:4.5 },
+        { id:14, code:'25322-1', name:'Polo Dress (restock)', category:'top', gender:'unisex', price:600, stock:12, image_url:null, best_quality:false, rating:4.3 },
+        { id:15, code:'13801', name:'Warm Knit Sweater', category:'sweater', gender:'unisex', price:500, stock:12, image_url:null, best_quality:false, rating:4.1 },
+        { id:16, code:'13802', name:'Cashmere Blend Sweater', category:'sweater', gender:'men', price:650, stock:8, image_url:null, best_quality:true, rating:4.7 },
+        { id:17, code:'S001', name:'Tailored Wool Suit', category:'suit', gender:'men', price:1200, stock:5, image_url:null, best_quality:true, rating:4.9 },
+        { id:18, code:'S002', name:'Classic Blazer Suit', category:'suit', gender:'men', price:1100, stock:4, image_url:null, best_quality:false, rating:4.3 },
+      ];
     }
-    // search
-    const q = searchInput.value.trim().toLowerCase();
-    if (q) {
-      filtered = filtered.filter(p => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q));
-    }
-    // render
-    if (!filtered.length) {
-      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:var(--text-muted);"><i class="fas fa-box-open" style="font-size:48px;display:block;margin-bottom:16px;"></i>No products found</div>`;
-      countEl.textContent = '0 items';
-      return;
-    }
-    countEl.textContent = `${filtered.length} items`;
-    grid.innerHTML = filtered.map(p => {
-      const isBest = p.best_quality;
-      const imgHtml = p.image_url ? `<img src="${p.image_url}" alt="${p.name}">` : `<span class="no-image">${p.category === 'dress' ? '👗' : p.category === 'top' ? '👕' : p.category === 'sweater' ? '🧥' : '👔'}</span>`;
-      const genderTag = p.gender ? `<span class="gender-tag">${p.gender}</span>` : '';
-      return `
-        <div class="product-card ${isBest ? 'best-quality' : ''}">
-          ${isBest ? '<div class="best-badge"><i class="fas fa-crown"></i> Best</div>' : ''}
-          <div class="product-image">
-            ${imgHtml}
-            ${genderTag}
-            <span class="stock-badge">${p.stock ?? 0} in stock</span>
-          </div>
-          <div class="product-info">
-            <div class="product-code">${p.code || 'N/A'}</div>
-            <div class="product-name">${p.name}</div>
-            <div class="product-price">KSh ${p.price} <span class="original">${Math.round(p.price*1.2)}</span></div>
-            <div class="product-rating"><i class="fas fa-star"></i> ${p.rating || 4.0} <span>(${Math.floor(Math.random()*20)+5} reviews)</span></div>
-            <button class="add-to-cart" onclick="addToCart(${p.id})"><i class="fas fa-plus"></i> Add to Cart</button>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
 
-  // ============================================================
-  // FILTER FUNCTIONS
-  // ============================================================
-  function filterProducts(category) {
-    currentCategory = category;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.filter-btn').forEach(b => { if(b.dataset.filter === category) b.classList.add('active'); });
-    renderProducts();
-  }
-  function filterGender(gender) {
-    currentGender = gender;
-    document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.gender-btn').forEach(b => { if(b.dataset.gender === gender) b.classList.add('active'); });
-    renderProducts();
-  }
-  // expose to global
-  window.filterProducts = filterProducts;
-  window.filterGender = filterGender;
-
-  // ============================================================
-  // CART
-  // ============================================================
-  function addToCart(productId) {
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-    const existing = cart.find(item => item.id === productId);
-    if (existing) {
-      if (existing.qty >= (product.stock || 0)) { showToast('Out of stock!', 'error'); return; }
-      existing.qty++;
-    } else {
-      cart.push({ ...product, qty: 1 });
-    }
-    updateCartUI();
-    showToast(`${product.name} added to cart`, 'success');
-  }
-
-  function removeFromCart(productId) {
-    cart = cart.filter(item => item.id !== productId);
-    updateCartUI();
-  }
-
-  function updateQty(productId, delta) {
-    const item = cart.find(i => i.id === productId);
-    if (!item) return;
-    const stock = products.find(p => p.id === productId)?.stock || 0;
-    const newQty = item.qty + delta;
-    if (newQty < 1) { removeFromCart(productId); return; }
-    if (newQty > stock) { showToast('Stock limit reached', 'error'); return; }
-    item.qty = newQty;
-    updateCartUI();
-  }
-
-  function updateCartUI() {
-    const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
-    const totalPrice = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    cartCountEl.textContent = totalItems;
-    if (!cart.length) {
-      cartItemsEl.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:40px 0;"><i class="fas fa-shopping-bag" style="font-size:32px;display:block;margin-bottom:12px;"></i>Your cart is empty</div>`;
-    } else {
-      cartItemsEl.innerHTML = cart.map(item => `
-        <div class="cart-item">
-          <div class="item-image">${item.image_url ? `<img src="${item.image_url}">` : (item.category === 'dress' ? '👗' : '👕')}</div>
-          <div class="item-details">
-            <div class="item-name">${item.name}</div>
-            <div class="item-code">${item.code}</div>
-            <div class="item-qty">
-              <button onclick="updateQty(${item.id},-1)">−</button>
-              <span>${item.qty}</span>
-              <button onclick="updateQty(${item.id},1)">+</button>
+    // ============================================================
+    // RENDER PRODUCTS
+    // ============================================================
+    function renderProducts() {
+      let filtered = [...products];
+      if (currentCategory === 'best') {
+        filtered = filtered.filter(p => p.best_quality === true);
+        sectionTitle.innerHTML = `<i class="fas fa-star gold-star"></i> Best Quality Collection`;
+      } else if (currentCategory !== 'all') {
+        filtered = filtered.filter(p => p.category === currentCategory);
+        sectionTitle.innerHTML = `<i class="fas fa-tag"></i> ${currentCategory.charAt(0).toUpperCase()+currentCategory.slice(1)}s`;
+      } else {
+        sectionTitle.innerHTML = `<i class="fas fa-tshirt"></i> All Collections <span class="gold-star"><i class="fas fa-star"></i></span>`;
+      }
+      if (currentGender !== 'all') {
+        filtered = filtered.filter(p => p.gender === currentGender);
+      }
+      const q = searchInput.value.trim().toLowerCase();
+      if (q) {
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q));
+      }
+      if (!filtered.length) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:var(--text-muted);"><i class="fas fa-box-open" style="font-size:48px;display:block;margin-bottom:16px;"></i>No products found</div>`;
+        countEl.textContent = '0 items';
+        return;
+      }
+      countEl.textContent = `${filtered.length} items`;
+      grid.innerHTML = filtered.map(p => {
+        const isBest = p.best_quality;
+        const imgHtml = p.image_url ? `<img src="${p.image_url}" alt="${p.name}">` : `<span class="no-image">${p.category === 'dress' ? '👗' : p.category === 'top' ? '👕' : p.category === 'sweater' ? '🧥' : '👔'}</span>`;
+        const genderTag = p.gender ? `<span class="gender-tag">${p.gender}</span>` : '';
+        return `
+          <div class="product-card ${isBest ? 'best-quality' : ''}">
+            ${isBest ? '<div class="best-badge"><i class="fas fa-crown"></i> Best</div>' : ''}
+            <div class="product-image">
+              ${imgHtml}
+              ${genderTag}
+              <span class="stock-badge">${p.stock ?? 0} in stock</span>
+            </div>
+            <div class="product-info">
+              <div class="product-code">${p.code || 'N/A'}</div>
+              <div class="product-name">${p.name}</div>
+              <div class="product-price">KSh ${p.price} <span class="original">${Math.round(p.price*1.2)}</span></div>
+              <div class="product-rating"><i class="fas fa-star"></i> ${p.rating || 4.0} <span>(${Math.floor(Math.random()*20)+5} reviews)</span></div>
+              <button class="add-to-cart" onclick="addToCart(${p.id})"><i class="fas fa-plus"></i> Add to Cart</button>
             </div>
           </div>
-          <div class="item-total">KSh ${item.price * item.qty}</div>
-          <button class="remove-btn" onclick="removeFromCart(${item.id})"><i class="fas fa-trash-alt"></i></button>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
-    cartTotalEl.textContent = `KSh ${totalPrice}`;
-  }
 
-  function toggleCart() {
-    overlay.classList.toggle('open');
-    sidebar.classList.toggle('open');
-  }
-  window.toggleCart = toggleCart;
-  window.addToCart = addToCart;
-  window.removeFromCart = removeFromCart;
-  window.updateQty = updateQty;
-
-  // ============================================================
-  // PAYMENT MODAL
-  // ============================================================
-  let selectedPayment = 'mpesa';
-
-  function openPaymentModal() {
-    if (!cart.length) { showToast('Cart is empty', 'error'); return; }
-    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    paymentTotal.textContent = `KSh ${total}`;
-    paymentItems.innerHTML = cart.map(i => `<div class="summary-item"><span>${i.name} × ${i.qty}</span><span>KSh ${i.price * i.qty}</span></div>`).join('') +
-      `<div class="summary-item summary-total"><span>Total</span><span>KSh ${total}</span></div>`;
-    paymentModal.classList.add('open');
-  }
-
-  function closePaymentModal() { paymentModal.classList.remove('open'); }
-  window.openPaymentModal = openPaymentModal;
-  window.closePaymentModal = closePaymentModal;
-
-  function selectPayment(method) {
-    selectedPayment = method;
-    document.querySelectorAll('.payment-methods .method').forEach(el => el.classList.remove('active'));
-    document.querySelector(`.payment-methods .method[data-method="${method}"]`).classList.add('active');
-  }
-  window.selectPayment = selectPayment;
-
-  // ============================================================
-  // PLACE ORDER (Supabase + local)
-  // ============================================================
-  async function placeOrder() {
-    if (!cart.length) { showToast('Cart is empty', 'error'); return; }
-    const name = document.getElementById('customerName').value.trim() || 'Guest';
-    const phone = document.getElementById('customerPhone').value.trim() || 'N/A';
-    const email = document.getElementById('customerEmail').value.trim() || '';
-    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    const orderData = {
-      order_number: 'ORD-' + Date.now().toString().slice(-6),
-      customer_name: name,
-      customer_email: email,
-      customer_phone: phone,
-      items: cart.map(i => ({ id: i.id, name: i.name, code: i.code, qty: i.qty, price: i.price })),
-      total: total,
-      payment_method: selectedPayment,
-      status: 'pending',
-      created_at: new Date().toISOString()
-    };
-
-    try {
-      const { error } = await supabase.from('orders').insert([orderData]);
-      if (error) throw error;
-      showToast('✅ Order placed successfully!', 'success');
-      cart = [];
-      updateCartUI();
-      closePaymentModal();
-      // clear form
-      document.getElementById('customerName').value = '';
-      document.getElementById('customerPhone').value = '';
-      document.getElementById('customerEmail').value = '';
-    } catch (e) {
-      console.warn('Supabase insert failed, saving locally', e);
-      // fallback: save to localStorage
-      const orders = JSON.parse(localStorage.getItem('luciecloset_orders') || '[]');
-      orders.push(orderData);
-      localStorage.setItem('luciecloset_orders', JSON.stringify(orders));
-      showToast('✅ Order saved locally (offline mode)', 'success');
-      cart = [];
-      updateCartUI();
-      closePaymentModal();
+    // ============================================================
+    // FILTER FUNCTIONS
+    // ============================================================
+    function filterProducts(category) {
+      currentCategory = category;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.filter-btn').forEach(b => { if(b.dataset.filter === category) b.classList.add('active'); });
+      renderProducts();
     }
-  }
-  window.placeOrder = placeOrder;
+    function filterGender(gender) {
+      currentGender = gender;
+      document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.gender-btn').forEach(b => { if(b.dataset.gender === gender) b.classList.add('active'); });
+      renderProducts();
+    }
+    window.filterProducts = filterProducts;
+    window.filterGender = filterGender;
 
-  // ============================================================
-  // TOAST
-  // ============================================================
-  function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
-    toastContainer.appendChild(toast);
-    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
-  }
-  window.showToast = showToast;
+    // ============================================================
+    // CART
+    // ============================================================
+    function addToCart(productId) {
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+      const existing = cart.find(item => item.id === productId);
+      if (existing) {
+        if (existing.qty >= (product.stock || 0)) { showToast('Out of stock!', 'error'); return; }
+        existing.qty++;
+      } else {
+        cart.push({ ...product, qty: 1 });
+      }
+      updateCartUI();
+      showToast(`${product.name} added to cart`, 'success');
+    }
 
-  // ============================================================
-  // INIT
-  // ============================================================
-  loadProducts();
+    function removeFromCart(productId) {
+      cart = cart.filter(item => item.id !== productId);
+      updateCartUI();
+    }
 
-  // auto-update search
-  document.getElementById('searchInput').addEventListener('input', function() {
-    renderProducts();
-  });
-</script>
+    function updateQty(productId, delta) {
+      const item = cart.find(i => i.id === productId);
+      if (!item) return;
+      const stock = products.find(p => p.id === productId)?.stock || 0;
+      const newQty = item.qty + delta;
+      if (newQty < 1) { removeFromCart(productId); return; }
+      if (newQty > stock) { showToast('Stock limit reached', 'error'); return; }
+      item.qty = newQty;
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
+      const totalPrice = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+      cartCountEl.textContent = totalItems;
+      if (!cart.length) {
+        cartItemsEl.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:40px 0;"><i class="fas fa-shopping-bag" style="font-size:32px;display:block;margin-bottom:12px;"></i>Your cart is empty</div>`;
+      } else {
+        cartItemsEl.innerHTML = cart.map(item => `
+          <div class="cart-item">
+            <div class="item-image">${item.image_url ? `<img src="${item.image_url}">` : (item.category === 'dress' ? '👗' : '👕')}</div>
+            <div class="item-details">
+              <div class="item-name">${item.name}</div>
+              <div class="item-code">${item.code}</div>
+              <div class="item-qty">
+                <button onclick="updateQty(${item.id},-1)">−</button>
+                <span>${item.qty}</span>
+                <button onclick="updateQty(${item.id},1)">+</button>
+              </div>
+            </div>
+            <div class="item-total">KSh ${item.price * item.qty}</div>
+            <button class="remove-btn" onclick="removeFromCart(${item.id})"><i class="fas fa-trash-alt"></i></button>
+          </div>
+        `).join('');
+      }
+      cartTotalEl.textContent = `KSh ${totalPrice}`;
+    }
+
+    function toggleCart() {
+      overlay.classList.toggle('open');
+      sidebar.classList.toggle('open');
+    }
+    window.toggleCart = toggleCart;
+    window.addToCart = addToCart;
+    window.removeFromCart = removeFromCart;
+    window.updateQty = updateQty;
+
+    // ============================================================
+    // PAYMENT MODAL
+    // ============================================================
+    let selectedPayment = 'mpesa';
+
+    function openPaymentModal() {
+      if (!cart.length) { showToast('Cart is empty', 'error'); return; }
+      const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+      paymentTotal.textContent = `KSh ${total}`;
+      paymentItems.innerHTML = cart.map(i => `<div class="summary-item"><span>${i.name} × ${i.qty}</span><span>KSh ${i.price * i.qty}</span></div>`).join('') +
+        `<div class="summary-item summary-total"><span>Total</span><span>KSh ${total}</span></div>`;
+      paymentModal.classList.add('open');
+    }
+
+    function closePaymentModal() { paymentModal.classList.remove('open'); }
+    window.openPaymentModal = openPaymentModal;
+    window.closePaymentModal = closePaymentModal;
+
+    function selectPayment(method) {
+      selectedPayment = method;
+      document.querySelectorAll('.payment-methods .method').forEach(el => el.classList.remove('active'));
+      document.querySelector(`.payment-methods .method[data-method="${method}"]`).classList.add('active');
+    }
+    window.selectPayment = selectPayment;
+
+    // ============================================================
+    // PLACE ORDER
+    // ============================================================
+    async function placeOrder() {
+      if (!cart.length) { showToast('Cart is empty', 'error'); return; }
+      const name = document.getElementById('customerName').value.trim() || 'Guest';
+      const phone = document.getElementById('customerPhone').value.trim() || 'N/A';
+      const email = document.getElementById('customerEmail').value.trim() || '';
+      const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+      const orderData = {
+        order_number: 'ORD-' + Date.now().toString().slice(-6),
+        customer_name: name,
+        customer_email: email,
+        customer_phone: phone,
+        items: cart.map(i => ({ id: i.id, name: i.name, code: i.code, qty: i.qty, price: i.price })),
+        total: total,
+        payment_method: selectedPayment,
+        status: 'pending',
+        created_at: new Date().toISOString()
+      };
+
+      try {
+        const { error } = await supabase.from('orders').insert([orderData]);
+        if (error) throw error;
+        showToast('✅ Order placed successfully!', 'success');
+        cart = [];
+        updateCartUI();
+        closePaymentModal();
+        document.getElementById('customerName').value = '';
+        document.getElementById('customerPhone').value = '';
+        document.getElementById('customerEmail').value = '';
+      } catch (e) {
+        console.warn('Supabase insert failed, saving locally', e);
+        const orders = JSON.parse(localStorage.getItem('luciecloset_orders') || '[]');
+        orders.push(orderData);
+        localStorage.setItem('luciecloset_orders', JSON.stringify(orders));
+        showToast('✅ Order saved locally (offline mode)', 'success');
+        cart = [];
+        updateCartUI();
+        closePaymentModal();
+      }
+    }
+    window.placeOrder = placeOrder;
+
+    // ============================================================
+    // TOAST
+    // ============================================================
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+      toastContainer.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+    window.showToast = showToast;
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    loadProducts();
+  </script>
 </body>
 </html>
