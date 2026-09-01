@@ -3,47 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="robots" content="noindex, nofollow">
     <title>Lucie Closet · POS + Admin</title>
+
+    <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://tlsldwshtxofckvkixxz.supabase.co">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+
+    <!-- Chart.js for charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Styles -->
     <link rel="stylesheet" href="pos.css">
 </head>
 <body>
 
     <!-- ============================================================
-    LOGIN SCREEN
+    LOGIN SCREEN - Premium Design
     ============================================================ -->
-    <div id="loginScreen" class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <div class="logo-icon"><i class="fas fa-crown"></i></div>
-                <h1>Lucie Closet</h1>
-                <p>Premium Fashion</p>
-                <span class="subtitle">Point of Sale System</span>
+    <div id="loginScreen" class="login-wrapper">
+        <div class="login-container">
+            <!-- Brand Panel -->
+            <div class="brand-panel" role="banner">
+                <div class="logo-icon" aria-hidden="true"><i class="fas fa-crown"></i></div>
+                <h1>Lucie <span>Closet</span></h1>
+                <p class="tagline">Premium Fashion · Point of Sale System</p>
+                <div class="features" role="list">
+                    <div class="feature-item" role="listitem"><i class="fas fa-check-circle" aria-hidden="true"></i> Inventory Management</div>
+                    <div class="feature-item" role="listitem"><i class="fas fa-check-circle" aria-hidden="true"></i> Sales &amp; Analytics</div>
+                    <div class="feature-item" role="listitem"><i class="fas fa-check-circle" aria-hidden="true"></i> Multi-User Role Support</div>
+                    <div class="feature-item" role="listitem"><i class="fas fa-check-circle" aria-hidden="true"></i> Real-time Sync</div>
+                </div>
+                <div class="brand-footer">&copy; 2026 Lucie Closet</div>
             </div>
 
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label><i class="fas fa-envelope"></i> Email</label>
-                    <input type="email" id="loginEmail" placeholder="admin@luciecloset.co.ke" required>
+            <!-- Auth Panel -->
+            <div class="auth-panel" role="main">
+                <div class="auth-header">
+                    <div class="auth-title">Welcome back</div>
+                    <div class="auth-sub" id="authSub">Sign in to your account</div>
                 </div>
-                <div class="form-group">
-                    <label><i class="fas fa-lock"></i> Password</label>
-                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
+
+                <!-- Method Toggle -->
+                <div class="method-toggle" role="tablist">
+                    <button class="active" id="pinTab" onclick="switchMethod('pin')" role="tab">
+                        <i class="fas fa-keypad" aria-hidden="true"></i> PIN
+                    </button>
+                    <button id="emailTab" onclick="switchMethod('email')" role="tab">
+                        <i class="fas fa-envelope" aria-hidden="true"></i> Email
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label><i class="fas fa-key"></i> PIN (4 digits)</label>
-                    <input type="password" id="loginPin" maxlength="4" placeholder="Enter 4-digit PIN" required>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </button>
-                <div id="loginError" class="login-error"></div>
-            </form>
+
+                <!-- Alert -->
+                <div id="loginAlert" class="alert" role="alert" aria-live="polite"></div>
+
+                <!-- Form -->
+                <form id="loginForm" autocomplete="off" novalidate>
+
+                    <!-- PIN Pane -->
+                    <div id="pinPane" role="tabpanel">
+                        <div class="form-group">
+                            <label for="pinEmail"><i class="fas fa-envelope" aria-hidden="true"></i> Email Address</label>
+                            <input type="email" id="pinEmail" placeholder="you@example.com" autocomplete="username" spellcheck="false">
+                        </div>
+
+                        <!-- 4 PIN Dots -->
+                        <div class="pin-dots" id="pinDots" aria-label="PIN entry dots">
+                            <div class="pin-dot" data-i="0"></div>
+                            <div class="pin-dot" data-i="1"></div>
+                            <div class="pin-dot" data-i="2"></div>
+                            <div class="pin-dot" data-i="3"></div>
+                        </div>
+
+                        <div class="keypad" role="group" aria-label="PIN keypad">
+                            <button type="button" class="key" onclick="pinPress('1')" aria-label="1">1</button>
+                            <button type="button" class="key" onclick="pinPress('2')" aria-label="2">2</button>
+                            <button type="button" class="key" onclick="pinPress('3')" aria-label="3">3</button>
+                            <button type="button" class="key" onclick="pinPress('4')" aria-label="4">4</button>
+                            <button type="button" class="key" onclick="pinPress('5')" aria-label="5">5</button>
+                            <button type="button" class="key" onclick="pinPress('6')" aria-label="6">6</button>
+                            <button type="button" class="key" onclick="pinPress('7')" aria-label="7">7</button>
+                            <button type="button" class="key" onclick="pinPress('8')" aria-label="8">8</button>
+                            <button type="button" class="key" onclick="pinPress('9')" aria-label="9">9</button>
+                            <button type="button" class="key action" onclick="pinBackspace()" aria-label="Delete last digit">
+                                <i class="fas fa-delete-left" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="key" onclick="pinPress('0')" aria-label="0">0</button>
+                            <button type="button" class="key enter" id="pinEnter" onclick="submitPin()" aria-label="Sign in with PIN">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.5" fill="none"/></svg>
+                            </button>
+                        </div>
+
+                        <input type="hidden" name="login_method" value="pin">
+                        <input type="hidden" name="pin" id="pinInput" value="">
+                    </div>
+
+                    <!-- Email Pane -->
+                    <div id="emailPane" class="hidden" role="tabpanel">
+                        <div class="form-group">
+                            <label for="emailInput"><i class="fas fa-envelope" aria-hidden="true"></i> Email Address</label>
+                            <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="username" spellcheck="false">
+                        </div>
+                        <div class="form-group">
+                            <label for="passwordInput"><i class="fas fa-lock" aria-hidden="true"></i> Password</label>
+                            <input type="password" id="passwordInput" placeholder="Enter your password" autocomplete="current-password">
+                        </div>
+                        <div class="form-row">
+                            <label class="checkbox-wrap">
+                                <input type="checkbox" name="remember" id="remember">
+                                Remember me
+                            </label>
+                            <button type="button" class="forgot-link" onclick="showToast('Contact admin to reset password', 'info')">Forgot password?</button>
+                        </div>
+                        <input type="hidden" name="login_method" value="email">
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn-primary" id="loginBtn">
+                        <span id="btnText"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> Sign In</span>
+                        <span id="btnSpinner" class="spinner" style="display:none;" aria-hidden="true"></span>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -57,7 +146,7 @@
             <div class="sidebar-brand">
                 <div class="logo-icon"><i class="fas fa-crown"></i></div>
                 <div>
-                    <span class="brand-text">Lucie Closet</span>
+                    <span class="brand-text">Lucie <span class="gold">Closet</span></span>
                     <span class="brand-sub">POS + Admin</span>
                 </div>
             </div>
@@ -532,7 +621,6 @@
     <!-- ============================================================
     SCRIPTS
     ============================================================ -->
-    <!-- IMPORTANT: Only include pos.js once, remove any duplicate supabase script -->
     <script src="pos.js"></script>
 
 </body>
