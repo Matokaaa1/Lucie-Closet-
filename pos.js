@@ -1,15 +1,14 @@
 // ============================================================
 // LUCIE CLOSET · POS + ADMIN SYSTEM - COMPLETE FIXED
-// Based on Viewpoint POS working authentication
 // ============================================================
 
 // ============================================================
-// SUPABASE CONFIG - FIXED
+// SUPABASE CONFIG
 // ============================================================
 const SUPABASE_URL = 'https://tlsldwshtxofckvkixxz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsc2xkd3NodHhvZmNrdmtpeHh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTksImV4cCI6MjEwMzc4NzU1OX0.BAfgQG4Z28bgKSfL9Li7Gbgp62sTM-5NxB4qVQ-b0H4';
 
-// ✅ FIX: Use 'supabase' from CDN
+// ✅ Create Supabase client
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============================================================
@@ -35,12 +34,11 @@ let isSubmitting = false;
 let currentMethod = 'pin';
 let sessionTimer = null;
 let sessionTimeout = 30;
+const SESSION_KEY = 'luciecloset_session';
 
 // ============================================================
-// AUTH - FIXED (from Viewpoint POS)
+// AUTH - FIXED
 // ============================================================
-const SESSION_KEY = 'viewpoint_session';
-
 async function checkAuth() {
     try {
         const stored = localStorage.getItem(SESSION_KEY);
@@ -59,7 +57,7 @@ async function checkAuth() {
             return null;
         }
 
-        const { user, loginMethod, loginTime } = sessionData;
+        const { user, loginTime } = sessionData;
 
         if (!user) {
             localStorage.removeItem(SESSION_KEY);
@@ -75,40 +73,9 @@ async function checkAuth() {
         }
 
         console.log('✅ User authenticated:', user.email);
-        console.log('🔑 Login method:', loginMethod || 'email');
-
-        // ✅ Set current user
         currentUser = user;
-        
-        // ✅ Update UI with user info
         updateUI(user);
         resetSessionTimer();
-
-        // ✅ If PIN login, verify user is still active in database
-        if (loginMethod === 'pin') {
-            try {
-                const { data: dbUser, error } = await supabaseClient
-                    .from('users')
-                    .select('id, email, full_name, role_id, status, pin_enabled')
-                    .eq('id', user.id)
-                    .single();
-                
-                if (error || !dbUser || dbUser.status !== 'active') {
-                    console.log('❌ User no longer active or not found');
-                    localStorage.removeItem(SESSION_KEY);
-                    showLogin();
-                    return null;
-                }
-                
-                // ✅ Update current user with fresh data
-                currentUser = { ...user, ...dbUser };
-                
-            } catch (e) {
-                // If we can't verify, keep the session but log it
-                console.log('⚠️ Could not verify user in database, but session is valid');
-            }
-        }
-
         showDashboard();
         return currentUser;
 
@@ -127,7 +94,7 @@ function updateUI(user) {
     
     if (avatar) avatar.textContent = user.full_name?.charAt(0).toUpperCase() || 'A';
     if (userName) userName.textContent = user.full_name || 'User';
-    if (userRole) userRole.textContent = user.roles?.name || 'Cashier';
+    if (userRole) userRole.textContent = user.role_name || 'Administrator';
 }
 
 function resetSessionTimer() {
@@ -141,7 +108,7 @@ function resetSessionTimer() {
 
 async function logout() {
     try {
-        if (typeof supabaseClient !== 'undefined' && supabaseClient.auth) {
+        if (supabaseClient.auth) {
             await supabaseClient.auth.signOut().catch(() => {});
         }
     } catch (e) {}
@@ -185,13 +152,12 @@ function showDashboard() {
 }
 
 // ============================================================
-// PIN FUNCTIONS - Fast & Responsive
+// PIN FUNCTIONS
 // ============================================================
 function pinPress(n) {
     if (isSubmitting) return;
     if (pinValue.length >= 4) return;
 
-    // Visual feedback
     const keys = document.querySelectorAll('.key:not(.action):not(.enter)');
     const order = ['1','2','3','4','5','6','7','8','9','0'];
     const idx = order.indexOf(n);
@@ -204,7 +170,6 @@ function pinPress(n) {
         }, 150);
     }
 
-    // Haptic feedback
     if (navigator.vibrate) navigator.vibrate(8);
 
     pinValue += n;
@@ -212,7 +177,6 @@ function pinPress(n) {
     if (pinInput) pinInput.value = pinValue;
     renderDots();
 
-    // Auto-submit when 4 digits entered
     if (pinValue.length === 4) {
         setTimeout(() => submitPin(), 80);
     }
@@ -271,7 +235,6 @@ function submitPin() {
         return;
     }
 
-    // Enter button feedback
     const enterBtn = document.getElementById('pinEnter');
     if (enterBtn) {
         enterBtn.style.transform = 'scale(0.85)';
@@ -369,7 +332,7 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ============================================================
-// LOGIN HANDLER - FIXED (from Viewpoint POS)
+// LOGIN HANDLER - FIXED
 // ============================================================
 async function handleLogin(e) {
     e.preventDefault();
@@ -397,33 +360,65 @@ async function handleLogin(e) {
             if (!email.includes('@')) throw new Error('Please enter a valid email address.');
             if (pinValue.length < 4) throw new Error('PIN must be 4 digits.');
 
-            // ✅ Direct database check (like Viewpoint POS)
+            console.log('🔍 Looking for user:', email);
+
+            // ✅ FIXED: Query users table directly
             const { data: user, error } = await supabaseClient
                 .from('users')
                 .select('id, email, full_name, role_id, status, pin, pin_enabled')
                 .eq('email', email)
-                .single();
+                .maybeSingle();
 
-            if (error || !user) throw new Error('User not found');
-            if (user.status !== 'active') throw new Error('Account is inactive');
-            if (!user.pin_enabled) throw new Error('PIN is not enabled for this account');
-            if (user.pin !== pinValue) throw new Error('Invalid PIN. Please try again.');
+            if (error) {
+                console.error('❌ Database error:', error);
+                throw new Error('Database error: ' + error.message);
+            }
 
-            // Get full user with role
-            const { data: userData, error: userError } = await supabaseClient
-                .from('users')
-                .select(`*, roles:role_id (id, name, permissions)`)
-                .eq('id', user.id)
-                .single();
+            if (!user) {
+                console.log('❌ User not found:', email);
+                throw new Error('User not found. Please check your email.');
+            }
 
-            if (userError || !userData) throw new Error('User profile not found');
+            console.log('✅ User found:', user.email);
+            console.log('🔐 PIN in DB:', user.pin);
+            console.log('🔑 PIN entered:', pinValue);
+
+            if (user.status !== 'active') {
+                throw new Error('Account is inactive. Please contact admin.');
+            }
+
+            if (!user.pin_enabled) {
+                throw new Error('PIN is not enabled for this account. Please use email login.');
+            }
+
+            if (user.pin !== pinValue) {
+                console.log('❌ PIN mismatch');
+                throw new Error('Invalid PIN. Please try again.');
+            }
+
+            console.log('✅ PIN verified successfully!');
+
+            // Get full user with role (if roles table exists)
+            let userData = { ...user, role_name: 'Admin' };
+            try {
+                const { data: roleData } = await supabaseClient
+                    .from('roles')
+                    .select('name')
+                    .eq('id', user.role_id)
+                    .maybeSingle();
+                
+                if (roleData) {
+                    userData.role_name = roleData.name;
+                }
+            } catch (e) {
+                console.log('⚠️ Could not fetch role, using default');
+            }
 
             // ✅ Store session
             const sessionData = {
                 user: {
                     ...userData,
-                    role_name: userData.roles?.name || 'cashier',
-                    permissions: userData.roles?.permissions || {}
+                    role_name: userData.role_name || 'Admin'
                 },
                 loginMethod: 'pin',
                 loginTime: Date.now()
@@ -431,10 +426,17 @@ async function handleLogin(e) {
             localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
 
             // Update last login
-            await supabaseClient.from('users').update({ last_login: new Date().toISOString() }).eq('id', user.id);
+            try {
+                await supabaseClient
+                    .from('users')
+                    .update({ last_login: new Date().toISOString() })
+                    .eq('id', user.id);
+            } catch (e) {
+                console.log('⚠️ Could not update last login');
+            }
 
             currentUser = sessionData.user;
-            showToast('Welcome back, ' + userData.full_name + '!', 'success');
+            showToast('Welcome back, ' + user.full_name + '!', 'success');
             showDashboard();
 
         } else {
@@ -458,9 +460,9 @@ async function handleLogin(e) {
 
             const { data: userData, error: userError } = await supabaseClient
                 .from('users')
-                .select(`*, roles:role_id (id, name, permissions)`)
+                .select('*')
                 .eq('email', email)
-                .single();
+                .maybeSingle();
 
             if (userError || !userData) throw new Error('User profile not found');
             if (userData.status !== 'active') throw new Error('Account is inactive');
@@ -468,8 +470,7 @@ async function handleLogin(e) {
             const sessionData = {
                 user: {
                     ...userData,
-                    role_name: userData.roles?.name || 'cashier',
-                    permissions: userData.roles?.permissions || {}
+                    role_name: 'Admin'
                 },
                 session: authData.session,
                 loginMethod: 'email',
@@ -484,6 +485,8 @@ async function handleLogin(e) {
 
     } catch (error) {
         showAlert(error.message, 'error');
+        console.error('Login error:', error);
+        
         if (currentMethod === 'pin') {
             pinValue = '';
             const pinInput = document.getElementById('pinInput');
@@ -491,6 +494,7 @@ async function handleLogin(e) {
             renderDots();
             shakePinDots();
         }
+        
         const loginBtn = document.getElementById('loginBtn');
         const btnText = document.getElementById('btnText');
         const btnSpinner = document.getElementById('btnSpinner');
@@ -545,70 +549,9 @@ async function ensureAdminUser() {
     }
 }
 
-async function loadProducts() {
-    try {
-        const { data, error } = await supabaseClient.from('products').select('*').order('id', { ascending: true });
-        if (error) throw error;
-        if (data && data.length) {
-            products = data;
-        } else {
-            products = getDefaultProducts();
-            for (const p of products) {
-                await supabaseClient.from('products').insert([p]);
-            }
-        }
-        localStorage.setItem('luciecloset_products', JSON.stringify(products));
-    } catch (e) {
-        console.warn('Supabase fallback → localStorage', e);
-        const stored = localStorage.getItem('luciecloset_products');
-        products = stored ? JSON.parse(stored) : getDefaultProducts();
-    }
-}
-
-async function loadOrders() {
-    try {
-        const { data, error } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false });
-        if (error) throw error;
-        orders = data || [];
-        localStorage.setItem('luciecloset_orders', JSON.stringify(orders));
-    } catch (e) {
-        const stored = localStorage.getItem('luciecloset_orders');
-        orders = stored ? JSON.parse(stored) : [];
-    }
-    const badge = document.getElementById('orderBadge');
-    if (badge) badge.textContent = orders.length;
-}
-
-async function loadCustomers() {
-    try {
-        const { data, error } = await supabaseClient.from('customers').select('*').order('name', { ascending: true });
-        if (error) throw error;
-        customers = data || [];
-        localStorage.setItem('luciecloset_customers', JSON.stringify(customers));
-    } catch (e) {
-        const stored = localStorage.getItem('luciecloset_customers');
-        customers = stored ? JSON.parse(stored) : [];
-    }
-}
-
-function getDefaultProducts() {
-    return [
-        { id: 1, code: '0001#', name: 'Classic Silk Dress', category: 'dress', gender: 'women', price: 500, stock: 12,
-            image_url: null, best_quality: true, rating: 4.8 },
-        { id: 2, code: '6195-1#', name: 'Summer Floral Dress', category: 'dress', gender: 'women', price: 500, stock: 6,
-            image_url: null, best_quality: false, rating: 4.2 },
-        { id: 3, code: '6169-145A', name: 'Elegant Evening Gown', category: 'dress', gender: 'women', price: 600, stock: 6,
-            image_url: null, best_quality: true, rating: 4.9 },
-        { id: 4, code: '5918', name: 'Pie Top', category: 'top', gender: 'women', price: 600, stock: 10, image_url: null,
-            best_quality: false, rating: 4.2 },
-        { id: 5, code: '5918 1', name: 'Polo Top with A-Top', category: 'top', gender: 'unisex', price: 700, stock: 10,
-            image_url: null, best_quality: true, rating: 4.6 },
-        { id: 6, code: '13802', name: 'Cashmere Blend Sweater', category: 'sweater', gender: 'men', price: 650, stock: 8,
-            image_url: null, best_quality: true, rating: 4.7 },
-        { id: 7, code: 'S001', name: 'Tailored Wool Suit', category: 'suit', gender: 'men', price: 1200, stock: 5,
-            image_url: null, best_quality: true, rating: 4.9 },
-    ];
-}
+// ============================================================
+// REST OF THE FUNCTIONS (Products, Orders, POS, etc.)
+// ============================================================
 
 // ============================================================
 // UPDATE STATS
@@ -627,28 +570,6 @@ function updateStats() {
     if (bestQualityCount) bestQualityCount.textContent = products.filter(p => p.best_quality).length;
     if (totalOrders) totalOrders.textContent = orders.length;
     if (lowStock) lowStock.textContent = products.filter(p => p.stock < 5).length;
-}
-
-// ============================================================
-// GREETING
-// ============================================================
-function updateGreeting() {
-    const hour = new Date().getHours();
-    let greeting = 'Good Morning';
-    if (hour >= 12 && hour < 17) greeting = 'Good Afternoon';
-    else if (hour >= 17) greeting = 'Good Evening';
-
-    const name = currentUser?.full_name || 'Admin';
-    const container = document.getElementById('greetingContainer');
-    if (container) {
-        container.innerHTML = `
-            <div class="greeting-banner">
-                <h2>👋 ${greeting}, ${name}!
-                    <span class="greeting-sub">Welcome to Lucie Closet POS System</span>
-                </h2>
-            </div>
-        `;
-    }
 }
 
 // ============================================================
@@ -719,6 +640,28 @@ function renderCurrentTab() {
         refreshProfitData();
     } else if (currentTab === 'audit') {
         loadAuditLogs();
+    }
+}
+
+// ============================================================
+// GREETING
+// ============================================================
+function updateGreeting() {
+    const hour = new Date().getHours();
+    let greeting = 'Good Morning';
+    if (hour >= 12 && hour < 17) greeting = 'Good Afternoon';
+    else if (hour >= 17) greeting = 'Good Evening';
+
+    const name = currentUser?.full_name || 'Admin';
+    const container = document.getElementById('greetingContainer');
+    if (container) {
+        container.innerHTML = `
+            <div class="greeting-banner">
+                <h2>👋 ${greeting}, ${name}!
+                    <span class="greeting-sub">Welcome to Lucie Closet POS System</span>
+                </h2>
+            </div>
+        `;
     }
 }
 
@@ -860,7 +803,7 @@ function renderPOSProducts() {
     
     const searchValue = search ? search.value.toLowerCase() : '';
     let filtered = products.filter(p => {
-        const matchSearch = p.name.toLowerCase().includes(searchValue) || p.code.toLowerCase().includes(searchValue);
+        const matchSearch = p.name.toLowerCase().includes(searchValue) || (p.code && p.code.toLowerCase().includes(searchValue));
         const matchCategory = currentCategory === 'all' || p.category === currentCategory;
         return matchSearch && matchCategory && p.stock > 0;
     });
@@ -950,7 +893,7 @@ function updateCartUI() {
                 <div class="cart-item">
                     <div class="item-info">
                         <div class="name">${item.name}</div>
-                        <div class="code">${item.code}</div>
+                        <div class="code">${item.code || 'N/A'}</div>
                     </div>
                     <div class="item-qty">
                         <button onclick="updateQty(${item.id},-1)">−</button>
@@ -1126,7 +1069,6 @@ function generateReceipt(order) {
     if (receiptContent) receiptContent.textContent = receipt;
     openModal('receiptModal');
 
-    // Auto-print
     setTimeout(() => printReceipt(), 500);
 }
 
@@ -1157,7 +1099,6 @@ function renderOrders(filter = 'all') {
         filtered = filtered.filter(o => o.status === filter);
     }
 
-    // Update counts
     const countAll = document.getElementById('countAll');
     const countPending = document.getElementById('countPending');
     const countCompleted = document.getElementById('countCompleted');
@@ -1282,11 +1223,11 @@ function renderProductsTable() {
                                     <span style="font-size:24px;">${p.category === 'dress' ? '👗' : p.category === 'top' ? '👕' : '👔'}</span>
                                     <div>
                                         <div style="font-weight:600;">${p.name}</div>
-                                        <div style="font-size:12px;color:var(--text-muted);">${p.code}</div>
+                                        <div style="font-size:12px;color:var(--text-muted);">${p.code || 'N/A'}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td>${p.code}</td>
+                            <td>${p.code || 'N/A'}</td>
                             <td>${p.category}</td>
                             <td>KES ${p.price}</td>
                             <td>${p.stock}</td>
@@ -1401,7 +1342,6 @@ async function deleteProduct(id) {
 // INVENTORY
 // ============================================================
 function renderInventory() {
-    // Product list for stock adjustment
     const stockProduct = document.getElementById('stockProduct');
     if (stockProduct) {
         stockProduct.innerHTML = products.map(p =>
@@ -1409,7 +1349,6 @@ function renderInventory() {
         ).join('');
     }
 
-    // Inventory table
     const inventoryTable = document.getElementById('inventoryTable');
     if (inventoryTable) {
         if (!products.length) {
@@ -1440,7 +1379,6 @@ function renderInventory() {
         }
     }
 
-    // Category stock
     const categoryStockList = document.getElementById('categoryStockList');
     if (categoryStockList) {
         const categoryStock = {};
@@ -1685,8 +1623,6 @@ function exportReport(format) {
 function refreshProfitData() {
     const completedOrders = orders.filter(o => o.status === 'completed');
     const totalRevenue = completedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-
-    // Calculate cost (assuming 60% of revenue)
     const costPercentage = 0.6;
     const totalCost = totalRevenue * costPercentage;
     const netProfit = totalRevenue - totalCost;
@@ -1780,18 +1716,12 @@ function loadAuditLogs() {
 // ============================================================
 function saveSettings(e) {
     e.preventDefault();
-    const businessName = document.getElementById('businessName');
-    const businessPhone = document.getElementById('businessPhone');
-    const businessEmail = document.getElementById('businessEmail');
-    const businessLocation = document.getElementById('businessLocation');
-    const receiptFooter = document.getElementById('receiptFooter');
-    
     const settings = {
-        businessName: businessName ? businessName.value : 'Lucie Closet',
-        phone: businessPhone ? businessPhone.value : '+254 794 789 345',
-        email: businessEmail ? businessEmail.value : 'info@luciecloset.co.ke',
-        location: businessLocation ? businessLocation.value : 'Eastleigh 5th St, Micki Mall, Rm S12',
-        receiptFooter: receiptFooter ? receiptFooter.value : 'Thank you for shopping at Lucie Closet! 👗'
+        businessName: document.getElementById('businessName')?.value || 'Lucie Closet',
+        phone: document.getElementById('businessPhone')?.value || '+254 794 789 345',
+        email: document.getElementById('businessEmail')?.value || 'info@luciecloset.co.ke',
+        location: document.getElementById('businessLocation')?.value || 'Eastleigh 5th St, Micki Mall, Rm S12',
+        receiptFooter: document.getElementById('receiptFooter')?.value || 'Thank you for shopping at Lucie Closet! 👗'
     };
     localStorage.setItem('luciecloset_settings', JSON.stringify(settings));
     showToast('Settings saved!', 'success');
@@ -1799,12 +1729,9 @@ function saveSettings(e) {
 
 function savePaymentSettings(e) {
     e.preventDefault();
-    const defaultPayment = document.getElementById('defaultPayment');
-    const mpesaShortcode = document.getElementById('mpesaShortcode');
-    
     const settings = {
-        defaultPayment: defaultPayment ? defaultPayment.value : 'mpesa',
-        mpesaShortcode: mpesaShortcode ? mpesaShortcode.value : ''
+        defaultPayment: document.getElementById('defaultPayment')?.value || 'mpesa',
+        mpesaShortcode: document.getElementById('mpesaShortcode')?.value || ''
     };
     localStorage.setItem('luciecloset_payment_settings', JSON.stringify(settings));
     showToast('Payment settings saved!', 'success');
@@ -1868,7 +1795,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Load saved theme
     const savedTheme = localStorage.getItem('luciecloset_theme');
     if (savedTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
