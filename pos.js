@@ -3,12 +3,13 @@
 // ============================================================
 
 // ============================================================
-// SUPABASE CONFIG
+// SUPABASE CONFIG - Only declared once
 // ============================================================
 const SUPABASE_URL = 'https://tlsldwshtxofckvkixxz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsc2xkd3NodHhvZmNrdmtpeHh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTksImV4cCI6MjEwMzc4NzU1OX0.BAfgQG4Z28bgKSfL9Li7Gbgp62sTM-5NxB4qVQ-b0H4';
 
-const supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ✅ CORRECT: Use a different name or check if it exists
+const sb = supabaseClient.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============================================================
 // STATE
@@ -73,7 +74,7 @@ async function handleLogin(e) {
 
     try {
         // Try to authenticate with Supabase
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await sb.auth.signInWithPassword({
             email: email,
             password: password
         });
@@ -96,7 +97,7 @@ async function handleLogin(e) {
 
         if (data.user) {
             // Check PIN (stored in users table)
-            const { data: userData } = await supabase
+            const { data: userData } = await sb
                 .from('users')
                 .select('*')
                 .eq('email', email)
@@ -120,7 +121,7 @@ async function handleLogin(e) {
 
 function logout() {
     localStorage.removeItem(SESSION_KEY);
-    supabase.auth.signOut().catch(() => {});
+    sb.auth.signOut().catch(() => {});
     showLogin();
     showToast('Logged out successfully', 'info');
 }
@@ -140,14 +141,14 @@ async function loadData() {
 
 async function loadProducts() {
     try {
-        const { data, error } = await supabase.from('products').select('*').order('id', { ascending: true });
+        const { data, error } = await sb.from('products').select('*').order('id', { ascending: true });
         if (error) throw error;
         if (data && data.length) {
             products = data;
         } else {
             products = getDefaultProducts();
             for (const p of products) {
-                await supabase.from('products').insert([p]);
+                await sb.from('products').insert([p]);
             }
         }
         localStorage.setItem('luciecloset_products', JSON.stringify(products));
@@ -160,7 +161,7 @@ async function loadProducts() {
 
 async function loadOrders() {
     try {
-        const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+        const { data, error } = await sb.from('orders').select('*').order('created_at', { ascending: false });
         if (error) throw error;
         orders = data || [];
         localStorage.setItem('luciecloset_orders', JSON.stringify(orders));
@@ -173,7 +174,7 @@ async function loadOrders() {
 
 async function loadCustomers() {
     try {
-        const { data, error } = await supabase.from('customers').select('*').order('name', { ascending: true });
+        const { data, error } = await sb.from('customers').select('*').order('name', { ascending: true });
         if (error) throw error;
         customers = data || [];
         localStorage.setItem('luciecloset_customers', JSON.stringify(customers));
@@ -616,7 +617,7 @@ async function completeOrder() {
     };
 
     try {
-        const { error } = await supabase.from('orders').insert([orderData]);
+        const { error } = await sb.from('orders').insert([orderData]);
         if (error) throw error;
 
         // Update stock
@@ -624,7 +625,7 @@ async function completeOrder() {
             const product = products.find(p => p.id === item.id);
             if (product) {
                 const newStock = product.stock - item.qty;
-                await supabase.from('products').update({ stock: newStock }).eq('id', item.id);
+                await sb.from('products').update({ stock: newStock }).eq('id', item.id);
                 product.stock = newStock;
             }
         }
@@ -772,7 +773,7 @@ function viewOrder(id) {
 
 async function updateOrderStatus(id, status) {
     try {
-        const { error } = await supabase.from('orders').update({ status }).eq('id', id);
+        const { error } = await sb.from('orders').update({ status }).eq('id', id);
         if (error) throw error;
         showToast(`Order ${status}`, 'success');
         await loadOrders();
@@ -877,11 +878,11 @@ async function saveProduct(e) {
 
     try {
         if (id) {
-            const { error } = await supabase.from('products').update(productData).eq('id', parseInt(id));
+            const { error } = await sb.from('products').update(productData).eq('id', parseInt(id));
             if (error) throw error;
             showToast('Product updated!', 'success');
         } else {
-            const { error } = await supabase.from('products').insert([productData]);
+            const { error } = await sb.from('products').insert([productData]);
             if (error) throw error;
             showToast('Product added!', 'success');
         }
@@ -902,7 +903,7 @@ function editProduct(id) {
 async function deleteProduct(id) {
     if (!confirm('Delete this product?')) return;
     try {
-        const { error } = await supabase.from('products').delete().eq('id', id);
+        const { error } = await sb.from('products').delete().eq('id', id);
         if (error) throw error;
         showToast('Product deleted', 'success');
         await loadProducts();
@@ -924,7 +925,6 @@ function renderInventory() {
     ).join('');
 
     // Inventory table
-    const lowStock = products.filter(p => p.stock < 5);
     const tableHtml = products.length ? `
         <div class="table-wrapper">
             <table class="data-table">
@@ -995,7 +995,7 @@ async function adjustStock(e) {
     const newStock = type === 'add' ? product.stock + qty : Math.max(0, product.stock - qty);
 
     try {
-        const { error } = await supabase.from('products').update({ stock: newStock }).eq('id', productId);
+        const { error } = await sb.from('products').update({ stock: newStock }).eq('id', productId);
         if (error) throw error;
 
         // Log audit
@@ -1075,11 +1075,11 @@ async function saveCustomer(e) {
 
     try {
         if (id) {
-            const { error } = await supabase.from('customers').update(data).eq('id', parseInt(id));
+            const { error } = await sb.from('customers').update(data).eq('id', parseInt(id));
             if (error) throw error;
             showToast('Customer updated!', 'success');
         } else {
-            const { error } = await supabase.from('customers').insert([data]);
+            const { error } = await sb.from('customers').insert([data]);
             if (error) throw error;
             showToast('Customer added!', 'success');
         }
@@ -1094,7 +1094,7 @@ async function saveCustomer(e) {
 async function deleteCustomer(id) {
     if (!confirm('Delete this customer?')) return;
     try {
-        const { error } = await supabase.from('customers').delete().eq('id', id);
+        const { error } = await sb.from('customers').delete().eq('id', id);
         if (error) throw error;
         showToast('Customer deleted', 'success');
         await loadCustomers();
@@ -1260,6 +1260,32 @@ function logAudit(action, details) {
 }
 
 // ============================================================
+// SETTINGS
+// ============================================================
+function saveSettings(e) {
+    e.preventDefault();
+    const settings = {
+        businessName: document.getElementById('businessName').value,
+        phone: document.getElementById('businessPhone').value,
+        email: document.getElementById('businessEmail').value,
+        location: document.getElementById('businessLocation').value,
+        receiptFooter: document.getElementById('receiptFooter').value
+    };
+    localStorage.setItem('luciecloset_settings', JSON.stringify(settings));
+    showToast('Settings saved!', 'success');
+}
+
+function savePaymentSettings(e) {
+    e.preventDefault();
+    const settings = {
+        defaultPayment: document.getElementById('defaultPayment').value,
+        mpesaShortcode: document.getElementById('mpesaShortcode').value
+    };
+    localStorage.setItem('luciecloset_payment_settings', JSON.stringify(settings));
+    showToast('Payment settings saved!', 'success');
+}
+
+// ============================================================
 // MODALS
 // ============================================================
 function openModal(id) {
@@ -1421,3 +1447,5 @@ window.closeModal = closeModal;
 window.showToast = showToast;
 window.handleLogin = handleLogin;
 window.logout = logout;
+window.saveSettings = saveSettings;
+window.savePaymentSettings = savePaymentSettings;
