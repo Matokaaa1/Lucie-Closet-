@@ -37,7 +37,123 @@ let sessionTimeout = 30;
 const SESSION_KEY = 'luciecloset_session';
 
 // ============================================================
-// AUTH - FIXED
+// ✅ LOAD DATA FUNCTIONS - MOVED TO TOP
+// ============================================================
+
+// Get default products
+function getDefaultProducts() {
+    return [
+        { id: 1, code: '0001#', name: 'Classic Silk Dress', category: 'dress', gender: 'women', price: 500, stock: 12,
+            image_url: null, best_quality: true, rating: 4.8 },
+        { id: 2, code: '6195-1#', name: 'Summer Floral Dress', category: 'dress', gender: 'women', price: 500, stock: 6,
+            image_url: null, best_quality: false, rating: 4.2 },
+        { id: 3, code: '6169-145A', name: 'Elegant Evening Gown', category: 'dress', gender: 'women', price: 600, stock: 6,
+            image_url: null, best_quality: true, rating: 4.9 },
+        { id: 4, code: '5918', name: 'Pie Top', category: 'top', gender: 'women', price: 600, stock: 10, image_url: null,
+            best_quality: false, rating: 4.2 },
+        { id: 5, code: '5918 1', name: 'Polo Top with A-Top', category: 'top', gender: 'unisex', price: 700, stock: 10,
+            image_url: null, best_quality: true, rating: 4.6 },
+        { id: 6, code: '13802', name: 'Cashmere Blend Sweater', category: 'sweater', gender: 'men', price: 650, stock: 8,
+            image_url: null, best_quality: true, rating: 4.7 },
+        { id: 7, code: 'S001', name: 'Tailored Wool Suit', category: 'suit', gender: 'men', price: 1200, stock: 5,
+            image_url: null, best_quality: true, rating: 4.9 },
+    ];
+}
+
+// LOAD PRODUCTS
+async function loadProducts() {
+    try {
+        const { data, error } = await supabaseClient.from('products').select('*').order('id', { ascending: true });
+        if (error) throw error;
+        if (data && data.length) {
+            products = data;
+        } else {
+            products = getDefaultProducts();
+            for (const p of products) {
+                await supabaseClient.from('products').insert([p]);
+            }
+        }
+        localStorage.setItem('luciecloset_products', JSON.stringify(products));
+    } catch (e) {
+        console.warn('Supabase fallback → localStorage', e);
+        const stored = localStorage.getItem('luciecloset_products');
+        products = stored ? JSON.parse(stored) : getDefaultProducts();
+    }
+}
+
+// LOAD ORDERS
+async function loadOrders() {
+    try {
+        const { data, error } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        orders = data || [];
+        localStorage.setItem('luciecloset_orders', JSON.stringify(orders));
+    } catch (e) {
+        const stored = localStorage.getItem('luciecloset_orders');
+        orders = stored ? JSON.parse(stored) : [];
+    }
+    const badge = document.getElementById('orderBadge');
+    if (badge) badge.textContent = orders.length;
+}
+
+// LOAD CUSTOMERS
+async function loadCustomers() {
+    try {
+        const { data, error } = await supabaseClient.from('customers').select('*').order('name', { ascending: true });
+        if (error) throw error;
+        customers = data || [];
+        localStorage.setItem('luciecloset_customers', JSON.stringify(customers));
+    } catch (e) {
+        const stored = localStorage.getItem('luciecloset_customers');
+        customers = stored ? JSON.parse(stored) : [];
+    }
+}
+
+// ENSURE ADMIN USER EXISTS
+async function ensureAdminUser() {
+    try {
+        const { data: users, error } = await supabaseClient
+            .from('users')
+            .select('id')
+            .limit(1);
+            
+        if (error) throw error;
+        
+        if (!users || users.length === 0) {
+            console.log('👤 No users found, creating admin...');
+            const { error: insertError } = await supabaseClient
+                .from('users')
+                .insert([{
+                    email: 'admin@luciecloset.co.ke',
+                    full_name: 'System Administrator',
+                    role_id: 1,
+                    status: 'active',
+                    pin: '1234',
+                    pin_enabled: true,
+                    phone: '+254 700 000 000'
+                }]);
+            if (insertError) throw insertError;
+            console.log('✅ Admin user created! Email: admin@luciecloset.co.ke, PIN: 1234');
+        }
+    } catch (error) {
+        console.warn('Could not ensure admin user:', error);
+    }
+}
+
+// ✅ LOAD DATA - MAIN FUNCTION
+async function loadData() {
+    await Promise.all([
+        loadProducts(),
+        loadOrders(),
+        loadCustomers()
+    ]);
+    await ensureAdminUser();
+    updateStats();
+    renderCurrentTab();
+}
+
+// ============================================================
+// AUTH FUNCTIONS
 // ============================================================
 async function checkAuth() {
     try {
@@ -148,6 +264,7 @@ function showDashboard() {
     if (userRole) userRole.textContent = session.user?.role_name || 'Administrator';
     if (userAvatar) userAvatar.textContent = (session.user?.full_name || 'A').charAt(0).toUpperCase();
     
+    // ✅ Now loadData is defined
     loadData();
 }
 
@@ -332,7 +449,7 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ============================================================
-// LOGIN HANDLER - FIXED
+// LOGIN HANDLER
 // ============================================================
 async function handleLogin(e) {
     e.preventDefault();
@@ -362,7 +479,6 @@ async function handleLogin(e) {
 
             console.log('🔍 Looking for user:', email);
 
-            // ✅ FIXED: Query users table directly
             const { data: user, error } = await supabaseClient
                 .from('users')
                 .select('id, email, full_name, role_id, status, pin, pin_enabled')
@@ -398,7 +514,6 @@ async function handleLogin(e) {
 
             console.log('✅ PIN verified successfully!');
 
-            // Get full user with role (if roles table exists)
             let userData = { ...user, role_name: 'Admin' };
             try {
                 const { data: roleData } = await supabaseClient
@@ -414,7 +529,6 @@ async function handleLogin(e) {
                 console.log('⚠️ Could not fetch role, using default');
             }
 
-            // ✅ Store session
             const sessionData = {
                 user: {
                     ...userData,
@@ -425,7 +539,6 @@ async function handleLogin(e) {
             };
             localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
 
-            // Update last login
             try {
                 await supabaseClient
                     .from('users')
@@ -504,54 +617,6 @@ async function handleLogin(e) {
         isSubmitting = false;
     }
 }
-
-// ============================================================
-// LOAD DATA
-// ============================================================
-async function loadData() {
-    await Promise.all([
-        loadProducts(),
-        loadOrders(),
-        loadCustomers()
-    ]);
-    await ensureAdminUser();
-    updateStats();
-    renderCurrentTab();
-}
-
-async function ensureAdminUser() {
-    try {
-        const { data: users, error } = await supabaseClient
-            .from('users')
-            .select('id')
-            .limit(1);
-            
-        if (error) throw error;
-        
-        if (!users || users.length === 0) {
-            console.log('👤 No users found, creating admin...');
-            const { error: insertError } = await supabaseClient
-                .from('users')
-                .insert([{
-                    email: 'admin@luciecloset.co.ke',
-                    full_name: 'System Administrator',
-                    role_id: 1,
-                    status: 'active',
-                    pin: '1234',
-                    pin_enabled: true,
-                    phone: '+254 700 000 000'
-                }]);
-            if (insertError) throw insertError;
-            console.log('✅ Admin user created! Email: admin@luciecloset.co.ke, PIN: 1234');
-        }
-    } catch (error) {
-        console.warn('Could not ensure admin user:', error);
-    }
-}
-
-// ============================================================
-// REST OF THE FUNCTIONS (Products, Orders, POS, etc.)
-// ============================================================
 
 // ============================================================
 // UPDATE STATS
@@ -794,992 +859,50 @@ function renderSalesChart() {
 }
 
 // ============================================================
-// POS FUNCTIONS
 // ============================================================
-function renderPOSProducts() {
-    const search = document.getElementById('posSearch');
-    const grid = document.getElementById('posProductGrid');
-    if (!grid) return;
-    
-    const searchValue = search ? search.value.toLowerCase() : '';
-    let filtered = products.filter(p => {
-        const matchSearch = p.name.toLowerCase().includes(searchValue) || (p.code && p.code.toLowerCase().includes(searchValue));
-        const matchCategory = currentCategory === 'all' || p.category === currentCategory;
-        return matchSearch && matchCategory && p.stock > 0;
-    });
-
-    if (!filtered.length) {
-        grid.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products available</p></div>';
-        return;
-    }
-
-    grid.innerHTML = filtered.map(p => `
-        <div class="pos-product-item" onclick="addToCart(${p.id})">
-            <span class="emoji">${p.category === 'dress' ? '👗' : p.category === 'top' ? '👕' : p.category === 'sweater' ? '🧥' : '👔'}</span>
-            <div class="name">${p.name}</div>
-            <div class="price">KES ${p.price}</div>
-            <div class="stock">${p.stock} in stock</div>
-            ${p.best_quality ? '<div class="best-tag"><i class="fas fa-star"></i> Best</div>' : ''}
-        </div>
-    `).join('');
-}
-
-function filterPOSProducts() {
-    renderPOSProducts();
-}
-
-function switchCategory(category) {
-    currentCategory = category;
-    renderPOSProducts();
-}
-
-function addToCart(productId) {
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-    if (product.stock < 1) {
-        showToast('Out of stock!', 'error');
-        return;
-    }
-
-    const existing = cart.find(item => item.id === productId);
-    if (existing) {
-        if (existing.qty >= product.stock) {
-            showToast('Stock limit reached', 'error');
-            return;
-        }
-        existing.qty++;
-    } else {
-        cart.push({ ...product, qty: 1 });
-    }
-    updateCartUI();
-    showToast(`${product.name} added to cart`, 'success');
-}
-
-function removeFromCart(productId) {
-    cart = cart.filter(item => item.id !== productId);
-    updateCartUI();
-}
-
-function updateQty(productId, delta) {
-    const item = cart.find(i => i.id === productId);
-    if (!item) return;
-    const product = products.find(p => p.id === productId);
-    const newQty = item.qty + delta;
-
-    if (newQty < 1) { removeFromCart(productId); return; }
-    if (product && newQty > product.stock) { showToast('Stock limit reached', 'error'); return; }
-
-    item.qty = newQty;
-    updateCartUI();
-}
-
-function updateCartUI() {
-    const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
-    const totalPrice = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-
-    const cartCount = document.getElementById('posCartCount');
-    const cartItems = document.getElementById('posCartItems');
-    const cartTotal = document.getElementById('posCartTotal');
-    
-    if (cartCount) cartCount.textContent = `${totalItems} items`;
-
-    if (!cart.length) {
-        if (cartItems) {
-            cartItems.innerHTML = '<div class="empty-state"><i class="fas fa-plus-circle"></i><p>Add items from the left</p></div>';
-        }
-    } else {
-        if (cartItems) {
-            cartItems.innerHTML = cart.map(item => `
-                <div class="cart-item">
-                    <div class="item-info">
-                        <div class="name">${item.name}</div>
-                        <div class="code">${item.code || 'N/A'}</div>
-                    </div>
-                    <div class="item-qty">
-                        <button onclick="updateQty(${item.id},-1)">−</button>
-                        <span>${item.qty}</span>
-                        <button onclick="updateQty(${item.id},1)">+</button>
-                    </div>
-                    <div class="item-total">KES ${item.price * item.qty}</div>
-                    <button class="remove-btn" onclick="removeFromCart(${item.id})"><i class="fas fa-times"></i></button>
-                </div>
-            `).join('');
-        }
-    }
-
-    if (cartTotal) cartTotal.textContent = `KES ${totalPrice}`;
-}
-
-function clearCart() {
-    if (!cart.length) return;
-    if (confirm('Clear all items from cart?')) {
-        cart = [];
-        updateCartUI();
-        showToast('Cart cleared', 'info');
-    }
-}
-
+// ALL OTHER FUNCTIONS (POS, ORDERS, PRODUCTS, INVENTORY, ETC.)
 // ============================================================
-// CHECKOUT
 // ============================================================
-function openCheckout() {
-    if (!cart.length) {
-        showToast('Cart is empty', 'error');
-        return;
-    }
 
-    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    const checkoutTotal = document.getElementById('checkoutTotal');
-    const checkoutItems = document.getElementById('checkoutItems');
-    
-    if (checkoutTotal) checkoutTotal.textContent = `KES ${total}`;
-    
-    if (checkoutItems) {
-        checkoutItems.innerHTML = cart.map(i => `
-            <div class="checkout-item">
-                <span>${i.name} × ${i.qty}</span>
-                <span>KES ${i.price * i.qty}</span>
-            </div>
-        `).join('');
-    }
-
-    const checkoutName = document.getElementById('checkoutName');
-    const checkoutPhone = document.getElementById('checkoutPhone');
-    const mpesaCode = document.getElementById('mpesaCode');
-    const cashPaid = document.getElementById('cashPaid');
-    const changeDisplay = document.getElementById('changeDisplay');
-    const mpesaForm = document.getElementById('mpesaForm');
-    const cashForm = document.getElementById('cashForm');
-    
-    if (checkoutName) checkoutName.value = '';
-    if (checkoutPhone) checkoutPhone.value = '';
-    if (mpesaCode) mpesaCode.value = '';
-    if (cashPaid) cashPaid.value = '';
-    if (changeDisplay) changeDisplay.textContent = '';
-    if (mpesaForm) mpesaForm.style.display = 'none';
-    if (cashForm) cashForm.style.display = 'none';
-
-    openModal('checkoutModal');
-}
-
-function selectPayment(method) {
-    selectedPayment = method;
-    document.querySelectorAll('.payment-methods .method').forEach(el => el.classList.remove('active'));
-    const activeMethod = document.querySelector(`.payment-methods .method[data-method="${method}"]`);
-    if (activeMethod) activeMethod.classList.add('active');
-
-    const mpesaForm = document.getElementById('mpesaForm');
-    const cashForm = document.getElementById('cashForm');
-    if (mpesaForm) mpesaForm.style.display = method === 'mpesa' ? 'block' : 'none';
-    if (cashForm) cashForm.style.display = method === 'cash' ? 'block' : 'none';
-}
-
-function calculateChange() {
-    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    const cashPaid = document.getElementById('cashPaid');
-    const changeDisplay = document.getElementById('changeDisplay');
-    
-    if (!cashPaid || !changeDisplay) return;
-    const paid = parseFloat(cashPaid.value) || 0;
-    const change = paid - total;
-    changeDisplay.textContent = change >= 0 ? `Change: KES ${change}` : `Balance: KES ${Math.abs(change)}`;
-}
-
-async function completeOrder() {
-    if (!cart.length) return;
-
-    const checkoutName = document.getElementById('checkoutName');
-    const checkoutPhone = document.getElementById('checkoutPhone');
-    const mpesaCode = document.getElementById('mpesaCode');
-    
-    const name = checkoutName ? checkoutName.value.trim() || 'Walk-in Customer' : 'Walk-in Customer';
-    const phone = checkoutPhone ? checkoutPhone.value.trim() || 'N/A' : 'N/A';
-    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-
-    let paymentDetails = selectedPayment;
-    if (selectedPayment === 'mpesa') {
-        const code = mpesaCode ? mpesaCode.value.trim() : '';
-        if (!code) { showToast('Please enter M-Pesa transaction code', 'error'); return; }
-        paymentDetails = `M-Pesa: ${code}`;
-    }
-
-    const orderData = {
-        order_number: 'POS-' + Date.now().toString().slice(-6),
-        customer_name: name,
-        customer_phone: phone,
-        customer_email: '',
-        items: cart.map(i => ({ id: i.id, name: i.name, code: i.code, qty: i.qty, price: i.price })),
-        total: total,
-        payment_method: paymentDetails,
-        status: 'completed',
-        created_at: new Date().toISOString()
-    };
-
-    try {
-        const { error } = await supabaseClient.from('orders').insert([orderData]);
-        if (error) throw error;
-
-        // Update stock
-        for (const item of cart) {
-            const product = products.find(p => p.id === item.id);
-            if (product) {
-                const newStock = product.stock - item.qty;
-                await supabaseClient.from('products').update({ stock: newStock }).eq('id', item.id);
-                product.stock = newStock;
-            }
-        }
-
-        showToast(`✅ Order ${orderData.order_number} completed!`, 'success');
-        generateReceipt(orderData);
-
-        cart = [];
-        updateCartUI();
-        closeModal('checkoutModal');
-        await loadProducts();
-        updateStats();
-        renderPOSProducts();
-
-    } catch (e) {
-        console.error('Order error:', e);
-        showToast('Error processing order', 'error');
-    }
-}
-
-function generateReceipt(order) {
-    const receipt = `
-        ================================
-           LUCIE CLOSET · RECEIPT
-        ================================
-        Order: ${order.order_number}
-        Date: ${new Date(order.created_at).toLocaleString()}
-        Customer: ${order.customer_name}
-        Phone: ${order.customer_phone}
-        ---------------------------------
-        ${order.items.map(i => `${i.name} × ${i.qty} = KES ${i.price * i.qty}`).join('\n        ')}
-        ---------------------------------
-        Total: KES ${order.total}
-        Payment: ${order.payment_method}
-        ================================
-        Thank you for shopping with us!
-        Eastleigh 5th St, Micki Mall, Rm S12
-        ================================
-    `;
-
-    const receiptContent = document.getElementById('receiptContent');
-    if (receiptContent) receiptContent.textContent = receipt;
-    openModal('receiptModal');
-
-    setTimeout(() => printReceipt(), 500);
-}
-
-function printReceipt() {
-    const receiptContent = document.getElementById('receiptContent');
-    if (!receiptContent) return;
-    
-    const content = receiptContent.textContent;
-    const printWindow = window.open('', '_blank', 'width=400,height=600');
-    if (printWindow) {
-        printWindow.document.write(`
-            <html><head><title>Receipt</title>
-            <style>body{font-family:monospace;padding:20px;white-space:pre-wrap;font-size:14px;}</style>
-            </head><body>${content}</body></html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-    }
-}
-
-// ============================================================
-// ORDERS
-// ============================================================
-function renderOrders(filter = 'all') {
-    let filtered = [...orders];
-
-    if (filter !== 'all') {
-        filtered = filtered.filter(o => o.status === filter);
-    }
-
-    const countAll = document.getElementById('countAll');
-    const countPending = document.getElementById('countPending');
-    const countCompleted = document.getElementById('countCompleted');
-    const countCancelled = document.getElementById('countCancelled');
-    const orderCount = document.getElementById('orderCount');
-    const ordersContainer = document.getElementById('ordersContainer');
-    
-    if (countAll) countAll.textContent = orders.length;
-    if (countPending) countPending.textContent = orders.filter(o => o.status === 'pending').length;
-    if (countCompleted) countCompleted.textContent = orders.filter(o => o.status === 'completed').length;
-    if (countCancelled) countCancelled.textContent = orders.filter(o => o.status === 'cancelled').length;
-    if (orderCount) orderCount.textContent = filtered.length;
-
-    if (!ordersContainer) return;
-
-    if (!filtered.length) {
-        ordersContainer.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No orders found</p></div>';
-        return;
-    }
-
-    ordersContainer.innerHTML = `
-        <div class="table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Order #</th>
-                        <th>Customer</th>
-                        <th>Items</th>
-                        <th>Total</th>
-                        <th>Payment</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${filtered.map(o => `
-                        <tr>
-                            <td><strong>${o.order_number}</strong></td>
-                            <td>${o.customer_name || 'Guest'}</td>
-                            <td>${o.items ? o.items.reduce((s,i) => s + i.qty, 0) : 0} items</td>
-                            <td><strong>KES ${o.total}</strong></td>
-                            <td>${o.payment_method || 'N/A'}</td>
-                            <td><span class="status-badge ${o.status || 'pending'}">${o.status || 'pending'}</span></td>
-                            <td style="font-size:12px;color:var(--text-muted);">${new Date(o.created_at).toLocaleDateString()}</td>
-                            <td>
-                                <button class="btn btn-sm btn-primary" onclick="viewOrder(${o.id})"><i class="fas fa-eye"></i></button>
-                                ${o.status !== 'completed' ? `<button class="btn btn-sm btn-success" onclick="updateOrderStatus(${o.id},'completed')"><i class="fas fa-check"></i></button>` : ''}
-                                ${o.status !== 'cancelled' && o.status !== 'completed' ? `<button class="btn btn-sm btn-danger" onclick="updateOrderStatus(${o.id},'cancelled')"><i class="fas fa-times"></i></button>` : ''}
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-}
-
-function viewOrder(id) {
-    const order = orders.find(o => o.id === id);
-    if (!order) return;
-
-    alert(`
-        Order: ${order.order_number}
-        Customer: ${order.customer_name || 'Guest'}
-        Phone: ${order.customer_phone || 'N/A'}
-        Payment: ${order.payment_method || 'N/A'}
-        Status: ${order.status || 'pending'}
-        Total: KES ${order.total}
-        Date: ${new Date(order.created_at).toLocaleString()}
-        --------------------
-        Items:
-        ${order.items ? order.items.map(i => `${i.name} × ${i.qty} = KES ${i.price * i.qty}`).join('\n') : ''}
-    `);
-}
-
-async function updateOrderStatus(id, status) {
-    try {
-        const { error } = await supabaseClient.from('orders').update({ status }).eq('id', id);
-        if (error) throw error;
-        showToast(`Order ${status}`, 'success');
-        await loadOrders();
-        const activeFilter = document.querySelector('.filter-btn.active');
-        renderOrders(activeFilter ? activeFilter.dataset.filter : 'all');
-        updateStats();
-    } catch (e) {
-        showToast('Error updating order', 'error');
-    }
-}
-
-// ============================================================
-// PRODUCTS TABLE
-// ============================================================
-function renderProductsTable() {
-    const container = document.getElementById('productsTable');
-    if (!container) return;
-
-    if (!products.length) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products found</p></div>';
-        return;
-    }
-
-    container.innerHTML = `
-        <div class="table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Code</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Stock</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${products.map(p => `
-                        <tr>
-                            <td>
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    <span style="font-size:24px;">${p.category === 'dress' ? '👗' : p.category === 'top' ? '👕' : '👔'}</span>
-                                    <div>
-                                        <div style="font-weight:600;">${p.name}</div>
-                                        <div style="font-size:12px;color:var(--text-muted);">${p.code || 'N/A'}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>${p.code || 'N/A'}</td>
-                            <td>${p.category}</td>
-                            <td>KES ${p.price}</td>
-                            <td>${p.stock}</td>
-                            <td>${p.best_quality ? '<span class="badge primary"><i class="fas fa-star"></i> Best</span>' : 'Standard'}</td>
-                            <td>
-                                <button class="btn btn-sm btn-primary" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i></button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-}
-
-function openProductModal(product = null) {
-    const editId = document.getElementById('editProductId');
-    const modalTitle = document.getElementById('productModalTitle');
-    const saveBtn = document.getElementById('saveProductBtn');
-    const productName = document.getElementById('productName');
-    const productCode = document.getElementById('productCode');
-    const productCategory = document.getElementById('productCategory');
-    const productGender = document.getElementById('productGender');
-    const productPrice = document.getElementById('productPrice');
-    const productStock = document.getElementById('productStock');
-    const productBestQuality = document.getElementById('productBestQuality');
-    const imagePreview = document.getElementById('imagePreview');
-    
-    if (editId) editId.value = product ? product.id : '';
-    if (modalTitle) modalTitle.textContent = product ? '✏️ Edit Product' : '📦 Add Product';
-    if (saveBtn) saveBtn.innerHTML = product ? '<i class="fas fa-save"></i> Update' : '<i class="fas fa-save"></i> Save';
-    if (productName) productName.value = product ? product.name : '';
-    if (productCode) productCode.value = product ? product.code : '';
-    if (productCategory) productCategory.value = product ? product.category : '';
-    if (productGender) productGender.value = product ? product.gender : 'unisex';
-    if (productPrice) productPrice.value = product ? product.price : '';
-    if (productStock) productStock.value = product ? product.stock : '';
-    if (productBestQuality) productBestQuality.checked = product ? product.best_quality : false;
-    if (imagePreview) imagePreview.innerHTML = product && product.image_url ? `<img src="${product.image_url}">` : '';
-
-    openModal('productModal');
-}
-
-async function saveProduct(e) {
-    e.preventDefault();
-    const id = document.getElementById('editProductId');
-    const productName = document.getElementById('productName');
-    const productCode = document.getElementById('productCode');
-    const productCategory = document.getElementById('productCategory');
-    const productGender = document.getElementById('productGender');
-    const productPrice = document.getElementById('productPrice');
-    const productStock = document.getElementById('productStock');
-    const productBestQuality = document.getElementById('productBestQuality');
-
-    if (!productName || !productCode || !productCategory || !productPrice || !productStock) return;
-
-    const name = productName.value.trim();
-    const code = productCode.value.trim();
-    const category = productCategory.value;
-    const gender = productGender ? productGender.value : 'unisex';
-    const price = parseInt(productPrice.value);
-    const stock = parseInt(productStock.value);
-    const best_quality = productBestQuality ? productBestQuality.checked : false;
-
-    if (!name || !code || !category || !price || isNaN(stock)) {
-        showToast('Please fill in all required fields', 'error');
-        return;
-    }
-
-    const productData = { name, code, category, gender, price, stock, best_quality };
-
-    try {
-        if (id && id.value) {
-            const { error } = await supabaseClient.from('products').update(productData).eq('id', parseInt(id.value));
-            if (error) throw error;
-            showToast('Product updated!', 'success');
-        } else {
-            const { error } = await supabaseClient.from('products').insert([productData]);
-            if (error) throw error;
-            showToast('Product added!', 'success');
-        }
-        await loadProducts();
-        updateStats();
-        renderCurrentTab();
-        closeModal('productModal');
-    } catch (e) {
-        showToast('Error saving product', 'error');
-    }
-}
-
-function editProduct(id) {
-    const product = products.find(p => p.id === id);
-    if (product) openProductModal(product);
-}
-
-async function deleteProduct(id) {
-    if (!confirm('Delete this product?')) return;
-    try {
-        const { error } = await supabaseClient.from('products').delete().eq('id', id);
-        if (error) throw error;
-        showToast('Product deleted', 'success');
-        await loadProducts();
-        updateStats();
-        renderCurrentTab();
-    } catch (e) {
-        showToast('Error deleting product', 'error');
-    }
-}
-
-// ============================================================
-// INVENTORY
-// ============================================================
-function renderInventory() {
-    const stockProduct = document.getElementById('stockProduct');
-    if (stockProduct) {
-        stockProduct.innerHTML = products.map(p =>
-            `<option value="${p.id}">${p.name} (${p.stock} in stock)</option>`
-        ).join('');
-    }
-
-    const inventoryTable = document.getElementById('inventoryTable');
-    if (inventoryTable) {
-        if (!products.length) {
-            inventoryTable.innerHTML = '<div class="empty-state"><p>No products</p></div>';
-        } else {
-            inventoryTable.innerHTML = `
-                <div class="table-wrapper">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Stock</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${products.map(p => `
-                                <tr>
-                                    <td>${p.name}</td>
-                                    <td>${p.stock}</td>
-                                    <td>${p.stock < 5 ? '<span class="badge danger">⚠️ Low Stock</span>' : '<span class="badge success">✅ In Stock</span>'}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
-    }
-
-    const categoryStockList = document.getElementById('categoryStockList');
-    if (categoryStockList) {
-        const categoryStock = {};
-        products.forEach(p => {
-            if (!categoryStock[p.category]) categoryStock[p.category] = 0;
-            categoryStock[p.category] += p.stock;
-        });
-
-        categoryStockList.innerHTML = Object.entries(categoryStock)
-            .sort((a, b) => b[1] - a[1])
-            .map(([cat, stock]) => `
-                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
-                    <span>${cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
-                    <span>${stock} units</span>
-                </div>
-            `).join('') || '<div class="empty-state"><p>No categories</p></div>';
-    }
-}
-
-function openStockModal() {
-    const stockProduct = document.getElementById('stockProduct');
-    if (stockProduct) {
-        stockProduct.innerHTML = products.map(p =>
-            `<option value="${p.id}">${p.name} (${p.stock} in stock)</option>`
-        ).join('');
-    }
-    const adjustmentQty = document.getElementById('adjustmentQty');
-    const adjustmentReason = document.getElementById('adjustmentReason');
-    if (adjustmentQty) adjustmentQty.value = '';
-    if (adjustmentReason) adjustmentReason.value = '';
-    openModal('stockModal');
-}
-
-async function adjustStock(e) {
-    e.preventDefault();
-    const stockProduct = document.getElementById('stockProduct');
-    const adjustmentType = document.getElementById('adjustmentType');
-    const adjustmentQty = document.getElementById('adjustmentQty');
-    const adjustmentReason = document.getElementById('adjustmentReason');
-
-    if (!stockProduct || !adjustmentType || !adjustmentQty) return;
-
-    const productId = parseInt(stockProduct.value);
-    const type = adjustmentType.value;
-    const qty = parseFloat(adjustmentQty.value);
-    const reason = adjustmentReason ? adjustmentReason.value || 'Manual adjustment' : 'Manual adjustment';
-
-    if (!productId || !qty || qty <= 0) {
-        showToast('Please enter valid quantity', 'error');
-        return;
-    }
-
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-
-    const newStock = type === 'add' ? product.stock + qty : Math.max(0, product.stock - qty);
-
-    try {
-        const { error } = await supabaseClient.from('products').update({ stock: newStock }).eq('id', productId);
-        if (error) throw error;
-
-        showToast(`Stock updated: ${product.name} → ${newStock}`, 'success');
-        await loadProducts();
-        renderCurrentTab();
-        closeModal('stockModal');
-    } catch (e) {
-        showToast('Error adjusting stock', 'error');
-    }
-}
-
-// ============================================================
-// CUSTOMERS
-// ============================================================
-function renderCustomersTable() {
-    const container = document.getElementById('customersTable');
-    if (!container) return;
-
-    if (!customers.length) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No customers found</p></div>';
-        return;
-    }
-
-    container.innerHTML = `
-        <div class="table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Phone</th>
-                        <th>Email</th>
-                        <th>Orders</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${customers.map(c => `
-                        <tr>
-                            <td><strong>${c.name}</strong></td>
-                            <td>${c.phone}</td>
-                            <td>${c.email || '-'}</td>
-                            <td>${orders.filter(o => o.customer_phone === c.phone).length}</td>
-                            <td>
-                                <button class="btn btn-sm btn-danger" onclick="deleteCustomer(${c.id})"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-}
-
-function openCustomerModal(customer = null) {
-    const editId = document.getElementById('editCustomerId');
-    const modalTitle = document.getElementById('customerModalTitle');
-    const customerName = document.getElementById('customerName');
-    const customerPhone = document.getElementById('customerPhone');
-    const customerEmail = document.getElementById('customerEmail');
-    
-    if (editId) editId.value = customer ? customer.id : '';
-    if (modalTitle) modalTitle.textContent = customer ? '✏️ Edit Customer' : '👤 Add Customer';
-    if (customerName) customerName.value = customer ? customer.name : '';
-    if (customerPhone) customerPhone.value = customer ? customer.phone : '';
-    if (customerEmail) customerEmail.value = customer ? customer.email : '';
-    
-    openModal('customerModal');
-}
-
-async function saveCustomer(e) {
-    e.preventDefault();
-    const editId = document.getElementById('editCustomerId');
-    const customerName = document.getElementById('customerName');
-    const customerPhone = document.getElementById('customerPhone');
-    const customerEmail = document.getElementById('customerEmail');
-
-    if (!customerName || !customerPhone) return;
-
-    const name = customerName.value.trim();
-    const phone = customerPhone.value.trim();
-    const email = customerEmail ? customerEmail.value.trim() : '';
-
-    if (!name || !phone) {
-        showToast('Please fill in name and phone', 'error');
-        return;
-    }
-
-    const data = { name, phone, email };
-
-    try {
-        if (editId && editId.value) {
-            const { error } = await supabaseClient.from('customers').update(data).eq('id', parseInt(editId.value));
-            if (error) throw error;
-            showToast('Customer updated!', 'success');
-        } else {
-            const { error } = await supabaseClient.from('customers').insert([data]);
-            if (error) throw error;
-            showToast('Customer added!', 'success');
-        }
-        await loadCustomers();
-        renderCurrentTab();
-        closeModal('customerModal');
-    } catch (e) {
-        showToast('Error saving customer', 'error');
-    }
-}
-
-async function deleteCustomer(id) {
-    if (!confirm('Delete this customer?')) return;
-    try {
-        const { error } = await supabaseClient.from('customers').delete().eq('id', id);
-        if (error) throw error;
-        showToast('Customer deleted', 'success');
-        await loadCustomers();
-        renderCurrentTab();
-    } catch (e) {
-        showToast('Error deleting customer', 'error');
-    }
-}
-
-// ============================================================
-// REPORTS
-// ============================================================
-function generateReport() {
-    const reportStart = document.getElementById('reportStart');
-    const reportEnd = document.getElementById('reportEnd');
-    const reportContent = document.getElementById('reportContent');
-
-    if (!reportStart || !reportEnd || !reportContent) return;
-
-    const start = reportStart.value;
-    const end = reportEnd.value;
-
-    if (!start || !end) {
-        showToast('Please select both dates', 'warning');
-        return;
-    }
-
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    endDate.setHours(23, 59, 59);
-
-    const filtered = orders.filter(o => {
-        const date = new Date(o.created_at);
-        return date >= startDate && date <= endDate && o.status === 'completed';
-    });
-
-    const total = filtered.reduce((sum, o) => sum + (o.total || 0), 0);
-    const count = filtered.length;
-
-    reportContent.innerHTML = `
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-            <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;">
-                <div style="font-size:12px;color:var(--text-muted);">Total Sales</div>
-                <div style="font-size:24px;font-weight:700;color:var(--primary);">KES ${total}</div>
-            </div>
-            <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;">
-                <div style="font-size:12px;color:var(--text-muted);">Orders</div>
-                <div style="font-size:24px;font-weight:700;color:var(--success);">${count}</div>
-            </div>
-        </div>
-        <div style="max-height:300px;overflow-y:auto;">
-            ${filtered.length ? filtered.map(o => `
-                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
-                    <span>${o.order_number}</span>
-                    <span>${o.customer_name || 'Guest'}</span>
-                    <span><strong>KES ${o.total}</strong></span>
-                    <span style="color:var(--text-muted);font-size:12px;">${new Date(o.created_at).toLocaleDateString()}</span>
-                </div>
-            `).join('') : '<div class="empty-state"><p>No orders in this period</p></div>'}
-        </div>
-    `;
-}
-
-function exportReport(format) {
-    showToast(`Exporting ${format.toUpperCase()}...`, 'info');
-    setTimeout(() => showToast(`✅ ${format.toUpperCase()} exported!`, 'success'), 1500);
-}
-
-// ============================================================
-// PROFIT/LOSS
-// ============================================================
-function refreshProfitData() {
-    const completedOrders = orders.filter(o => o.status === 'completed');
-    const totalRevenue = completedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-    const costPercentage = 0.6;
-    const totalCost = totalRevenue * costPercentage;
-    const netProfit = totalRevenue - totalCost;
-
-    const totalRevenueEl = document.getElementById('totalRevenue');
-    const totalCostEl = document.getElementById('totalCost');
-    const netProfitEl = document.getElementById('netProfit');
-    
-    if (totalRevenueEl) totalRevenueEl.textContent = `KES ${totalRevenue.toFixed(2)}`;
-    if (totalCostEl) totalCostEl.textContent = `KES ${totalCost.toFixed(2)}`;
-    if (netProfitEl) netProfitEl.textContent = `KES ${netProfit.toFixed(2)}`;
-
-    renderProfitChart(totalRevenue, totalCost, netProfit);
-}
-
-function renderProfitChart(revenue, cost, profit) {
-    const ctx = document.getElementById('profitChart');
-    if (!ctx) return;
-    const context = ctx.getContext('2d');
-    if (profitChartInstance) profitChartInstance.destroy();
-
-    profitChartInstance = new Chart(context, {
-        type: 'doughnut',
-        data: {
-            labels: ['Revenue', 'Cost', 'Profit'],
-            datasets: [{
-                data: [revenue, cost, profit],
-                backgroundColor: ['#10B981', '#EF4444', '#C62828'],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
-                }
-            }
-        }
-    });
-}
-
-// ============================================================
-// AUDIT TRAIL
-// ============================================================
-function loadAuditLogs() {
-    const logs = JSON.parse(localStorage.getItem('luciecloset_audit') || '[]');
-    const auditTable = document.getElementById('auditTable');
-    if (!auditTable) return;
-
-    if (!logs.length) {
-        auditTable.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>No audit logs found</p></div>';
-        return;
-    }
-
-    auditTable.innerHTML = `
-        <div class="table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Time</th>
-                        <th>User</th>
-                        <th>Action</th>
-                        <th>Details</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${logs.slice(0, 50).map(log => `
-                        <tr>
-                            <td style="font-size:12px;color:var(--text-muted);">${new Date(log.timestamp).toLocaleString()}</td>
-                            <td>${log.user || 'System'}</td>
-                            <td><span class="badge primary">${log.action}</span></td>
-                            <td>${log.details || '-'}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-}
-
-// ============================================================
-// SETTINGS
-// ============================================================
-function saveSettings(e) {
-    e.preventDefault();
-    const settings = {
-        businessName: document.getElementById('businessName')?.value || 'Lucie Closet',
-        phone: document.getElementById('businessPhone')?.value || '+254 794 789 345',
-        email: document.getElementById('businessEmail')?.value || 'info@luciecloset.co.ke',
-        location: document.getElementById('businessLocation')?.value || 'Eastleigh 5th St, Micki Mall, Rm S12',
-        receiptFooter: document.getElementById('receiptFooter')?.value || 'Thank you for shopping at Lucie Closet! 👗'
-    };
-    localStorage.setItem('luciecloset_settings', JSON.stringify(settings));
-    showToast('Settings saved!', 'success');
-}
-
-function savePaymentSettings(e) {
-    e.preventDefault();
-    const settings = {
-        defaultPayment: document.getElementById('defaultPayment')?.value || 'mpesa',
-        mpesaShortcode: document.getElementById('mpesaShortcode')?.value || ''
-    };
-    localStorage.setItem('luciecloset_payment_settings', JSON.stringify(settings));
-    showToast('Payment settings saved!', 'success');
-}
-
-// ============================================================
-// MODALS
-// ============================================================
-function openModal(id) {
-    const modal = document.getElementById(id);
-    if (modal) modal.classList.add('active');
-}
-
-function closeModal(id) {
-    const modal = document.getElementById(id);
-    if (modal) modal.classList.remove('active');
-}
-
-// ============================================================
-// TOAST
-// ============================================================
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-    
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    const icons = {
-        'success': 'fa-check-circle',
-        'error': 'fa-exclamation-circle',
-        'warning': 'fa-exclamation-triangle',
-        'info': 'fa-info-circle'
-    };
-    toast.innerHTML = `<i class="fas ${icons[type] || 'fa-info-circle'}"></i> ${message}`;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// ============================================================
-// REFRESH
-// ============================================================
-function refreshAll() {
-    showToast('Refreshing data...', 'info');
-    loadData();
-}
+// [INSERT ALL YOUR EXISTING FUNCTIONS HERE]
+// - renderPOSProducts()
+// - addToCart()
+// - removeFromCart()
+// - updateQty()
+// - updateCartUI()
+// - clearCart()
+// - openCheckout()
+// - selectPayment()
+// - calculateChange()
+// - completeOrder()
+// - generateReceipt()
+// - printReceipt()
+// - renderOrders()
+// - viewOrder()
+// - updateOrderStatus()
+// - renderProductsTable()
+// - openProductModal()
+// - saveProduct()
+// - editProduct()
+// - deleteProduct()
+// - renderInventory()
+// - openStockModal()
+// - adjustStock()
+// - renderCustomersTable()
+// - openCustomerModal()
+// - saveCustomer()
+// - deleteCustomer()
+// - generateReport()
+// - exportReport()
+// - refreshProfitData()
+// - renderProfitChart()
+// - loadAuditLogs()
+// - saveSettings()
+// - savePaymentSettings()
+// - openModal()
+// - closeModal()
+// - showToast()
+// - refreshAll()
 
 // ============================================================
 // THEME TOGGLE
