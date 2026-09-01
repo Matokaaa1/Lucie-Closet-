@@ -1,14 +1,13 @@
 // ============================================================
-// Lucie Closet · POS + Admin System
+// LUCIE CLOSET · POS + ADMIN SYSTEM - COMPLETE
 // ============================================================
 
 // ============================================================
-// SUPABASE CONFIG - Only declared once
+// SUPABASE CONFIG
 // ============================================================
 const SUPABASE_URL = 'https://tlsldwshtxofckvkixxz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsc2xkd3NodHhvZmNrdmtpeHh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTksImV4cCI6MjEwMzc4NzU1OX0.BAfgQG4Z28bgKSfL9Li7Gbgp62sTM-5NxB4qVQ-b0H4';
 
-// ✅ CORRECT: Use a different name or check if it exists
 const sb = supabaseClient.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============================================================
@@ -24,6 +23,13 @@ let currentCategory = 'all';
 let selectedPayment = 'mpesa';
 let salesChartInstance = null;
 let profitChartInstance = null;
+
+// ============================================================
+// PIN LOGIN STATE
+// ============================================================
+let pinValue = '';
+let isSubmitting = false;
+let currentMethod = 'pin';
 
 // ============================================================
 // AUTH FUNCTIONS
@@ -49,73 +55,341 @@ function checkAuth() {
 function showLogin() {
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('dashboardScreen').style.display = 'none';
-    document.getElementById('loginError').textContent = '';
+    const alertEl = document.getElementById('loginAlert');
+    if (alertEl) {
+        alertEl.className = 'alert';
+        alertEl.textContent = '';
+    }
 }
 
 function showDashboard() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('dashboardScreen').style.display = 'block';
-    document.getElementById('userName').textContent = currentUser?.full_name || 'Admin';
-    document.getElementById('userRole').textContent = currentUser?.role || 'Administrator';
-    document.getElementById('userAvatar').textContent = (currentUser?.full_name || 'A').charAt(0).toUpperCase();
+    const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+    document.getElementById('userName').textContent = session.user?.full_name || 'Admin';
+    document.getElementById('userRole').textContent = session.user?.role_name || 'Administrator';
+    document.getElementById('userAvatar').textContent = (session.user?.full_name || 'A').charAt(0).toUpperCase();
     loadData();
 }
 
-async function handleLogin(e) {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    const pin = document.getElementById('loginPin').value;
+// ============================================================
+// PIN FUNCTIONS - Fast & Responsive
+// ============================================================
+function pinPress(n) {
+    if (isSubmitting) return;
+    if (pinValue.length >= 4) return;
 
-    if (!email || !password || !pin) {
-        document.getElementById('loginError').textContent = 'Please fill in all fields';
+    // Visual feedback
+    const keys = document.querySelectorAll('.key:not(.action):not(.enter)');
+    const order = ['1','2','3','4','5','6','7','8','9','0'];
+    const idx = order.indexOf(n);
+    if (idx >= 0 && keys[idx]) {
+        keys[idx].style.transform = 'scale(0.85)';
+        keys[idx].style.background = 'rgba(255,255,255,0.2)';
+        setTimeout(() => {
+            keys[idx].style.transform = '';
+            keys[idx].style.background = '';
+        }, 150);
+    }
+
+    // Haptic feedback
+    if (navigator.vibrate) navigator.vibrate(8);
+
+    pinValue += n;
+    const pinInput = document.getElementById('pinInput');
+    if (pinInput) pinInput.value = pinValue;
+    renderDots();
+
+    // Auto-submit when 4 digits entered
+    if (pinValue.length === 4) {
+        setTimeout(() => submitPin(), 80);
+    }
+}
+
+function pinBackspace() {
+    if (isSubmitting) return;
+    if (pinValue.length === 0) return;
+
+    const backspaceBtn = document.querySelector('.key.action');
+    if (backspaceBtn) {
+        backspaceBtn.style.transform = 'scale(0.85)';
+        setTimeout(() => backspaceBtn.style.transform = '', 150);
+    }
+
+    if (navigator.vibrate) navigator.vibrate(5);
+
+    pinValue = pinValue.slice(0, -1);
+    const pinInput = document.getElementById('pinInput');
+    if (pinInput) pinInput.value = pinValue;
+    renderDots();
+}
+
+function renderDots() {
+    const dots = document.querySelectorAll('#pinDots .pin-dot');
+    dots.forEach((dot, i) => {
+        if (i < pinValue.length) {
+            dot.classList.add('filled');
+            if (i === pinValue.length - 1) {
+                dot.style.animation = 'pulse 0.2s ease';
+                setTimeout(() => dot.style.animation = '', 300);
+            }
+        } else {
+            dot.classList.remove('filled');
+        }
+    });
+}
+
+function shakePinDots() {
+    const dots = document.querySelectorAll('#pinDots .pin-dot');
+    dots.forEach((dot, i) => {
+        dot.style.animation = `shake 0.3s ease ${i * 0.05}s`;
+        dot.style.borderColor = '#EF4444';
+        setTimeout(() => {
+            dot.style.animation = '';
+            dot.style.borderColor = '';
+        }, 500);
+    });
+}
+
+function submitPin() {
+    if (isSubmitting) return;
+    if (pinValue.length < 4) {
+        showAlert('Please enter 4 digits.', 'error');
+        shakePinDots();
         return;
     }
 
+    // Enter button feedback
+    const enterBtn = document.getElementById('pinEnter');
+    if (enterBtn) {
+        enterBtn.style.transform = 'scale(0.85)';
+        setTimeout(() => enterBtn.style.transform = '', 200);
+    }
+
+    const form = document.getElementById('loginForm');
+    if (form) form.dispatchEvent(new Event('submit'));
+}
+
+// ============================================================
+// SWITCH LOGIN METHOD
+// ============================================================
+function switchMethod(method) {
+    if (isSubmitting) return;
+    currentMethod = method;
+
+    if (method === 'pin') {
+        const pinPane = document.getElementById('pinPane');
+        const emailPane = document.getElementById('emailPane');
+        const pinTab = document.getElementById('pinTab');
+        const emailTab = document.getElementById('emailTab');
+        const authSub = document.getElementById('authSub');
+        
+        if (pinPane) pinPane.classList.remove('hidden');
+        if (emailPane) emailPane.classList.add('hidden');
+        if (pinTab) pinTab.classList.add('active');
+        if (emailTab) emailTab.classList.remove('active');
+        if (authSub) authSub.textContent = 'Enter your email and PIN to sign in';
+        
+        hideAlert();
+        pinValue = '';
+        const pinInput = document.getElementById('pinInput');
+        if (pinInput) pinInput.value = '';
+        renderDots();
+        setTimeout(() => {
+            const pinEmail = document.getElementById('pinEmail');
+            if (pinEmail) pinEmail.focus();
+        }, 100);
+    } else {
+        const pinPane = document.getElementById('pinPane');
+        const emailPane = document.getElementById('emailPane');
+        const pinTab = document.getElementById('pinTab');
+        const emailTab = document.getElementById('emailTab');
+        const authSub = document.getElementById('authSub');
+        
+        if (emailPane) emailPane.classList.remove('hidden');
+        if (pinPane) pinPane.classList.add('hidden');
+        if (emailTab) emailTab.classList.add('active');
+        if (pinTab) pinTab.classList.remove('active');
+        if (authSub) authSub.textContent = 'Enter your credentials to continue';
+        
+        hideAlert();
+        setTimeout(() => {
+            const emailInput = document.getElementById('emailInput');
+            if (emailInput) emailInput.focus();
+        }, 100);
+    }
+}
+
+// ============================================================
+// ALERT SYSTEM
+// ============================================================
+function showAlert(message, type = 'error') {
+    const alertEl = document.getElementById('loginAlert');
+    if (!alertEl) return;
+    alertEl.textContent = message;
+    alertEl.className = 'alert ' + type;
+    alertEl.setAttribute('role', 'alert');
+}
+
+function hideAlert() {
+    const alertEl = document.getElementById('loginAlert');
+    if (!alertEl) return;
+    alertEl.className = 'alert';
+    alertEl.textContent = '';
+    alertEl.removeAttribute('role');
+}
+
+// ============================================================
+// KEYBOARD SUPPORT
+// ============================================================
+document.addEventListener('keydown', function(e) {
+    if (currentMethod !== 'pin') return;
+    if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        pinPress(e.key);
+    } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        pinBackspace();
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        submitPin();
+    }
+});
+
+// ============================================================
+// LOGIN HANDLER
+// ============================================================
+async function handleLogin(e) {
+    e.preventDefault();
+    if (isSubmitting) return;
+    hideAlert();
+
+    isSubmitting = true;
+    const loginBtn = document.getElementById('loginBtn');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+    
+    if (loginBtn) loginBtn.disabled = true;
+    if (btnText) btnText.style.display = 'none';
+    if (btnSpinner) btnSpinner.style.display = 'inline-block';
+
     try {
-        // Try to authenticate with Supabase
-        const { data, error } = await sb.auth.signInWithPassword({
-            email: email,
-            password: password
-        });
+        let email = '';
 
-        if (error) {
-            // Fallback: check local users
-            const users = JSON.parse(localStorage.getItem('luciecloset_users') || '[]');
-            const user = users.find(u => u.email === email && u.pin === pin);
-            if (user) {
-                currentUser = user;
-                const session = { user: user, loginTime: Date.now() };
-                localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-                showDashboard();
-                showToast('Welcome back, ' + user.full_name + '!', 'success');
-                return;
-            }
-            document.getElementById('loginError').textContent = 'Invalid credentials. Please try again.';
-            return;
-        }
+        if (currentMethod === 'pin') {
+            const pinEmail = document.getElementById('pinEmail');
+            if (!pinEmail) throw new Error('Email field not found');
+            email = pinEmail.value.trim();
+            
+            if (!email) throw new Error('Please enter your email address.');
+            if (!email.includes('@')) throw new Error('Please enter a valid email address.');
+            if (pinValue.length < 4) throw new Error('PIN must be 4 digits.');
 
-        if (data.user) {
-            // Check PIN (stored in users table)
-            const { data: userData } = await sb
+            // Direct database check
+            const { data: user, error } = await sb
                 .from('users')
-                .select('*')
+                .select('id, email, full_name, role_id, status, pin, pin_enabled')
                 .eq('email', email)
                 .single();
 
-            if (userData && userData.pin === pin) {
-                currentUser = { ...data.user, ...userData };
-                const session = { user: currentUser, loginTime: Date.now() };
-                localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+            if (error || !user) throw new Error('User not found');
+            if (user.status !== 'active') throw new Error('Account is inactive');
+            if (!user.pin_enabled) throw new Error('PIN is not enabled for this account');
+            if (user.pin !== pinValue) throw new Error('Invalid PIN. Please try again.');
+
+            // Get full user with role
+            const { data: userData, error: userError } = await sb
+                .from('users')
+                .select(`*, roles:role_id (id, name, permissions)`)
+                .eq('id', user.id)
+                .single();
+
+            if (userError || !userData) throw new Error('User profile not found');
+
+            // Store session
+            const sessionData = {
+                user: {
+                    ...userData,
+                    role_name: userData.roles?.name || 'cashier',
+                    permissions: userData.roles?.permissions || {}
+                },
+                loginMethod: 'pin',
+                loginTime: Date.now()
+            };
+            localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+
+            // Update last login
+            await sb.from('users').update({ last_login: new Date().toISOString() }).eq('id', user.id);
+
+            showToast('Welcome back, ' + userData.full_name + '!', 'success');
+            setTimeout(() => {
+                currentUser = sessionData.user;
                 showDashboard();
-                showToast('Welcome back, ' + currentUser.full_name + '!', 'success');
-                return;
-            }
-            document.getElementById('loginError').textContent = 'Invalid PIN. Please try again.';
+            }, 500);
+
+        } else {
+            // Email login
+            const emailInput = document.getElementById('emailInput');
+            const passwordInput = document.getElementById('passwordInput');
+            
+            if (!emailInput || !passwordInput) throw new Error('Form fields not found');
+            
+            email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email || !password) throw new Error('Please enter both email and password.');
+            if (!email.includes('@')) throw new Error('Please enter a valid email address.');
+
+            const { data: authData, error: authError } = await sb.auth.signInWithPassword({
+                email, password
+            });
+
+            if (authError) throw new Error(authError.message || 'Authentication failed.');
+
+            const { data: userData, error: userError } = await sb
+                .from('users')
+                .select(`*, roles:role_id (id, name, permissions)`)
+                .eq('email', email)
+                .single();
+
+            if (userError || !userData) throw new Error('User profile not found');
+            if (userData.status !== 'active') throw new Error('Account is inactive');
+
+            const sessionData = {
+                user: {
+                    ...userData,
+                    role_name: userData.roles?.name || 'cashier',
+                    permissions: userData.roles?.permissions || {}
+                },
+                session: authData.session,
+                loginMethod: 'email',
+                loginTime: Date.now()
+            };
+            localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+
+            showToast('Welcome back, ' + userData.full_name + '!', 'success');
+            setTimeout(() => {
+                currentUser = sessionData.user;
+                showDashboard();
+            }, 500);
         }
-    } catch (err) {
-        console.error('Login error:', err);
-        document.getElementById('loginError').textContent = 'Login failed. Please try again.';
+
+    } catch (error) {
+        showAlert(error.message, 'error');
+        if (currentMethod === 'pin') {
+            pinValue = '';
+            const pinInput = document.getElementById('pinInput');
+            if (pinInput) pinInput.value = '';
+            renderDots();
+            shakePinDots();
+        }
+        const loginBtn = document.getElementById('loginBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        if (loginBtn) loginBtn.disabled = false;
+        if (btnText) btnText.style.display = 'inline';
+        if (btnSpinner) btnSpinner.style.display = 'none';
+        isSubmitting = false;
     }
 }
 
@@ -169,7 +443,8 @@ async function loadOrders() {
         const stored = localStorage.getItem('luciecloset_orders');
         orders = stored ? JSON.parse(stored) : [];
     }
-    document.getElementById('orderBadge').textContent = orders.length;
+    const badge = document.getElementById('orderBadge');
+    if (badge) badge.textContent = orders.length;
 }
 
 async function loadCustomers() {
@@ -211,10 +486,15 @@ function updateStats() {
     const todayOrders = orders.filter(o => new Date(o.created_at).toDateString() === today && o.status === 'completed');
     const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
 
-    document.getElementById('todaySales').textContent = `KES ${todayRevenue}`;
-    document.getElementById('bestQualityCount').textContent = products.filter(p => p.best_quality).length;
-    document.getElementById('totalOrders').textContent = orders.length;
-    document.getElementById('lowStock').textContent = products.filter(p => p.stock < 5).length;
+    const todaySales = document.getElementById('todaySales');
+    const bestQualityCount = document.getElementById('bestQualityCount');
+    const totalOrders = document.getElementById('totalOrders');
+    const lowStock = document.getElementById('lowStock');
+    
+    if (todaySales) todaySales.textContent = `KES ${todayRevenue}`;
+    if (bestQualityCount) bestQualityCount.textContent = products.filter(p => p.best_quality).length;
+    if (totalOrders) totalOrders.textContent = orders.length;
+    if (lowStock) lowStock.textContent = products.filter(p => p.stock < 5).length;
 }
 
 // ============================================================
@@ -227,16 +507,16 @@ function updateGreeting() {
     else if (hour >= 17) greeting = 'Good Evening';
 
     const name = currentUser?.full_name || 'Admin';
-    document.getElementById('greetingContainer').innerHTML = `
-        <div style="margin-bottom:16px;padding:16px 20px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);">
-            <h2 style="font-size:20px;font-weight:700;">
-                👋 ${greeting}, ${name}!
-                <span style="font-size:14px;font-weight:400;color:var(--text-muted);display:block;margin-top:4px;">
-                    Welcome to Lucie Closet POS System
-                </span>
-            </h2>
-        </div>
-    `;
+    const container = document.getElementById('greetingContainer');
+    if (container) {
+        container.innerHTML = `
+            <div class="greeting-banner">
+                <h2>👋 ${greeting}, ${name}!
+                    <span class="greeting-sub">Welcome to Lucie Closet POS System</span>
+                </h2>
+            </div>
+        `;
+    }
 }
 
 // ============================================================
@@ -260,8 +540,11 @@ function navigateTo(section) {
         'settings': 'settingsSection'
     };
 
-    document.getElementById(sectionMap[section]).classList.add('active');
-    document.querySelector(`.sidebar-menu li[data-section="${section}"]`).classList.add('active');
+    const target = document.getElementById(sectionMap[section]);
+    if (target) target.classList.add('active');
+    
+    const navItem = document.querySelector(`.sidebar-menu li[data-section="${section}"]`);
+    if (navItem) navItem.classList.add('active');
 
     const titles = {
         'dashboard': '📊 Dashboard',
@@ -276,7 +559,9 @@ function navigateTo(section) {
         'settings': '⚙️ Settings'
     };
 
-    document.getElementById('pageTitle').textContent = titles[section];
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle) pageTitle.textContent = titles[section] || section;
+    
     renderCurrentTab();
 }
 
@@ -315,13 +600,15 @@ function renderDashboard() {
 
 function renderRecentOrders() {
     const recent = orders.slice(0, 10);
+    const container = document.getElementById('recentOrdersTable');
+    if (!container) return;
+
     if (!recent.length) {
-        document.getElementById('recentOrdersTable').innerHTML =
-            '<div class="empty-state"><i class="fas fa-inbox"></i><p>No recent orders</p></div>';
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No recent orders</p></div>';
         return;
     }
 
-    document.getElementById('recentOrdersTable').innerHTML = `
+    container.innerHTML = `
         <div class="table-wrapper">
             <table class="data-table">
                 <thead>
@@ -364,13 +651,15 @@ function renderTopProducts() {
     });
 
     const sorted = Object.values(productSales).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+    const container = document.getElementById('topProductsList');
+    if (!container) return;
 
     if (!sorted.length) {
-        document.getElementById('topProductsList').innerHTML = '<div class="empty-state"><p>No sales data</p></div>';
+        container.innerHTML = '<div class="empty-state"><p>No sales data</p></div>';
         return;
     }
 
-    document.getElementById('topProductsList').innerHTML = sorted.map((p, i) => `
+    container.innerHTML = sorted.map((p, i) => `
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
             <span>${i+1}. ${p.name}</span>
             <span style="font-weight:600;color:var(--primary);">KES ${p.revenue}</span>
@@ -379,7 +668,9 @@ function renderTopProducts() {
 }
 
 function renderSalesChart() {
-    const ctx = document.getElementById('salesChart').getContext('2d');
+    const ctx = document.getElementById('salesChart');
+    if (!ctx) return;
+    const context = ctx.getContext('2d');
     if (salesChartInstance) salesChartInstance.destroy();
 
     const last7Days = [];
@@ -393,7 +684,7 @@ function renderSalesChart() {
         salesData.push(dayOrders.reduce((sum, o) => sum + (o.total || 0), 0));
     }
 
-    salesChartInstance = new Chart(ctx, {
+    salesChartInstance = new Chart(context, {
         type: 'line',
         data: {
             labels: last7Days,
@@ -430,20 +721,23 @@ function renderSalesChart() {
 // POS FUNCTIONS
 // ============================================================
 function renderPOSProducts() {
-    const search = document.getElementById('posSearch').value.toLowerCase();
+    const search = document.getElementById('posSearch');
+    const grid = document.getElementById('posProductGrid');
+    if (!grid) return;
+    
+    const searchValue = search ? search.value.toLowerCase() : '';
     let filtered = products.filter(p => {
-        const matchSearch = p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search);
+        const matchSearch = p.name.toLowerCase().includes(searchValue) || p.code.toLowerCase().includes(searchValue);
         const matchCategory = currentCategory === 'all' || p.category === currentCategory;
         return matchSearch && matchCategory && p.stock > 0;
     });
 
     if (!filtered.length) {
-        document.getElementById('posProductGrid').innerHTML =
-            '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products available</p></div>';
+        grid.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products available</p></div>';
         return;
     }
 
-    document.getElementById('posProductGrid').innerHTML = filtered.map(p => `
+    grid.innerHTML = filtered.map(p => `
         <div class="pos-product-item" onclick="addToCart(${p.id})">
             <span class="emoji">${p.category === 'dress' ? '👗' : p.category === 'top' ? '👕' : p.category === 'sweater' ? '🧥' : '👔'}</span>
             <div class="name">${p.name}</div>
@@ -507,30 +801,37 @@ function updateCartUI() {
     const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
     const totalPrice = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
 
-    document.getElementById('posCartCount').textContent = `${totalItems} items`;
+    const cartCount = document.getElementById('posCartCount');
+    const cartItems = document.getElementById('posCartItems');
+    const cartTotal = document.getElementById('posCartTotal');
+    
+    if (cartCount) cartCount.textContent = `${totalItems} items`;
 
     if (!cart.length) {
-        document.getElementById('posCartItems').innerHTML =
-            '<div class="empty-state"><i class="fas fa-plus-circle"></i><p>Add items from the left</p></div>';
+        if (cartItems) {
+            cartItems.innerHTML = '<div class="empty-state"><i class="fas fa-plus-circle"></i><p>Add items from the left</p></div>';
+        }
     } else {
-        document.getElementById('posCartItems').innerHTML = cart.map(item => `
-            <div class="cart-item">
-                <div class="item-info">
-                    <div class="name">${item.name}</div>
-                    <div class="code">${item.code}</div>
+        if (cartItems) {
+            cartItems.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <div class="item-info">
+                        <div class="name">${item.name}</div>
+                        <div class="code">${item.code}</div>
+                    </div>
+                    <div class="item-qty">
+                        <button onclick="updateQty(${item.id},-1)">−</button>
+                        <span>${item.qty}</span>
+                        <button onclick="updateQty(${item.id},1)">+</button>
+                    </div>
+                    <div class="item-total">KES ${item.price * item.qty}</div>
+                    <button class="remove-btn" onclick="removeFromCart(${item.id})"><i class="fas fa-times"></i></button>
                 </div>
-                <div class="item-qty">
-                    <button onclick="updateQty(${item.id},-1)">−</button>
-                    <span>${item.qty}</span>
-                    <button onclick="updateQty(${item.id},1)">+</button>
-                </div>
-                <div class="item-total">KES ${item.price * item.qty}</div>
-                <button class="remove-btn" onclick="removeFromCart(${item.id})"><i class="fas fa-times"></i></button>
-            </div>
-        `).join('');
+            `).join('');
+        }
     }
 
-    document.getElementById('posCartTotal').textContent = `KES ${totalPrice}`;
+    if (cartTotal) cartTotal.textContent = `KES ${totalPrice}`;
 }
 
 function clearCart() {
@@ -552,22 +853,35 @@ function openCheckout() {
     }
 
     const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    document.getElementById('checkoutTotal').textContent = `KES ${total}`;
+    const checkoutTotal = document.getElementById('checkoutTotal');
+    const checkoutItems = document.getElementById('checkoutItems');
+    
+    if (checkoutTotal) checkoutTotal.textContent = `KES ${total}`;
+    
+    if (checkoutItems) {
+        checkoutItems.innerHTML = cart.map(i => `
+            <div class="checkout-item">
+                <span>${i.name} × ${i.qty}</span>
+                <span>KES ${i.price * i.qty}</span>
+            </div>
+        `).join('');
+    }
 
-    document.getElementById('checkoutItems').innerHTML = cart.map(i => `
-        <div class="checkout-item">
-            <span>${i.name} × ${i.qty}</span>
-            <span>KES ${i.price * i.qty}</span>
-        </div>
-    `).join('');
-
-    document.getElementById('checkoutName').value = '';
-    document.getElementById('checkoutPhone').value = '';
-    document.getElementById('mpesaCode').value = '';
-    document.getElementById('cashPaid').value = '';
-    document.getElementById('changeDisplay').textContent = '';
-    document.getElementById('mpesaForm').style.display = 'none';
-    document.getElementById('cashForm').style.display = 'none';
+    const checkoutName = document.getElementById('checkoutName');
+    const checkoutPhone = document.getElementById('checkoutPhone');
+    const mpesaCode = document.getElementById('mpesaCode');
+    const cashPaid = document.getElementById('cashPaid');
+    const changeDisplay = document.getElementById('changeDisplay');
+    const mpesaForm = document.getElementById('mpesaForm');
+    const cashForm = document.getElementById('cashForm');
+    
+    if (checkoutName) checkoutName.value = '';
+    if (checkoutPhone) checkoutPhone.value = '';
+    if (mpesaCode) mpesaCode.value = '';
+    if (cashPaid) cashPaid.value = '';
+    if (changeDisplay) changeDisplay.textContent = '';
+    if (mpesaForm) mpesaForm.style.display = 'none';
+    if (cashForm) cashForm.style.display = 'none';
 
     openModal('checkoutModal');
 }
@@ -575,31 +889,40 @@ function openCheckout() {
 function selectPayment(method) {
     selectedPayment = method;
     document.querySelectorAll('.payment-methods .method').forEach(el => el.classList.remove('active'));
-    document.querySelector(`.payment-methods .method[data-method="${method}"]`).classList.add('active');
+    const activeMethod = document.querySelector(`.payment-methods .method[data-method="${method}"]`);
+    if (activeMethod) activeMethod.classList.add('active');
 
-    document.getElementById('mpesaForm').style.display = method === 'mpesa' ? 'block' : 'none';
-    document.getElementById('cashForm').style.display = method === 'cash' ? 'block' : 'none';
+    const mpesaForm = document.getElementById('mpesaForm');
+    const cashForm = document.getElementById('cashForm');
+    if (mpesaForm) mpesaForm.style.display = method === 'mpesa' ? 'block' : 'none';
+    if (cashForm) cashForm.style.display = method === 'cash' ? 'block' : 'none';
 }
 
 function calculateChange() {
     const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    const paid = parseFloat(document.getElementById('cashPaid').value) || 0;
+    const cashPaid = document.getElementById('cashPaid');
+    const changeDisplay = document.getElementById('changeDisplay');
+    
+    if (!cashPaid || !changeDisplay) return;
+    const paid = parseFloat(cashPaid.value) || 0;
     const change = paid - total;
-    document.getElementById('changeDisplay').textContent = change >= 0 ?
-        `Change: KES ${change}` :
-        `Balance: KES ${Math.abs(change)}`;
+    changeDisplay.textContent = change >= 0 ? `Change: KES ${change}` : `Balance: KES ${Math.abs(change)}`;
 }
 
 async function completeOrder() {
     if (!cart.length) return;
 
-    const name = document.getElementById('checkoutName').value.trim() || 'Walk-in Customer';
-    const phone = document.getElementById('checkoutPhone').value.trim() || 'N/A';
+    const checkoutName = document.getElementById('checkoutName');
+    const checkoutPhone = document.getElementById('checkoutPhone');
+    const mpesaCode = document.getElementById('mpesaCode');
+    
+    const name = checkoutName ? checkoutName.value.trim() || 'Walk-in Customer' : 'Walk-in Customer';
+    const phone = checkoutPhone ? checkoutPhone.value.trim() || 'N/A' : 'N/A';
     const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
 
     let paymentDetails = selectedPayment;
     if (selectedPayment === 'mpesa') {
-        const code = document.getElementById('mpesaCode').value.trim();
+        const code = mpesaCode ? mpesaCode.value.trim() : '';
         if (!code) { showToast('Please enter M-Pesa transaction code', 'error'); return; }
         paymentDetails = `M-Pesa: ${code}`;
     }
@@ -666,7 +989,8 @@ function generateReceipt(order) {
         ================================
     `;
 
-    document.getElementById('receiptContent').textContent = receipt;
+    const receiptContent = document.getElementById('receiptContent');
+    if (receiptContent) receiptContent.textContent = receipt;
     openModal('receiptModal');
 
     // Auto-print
@@ -674,15 +998,20 @@ function generateReceipt(order) {
 }
 
 function printReceipt() {
-    const content = document.getElementById('receiptContent').textContent;
+    const receiptContent = document.getElementById('receiptContent');
+    if (!receiptContent) return;
+    
+    const content = receiptContent.textContent;
     const printWindow = window.open('', '_blank', 'width=400,height=600');
-    printWindow.document.write(`
-        <html><head><title>Receipt</title>
-        <style>body{font-family:monospace;padding:20px;white-space:pre-wrap;font-size:14px;}</style>
-        </head><body>${content}</body></html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
+    if (printWindow) {
+        printWindow.document.write(`
+            <html><head><title>Receipt</title>
+            <style>body{font-family:monospace;padding:20px;white-space:pre-wrap;font-size:14px;}</style>
+            </head><body>${content}</body></html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+    }
 }
 
 // ============================================================
@@ -696,19 +1025,27 @@ function renderOrders(filter = 'all') {
     }
 
     // Update counts
-    document.getElementById('countAll').textContent = orders.length;
-    document.getElementById('countPending').textContent = orders.filter(o => o.status === 'pending').length;
-    document.getElementById('countCompleted').textContent = orders.filter(o => o.status === 'completed').length;
-    document.getElementById('countCancelled').textContent = orders.filter(o => o.status === 'cancelled').length;
-    document.getElementById('orderCount').textContent = filtered.length;
+    const countAll = document.getElementById('countAll');
+    const countPending = document.getElementById('countPending');
+    const countCompleted = document.getElementById('countCompleted');
+    const countCancelled = document.getElementById('countCancelled');
+    const orderCount = document.getElementById('orderCount');
+    const ordersContainer = document.getElementById('ordersContainer');
+    
+    if (countAll) countAll.textContent = orders.length;
+    if (countPending) countPending.textContent = orders.filter(o => o.status === 'pending').length;
+    if (countCompleted) countCompleted.textContent = orders.filter(o => o.status === 'completed').length;
+    if (countCancelled) countCancelled.textContent = orders.filter(o => o.status === 'cancelled').length;
+    if (orderCount) orderCount.textContent = filtered.length;
+
+    if (!ordersContainer) return;
 
     if (!filtered.length) {
-        document.getElementById('ordersContainer').innerHTML =
-            '<div class="empty-state"><i class="fas fa-inbox"></i><p>No orders found</p></div>';
+        ordersContainer.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No orders found</p></div>';
         return;
     }
 
-    document.getElementById('ordersContainer').innerHTML = `
+    ordersContainer.innerHTML = `
         <div class="table-wrapper">
             <table class="data-table">
                 <thead>
@@ -750,13 +1087,6 @@ function viewOrder(id) {
     const order = orders.find(o => o.id === id);
     if (!order) return;
 
-    const itemsHtml = order.items ? order.items.map(i =>
-        `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);">
-            <span>${i.name} × ${i.qty}</span>
-            <span>KES ${i.price * i.qty}</span>
-        </div>`
-    ).join('') : '';
-
     alert(`
         Order: ${order.order_number}
         Customer: ${order.customer_name || 'Guest'}
@@ -777,7 +1107,8 @@ async function updateOrderStatus(id, status) {
         if (error) throw error;
         showToast(`Order ${status}`, 'success');
         await loadOrders();
-        renderOrders(document.querySelector('.filter-btn.active')?.dataset?.filter || 'all');
+        const activeFilter = document.querySelector('.filter-btn.active');
+        renderOrders(activeFilter ? activeFilter.dataset.filter : 'all');
         updateStats();
     } catch (e) {
         showToast('Error updating order', 'error');
@@ -788,13 +1119,15 @@ async function updateOrderStatus(id, status) {
 // PRODUCTS TABLE
 // ============================================================
 function renderProductsTable() {
+    const container = document.getElementById('productsTable');
+    if (!container) return;
+
     if (!products.length) {
-        document.getElementById('productsTable').innerHTML =
-            '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products found</p></div>';
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products found</p></div>';
         return;
     }
 
-    document.getElementById('productsTable').innerHTML = `
+    container.innerHTML = `
         <div class="table-wrapper">
             <table class="data-table">
                 <thead>
@@ -838,36 +1171,53 @@ function renderProductsTable() {
 }
 
 function openProductModal(product = null) {
-    document.getElementById('editProductId').value = product ? product.id : '';
-    document.getElementById('productModalTitle').textContent = product ? '✏️ Edit Product' : '📦 Add Product';
-    document.getElementById('saveProductBtn').innerHTML = product ?
-        '<i class="fas fa-save"></i> Update' :
-        '<i class="fas fa-save"></i> Save';
-
-    document.getElementById('productName').value = product ? product.name : '';
-    document.getElementById('productCode').value = product ? product.code : '';
-    document.getElementById('productCategory').value = product ? product.category : '';
-    document.getElementById('productGender').value = product ? product.gender : 'unisex';
-    document.getElementById('productPrice').value = product ? product.price : '';
-    document.getElementById('productStock').value = product ? product.stock : '';
-    document.getElementById('productBestQuality').checked = product ? product.best_quality : false;
-
-    document.getElementById('imagePreview').innerHTML = product && product.image_url ?
-        `<img src="${product.image_url}">` : '';
+    const editId = document.getElementById('editProductId');
+    const modalTitle = document.getElementById('productModalTitle');
+    const saveBtn = document.getElementById('saveProductBtn');
+    const productName = document.getElementById('productName');
+    const productCode = document.getElementById('productCode');
+    const productCategory = document.getElementById('productCategory');
+    const productGender = document.getElementById('productGender');
+    const productPrice = document.getElementById('productPrice');
+    const productStock = document.getElementById('productStock');
+    const productBestQuality = document.getElementById('productBestQuality');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    if (editId) editId.value = product ? product.id : '';
+    if (modalTitle) modalTitle.textContent = product ? '✏️ Edit Product' : '📦 Add Product';
+    if (saveBtn) saveBtn.innerHTML = product ? '<i class="fas fa-save"></i> Update' : '<i class="fas fa-save"></i> Save';
+    if (productName) productName.value = product ? product.name : '';
+    if (productCode) productCode.value = product ? product.code : '';
+    if (productCategory) productCategory.value = product ? product.category : '';
+    if (productGender) productGender.value = product ? product.gender : 'unisex';
+    if (productPrice) productPrice.value = product ? product.price : '';
+    if (productStock) productStock.value = product ? product.stock : '';
+    if (productBestQuality) productBestQuality.checked = product ? product.best_quality : false;
+    if (imagePreview) imagePreview.innerHTML = product && product.image_url ? `<img src="${product.image_url}">` : '';
 
     openModal('productModal');
 }
 
 async function saveProduct(e) {
     e.preventDefault();
-    const id = document.getElementById('editProductId').value;
-    const name = document.getElementById('productName').value.trim();
-    const code = document.getElementById('productCode').value.trim();
-    const category = document.getElementById('productCategory').value;
-    const gender = document.getElementById('productGender').value;
-    const price = parseInt(document.getElementById('productPrice').value);
-    const stock = parseInt(document.getElementById('productStock').value);
-    const best_quality = document.getElementById('productBestQuality').checked;
+    const id = document.getElementById('editProductId');
+    const productName = document.getElementById('productName');
+    const productCode = document.getElementById('productCode');
+    const productCategory = document.getElementById('productCategory');
+    const productGender = document.getElementById('productGender');
+    const productPrice = document.getElementById('productPrice');
+    const productStock = document.getElementById('productStock');
+    const productBestQuality = document.getElementById('productBestQuality');
+
+    if (!productName || !productCode || !productCategory || !productPrice || !productStock) return;
+
+    const name = productName.value.trim();
+    const code = productCode.value.trim();
+    const category = productCategory.value;
+    const gender = productGender ? productGender.value : 'unisex';
+    const price = parseInt(productPrice.value);
+    const stock = parseInt(productStock.value);
+    const best_quality = productBestQuality ? productBestQuality.checked : false;
 
     if (!name || !code || !category || !price || isNaN(stock)) {
         showToast('Please fill in all required fields', 'error');
@@ -877,8 +1227,8 @@ async function saveProduct(e) {
     const productData = { name, code, category, gender, price, stock, best_quality };
 
     try {
-        if (id) {
-            const { error } = await sb.from('products').update(productData).eq('id', parseInt(id));
+        if (id && id.value) {
+            const { error } = await sb.from('products').update(productData).eq('id', parseInt(id.value));
             if (error) throw error;
             showToast('Product updated!', 'success');
         } else {
@@ -919,70 +1269,91 @@ async function deleteProduct(id) {
 // ============================================================
 function renderInventory() {
     // Product list for stock adjustment
-    const select = document.getElementById('stockProduct');
-    select.innerHTML = products.map(p =>
-        `<option value="${p.id}">${p.name} (${p.stock} in stock)</option>`
-    ).join('');
+    const stockProduct = document.getElementById('stockProduct');
+    if (stockProduct) {
+        stockProduct.innerHTML = products.map(p =>
+            `<option value="${p.id}">${p.name} (${p.stock} in stock)</option>`
+        ).join('');
+    }
 
     // Inventory table
-    const tableHtml = products.length ? `
-        <div class="table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Stock</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${products.map(p => `
-                        <tr>
-                            <td>${p.name}</td>
-                            <td>${p.stock}</td>
-                            <td>${p.stock < 5 ? '<span class="badge danger">⚠️ Low Stock</span>' : '<span class="badge success">✅ In Stock</span>'}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    ` : '<div class="empty-state"><p>No products</p></div>';
-
-    document.getElementById('inventoryTable').innerHTML = tableHtml;
+    const inventoryTable = document.getElementById('inventoryTable');
+    if (inventoryTable) {
+        if (!products.length) {
+            inventoryTable.innerHTML = '<div class="empty-state"><p>No products</p></div>';
+        } else {
+            inventoryTable.innerHTML = `
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${products.map(p => `
+                                <tr>
+                                    <td>${p.name}</td>
+                                    <td>${p.stock}</td>
+                                    <td>${p.stock < 5 ? '<span class="badge danger">⚠️ Low Stock</span>' : '<span class="badge success">✅ In Stock</span>'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+    }
 
     // Category stock
-    const categoryStock = {};
-    products.forEach(p => {
-        if (!categoryStock[p.category]) categoryStock[p.category] = 0;
-        categoryStock[p.category] += p.stock;
-    });
+    const categoryStockList = document.getElementById('categoryStockList');
+    if (categoryStockList) {
+        const categoryStock = {};
+        products.forEach(p => {
+            if (!categoryStock[p.category]) categoryStock[p.category] = 0;
+            categoryStock[p.category] += p.stock;
+        });
 
-    document.getElementById('categoryStockList').innerHTML = Object.entries(categoryStock)
-        .sort((a, b) => b[1] - a[1])
-        .map(([cat, stock]) => `
-            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
-                <span>${cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
-                <span>${stock} units</span>
-            </div>
-        `).join('') || '<div class="empty-state"><p>No categories</p></div>';
+        categoryStockList.innerHTML = Object.entries(categoryStock)
+            .sort((a, b) => b[1] - a[1])
+            .map(([cat, stock]) => `
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+                    <span>${cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
+                    <span>${stock} units</span>
+                </div>
+            `).join('') || '<div class="empty-state"><p>No categories</p></div>';
+    }
 }
 
 function openStockModal() {
-    const select = document.getElementById('stockProduct');
-    select.innerHTML = products.map(p =>
-        `<option value="${p.id}">${p.name} (${p.stock} in stock)</option>`
-    ).join('');
-    document.getElementById('adjustmentQty').value = '';
-    document.getElementById('adjustmentReason').value = '';
+    const stockProduct = document.getElementById('stockProduct');
+    if (stockProduct) {
+        stockProduct.innerHTML = products.map(p =>
+            `<option value="${p.id}">${p.name} (${p.stock} in stock)</option>`
+        ).join('');
+    }
+    const adjustmentQty = document.getElementById('adjustmentQty');
+    const adjustmentReason = document.getElementById('adjustmentReason');
+    if (adjustmentQty) adjustmentQty.value = '';
+    if (adjustmentReason) adjustmentReason.value = '';
     openModal('stockModal');
 }
 
 async function adjustStock(e) {
     e.preventDefault();
-    const productId = parseInt(document.getElementById('stockProduct').value);
-    const type = document.getElementById('adjustmentType').value;
-    const qty = parseFloat(document.getElementById('adjustmentQty').value);
-    const reason = document.getElementById('adjustmentReason').value || 'Manual adjustment';
+    const stockProduct = document.getElementById('stockProduct');
+    const adjustmentType = document.getElementById('adjustmentType');
+    const adjustmentQty = document.getElementById('adjustmentQty');
+    const adjustmentReason = document.getElementById('adjustmentReason');
+
+    if (!stockProduct || !adjustmentType || !adjustmentQty) return;
+
+    const productId = parseInt(stockProduct.value);
+    const type = adjustmentType.value;
+    const qty = parseFloat(adjustmentQty.value);
+    const reason = adjustmentReason ? adjustmentReason.value || 'Manual adjustment' : 'Manual adjustment';
 
     if (!productId || !qty || qty <= 0) {
         showToast('Please enter valid quantity', 'error');
@@ -998,7 +1369,6 @@ async function adjustStock(e) {
         const { error } = await sb.from('products').update({ stock: newStock }).eq('id', productId);
         if (error) throw error;
 
-        // Log audit
         logAudit('Stock Adjusted', `${product.name}: ${type === 'add' ? '+' : '-'}${qty} (${reason})`);
 
         showToast(`Stock updated: ${product.name} → ${newStock}`, 'success');
@@ -1014,13 +1384,15 @@ async function adjustStock(e) {
 // CUSTOMERS
 // ============================================================
 function renderCustomersTable() {
+    const container = document.getElementById('customersTable');
+    if (!container) return;
+
     if (!customers.length) {
-        document.getElementById('customersTable').innerHTML =
-            '<div class="empty-state"><i class="fas fa-users"></i><p>No customers found</p></div>';
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No customers found</p></div>';
         return;
     }
 
-    document.getElementById('customersTable').innerHTML = `
+    container.innerHTML = `
         <div class="table-wrapper">
             <table class="data-table">
                 <thead>
@@ -1051,20 +1423,33 @@ function renderCustomersTable() {
 }
 
 function openCustomerModal(customer = null) {
-    document.getElementById('editCustomerId').value = customer ? customer.id : '';
-    document.getElementById('customerModalTitle').textContent = customer ? '✏️ Edit Customer' : '👤 Add Customer';
-    document.getElementById('customerName').value = customer ? customer.name : '';
-    document.getElementById('customerPhone').value = customer ? customer.phone : '';
-    document.getElementById('customerEmail').value = customer ? customer.email : '';
+    const editId = document.getElementById('editCustomerId');
+    const modalTitle = document.getElementById('customerModalTitle');
+    const customerName = document.getElementById('customerName');
+    const customerPhone = document.getElementById('customerPhone');
+    const customerEmail = document.getElementById('customerEmail');
+    
+    if (editId) editId.value = customer ? customer.id : '';
+    if (modalTitle) modalTitle.textContent = customer ? '✏️ Edit Customer' : '👤 Add Customer';
+    if (customerName) customerName.value = customer ? customer.name : '';
+    if (customerPhone) customerPhone.value = customer ? customer.phone : '';
+    if (customerEmail) customerEmail.value = customer ? customer.email : '';
+    
     openModal('customerModal');
 }
 
 async function saveCustomer(e) {
     e.preventDefault();
-    const id = document.getElementById('editCustomerId').value;
-    const name = document.getElementById('customerName').value.trim();
-    const phone = document.getElementById('customerPhone').value.trim();
-    const email = document.getElementById('customerEmail').value.trim();
+    const editId = document.getElementById('editCustomerId');
+    const customerName = document.getElementById('customerName');
+    const customerPhone = document.getElementById('customerPhone');
+    const customerEmail = document.getElementById('customerEmail');
+
+    if (!customerName || !customerPhone) return;
+
+    const name = customerName.value.trim();
+    const phone = customerPhone.value.trim();
+    const email = customerEmail ? customerEmail.value.trim() : '';
 
     if (!name || !phone) {
         showToast('Please fill in name and phone', 'error');
@@ -1074,8 +1459,8 @@ async function saveCustomer(e) {
     const data = { name, phone, email };
 
     try {
-        if (id) {
-            const { error } = await sb.from('customers').update(data).eq('id', parseInt(id));
+        if (editId && editId.value) {
+            const { error } = await sb.from('customers').update(data).eq('id', parseInt(editId.value));
             if (error) throw error;
             showToast('Customer updated!', 'success');
         } else {
@@ -1108,8 +1493,14 @@ async function deleteCustomer(id) {
 // REPORTS
 // ============================================================
 function generateReport() {
-    const start = document.getElementById('reportStart').value;
-    const end = document.getElementById('reportEnd').value;
+    const reportStart = document.getElementById('reportStart');
+    const reportEnd = document.getElementById('reportEnd');
+    const reportContent = document.getElementById('reportContent');
+
+    if (!reportStart || !reportEnd || !reportContent) return;
+
+    const start = reportStart.value;
+    const end = reportEnd.value;
 
     if (!start || !end) {
         showToast('Please select both dates', 'warning');
@@ -1128,7 +1519,7 @@ function generateReport() {
     const total = filtered.reduce((sum, o) => sum + (o.total || 0), 0);
     const count = filtered.length;
 
-    document.getElementById('reportContent').innerHTML = `
+    reportContent.innerHTML = `
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
             <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;">
                 <div style="font-size:12px;color:var(--text-muted);">Total Sales</div>
@@ -1154,7 +1545,6 @@ function generateReport() {
 
 function exportReport(format) {
     showToast(`Exporting ${format.toUpperCase()}...`, 'info');
-    // In production, implement actual export
     setTimeout(() => showToast(`✅ ${format.toUpperCase()} exported!`, 'success'), 1500);
 }
 
@@ -1169,20 +1559,25 @@ function refreshProfitData() {
     const costPercentage = 0.6;
     const totalCost = totalRevenue * costPercentage;
     const netProfit = totalRevenue - totalCost;
-    const margin = totalRevenue > 0 ? (netProfit / totalRevenue * 100) : 0;
 
-    document.getElementById('totalRevenue').textContent = `KES ${totalRevenue.toFixed(2)}`;
-    document.getElementById('totalCost').textContent = `KES ${totalCost.toFixed(2)}`;
-    document.getElementById('netProfit').textContent = `KES ${netProfit.toFixed(2)}`;
+    const totalRevenueEl = document.getElementById('totalRevenue');
+    const totalCostEl = document.getElementById('totalCost');
+    const netProfitEl = document.getElementById('netProfit');
+    
+    if (totalRevenueEl) totalRevenueEl.textContent = `KES ${totalRevenue.toFixed(2)}`;
+    if (totalCostEl) totalCostEl.textContent = `KES ${totalCost.toFixed(2)}`;
+    if (netProfitEl) netProfitEl.textContent = `KES ${netProfit.toFixed(2)}`;
 
     renderProfitChart(totalRevenue, totalCost, netProfit);
 }
 
 function renderProfitChart(revenue, cost, profit) {
-    const ctx = document.getElementById('profitChart').getContext('2d');
+    const ctx = document.getElementById('profitChart');
+    if (!ctx) return;
+    const context = ctx.getContext('2d');
     if (profitChartInstance) profitChartInstance.destroy();
 
-    profitChartInstance = new Chart(ctx, {
+    profitChartInstance = new Chart(context, {
         type: 'doughnut',
         data: {
             labels: ['Revenue', 'Cost', 'Profit'],
@@ -1215,14 +1610,15 @@ function renderProfitChart(revenue, cost, profit) {
 // ============================================================
 function loadAuditLogs() {
     const logs = JSON.parse(localStorage.getItem('luciecloset_audit') || '[]');
+    const auditTable = document.getElementById('auditTable');
+    if (!auditTable) return;
 
     if (!logs.length) {
-        document.getElementById('auditTable').innerHTML =
-            '<div class="empty-state"><i class="fas fa-history"></i><p>No audit logs found</p></div>';
+        auditTable.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>No audit logs found</p></div>';
         return;
     }
 
-    document.getElementById('auditTable').innerHTML = `
+    auditTable.innerHTML = `
         <div class="table-wrapper">
             <table class="data-table">
                 <thead>
@@ -1264,12 +1660,18 @@ function logAudit(action, details) {
 // ============================================================
 function saveSettings(e) {
     e.preventDefault();
+    const businessName = document.getElementById('businessName');
+    const businessPhone = document.getElementById('businessPhone');
+    const businessEmail = document.getElementById('businessEmail');
+    const businessLocation = document.getElementById('businessLocation');
+    const receiptFooter = document.getElementById('receiptFooter');
+    
     const settings = {
-        businessName: document.getElementById('businessName').value,
-        phone: document.getElementById('businessPhone').value,
-        email: document.getElementById('businessEmail').value,
-        location: document.getElementById('businessLocation').value,
-        receiptFooter: document.getElementById('receiptFooter').value
+        businessName: businessName ? businessName.value : 'Lucie Closet',
+        phone: businessPhone ? businessPhone.value : '+254 794 789 345',
+        email: businessEmail ? businessEmail.value : 'info@luciecloset.co.ke',
+        location: businessLocation ? businessLocation.value : 'Eastleigh 5th St, Micki Mall, Rm S12',
+        receiptFooter: receiptFooter ? receiptFooter.value : 'Thank you for shopping at Lucie Closet! 👗'
     };
     localStorage.setItem('luciecloset_settings', JSON.stringify(settings));
     showToast('Settings saved!', 'success');
@@ -1277,9 +1679,12 @@ function saveSettings(e) {
 
 function savePaymentSettings(e) {
     e.preventDefault();
+    const defaultPayment = document.getElementById('defaultPayment');
+    const mpesaShortcode = document.getElementById('mpesaShortcode');
+    
     const settings = {
-        defaultPayment: document.getElementById('defaultPayment').value,
-        mpesaShortcode: document.getElementById('mpesaShortcode').value
+        defaultPayment: defaultPayment ? defaultPayment.value : 'mpesa',
+        mpesaShortcode: mpesaShortcode ? mpesaShortcode.value : ''
     };
     localStorage.setItem('luciecloset_payment_settings', JSON.stringify(settings));
     showToast('Payment settings saved!', 'success');
@@ -1289,11 +1694,13 @@ function savePaymentSettings(e) {
 // MODALS
 // ============================================================
 function openModal(id) {
-    document.getElementById(id).classList.add('active');
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('active');
 }
 
 function closeModal(id) {
-    document.getElementById(id).classList.remove('active');
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('active');
 }
 
 // ============================================================
@@ -1301,6 +1708,8 @@ function closeModal(id) {
 // ============================================================
 function showToast(message, type = 'success') {
     const container = document.getElementById('toastContainer');
+    if (!container) return;
+    
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     const icons = {
@@ -1328,26 +1737,34 @@ function refreshAll() {
 // ============================================================
 // THEME TOGGLE
 // ============================================================
-document.getElementById('themeToggle')?.addEventListener('click', function() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    this.innerHTML = isDark ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
-    localStorage.setItem('luciecloset_theme', isDark ? 'light' : 'dark');
-});
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            this.innerHTML = isDark ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+            localStorage.setItem('luciecloset_theme', isDark ? 'light' : 'dark');
+        });
+    }
 
-// Load saved theme
-const savedTheme = localStorage.getItem('luciecloset_theme');
-if (savedTheme === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
-}
+    // Load saved theme
+    const savedTheme = localStorage.getItem('luciecloset_theme');
+    if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    }
+});
 
 // ============================================================
 // CLOCK
 // ============================================================
 function updateClock() {
     const now = new Date();
-    document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-KE', { hour12: false });
+    const timeDisplay = document.getElementById('currentTime');
+    if (timeDisplay) {
+        timeDisplay.textContent = now.toLocaleTimeString('en-KE', { hour12: false });
+    }
 }
 setInterval(updateClock, 1000);
 updateClock();
@@ -1355,40 +1772,54 @@ updateClock();
 // ============================================================
 // SIDEBAR TOGGLE (Mobile)
 // ============================================================
-document.getElementById('sidebarToggle')?.addEventListener('click', function() {
-    document.getElementById('sidebar').classList.toggle('open');
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+    }
 });
 
 // ============================================================
 // NAVIGATION CLICK HANDLERS
 // ============================================================
-document.querySelectorAll('.sidebar-menu li[data-section]').forEach(item => {
-    item.addEventListener('click', function() {
-        const section = this.dataset.section;
-        navigateTo(section);
-        if (window.innerWidth <= 768) {
-            document.getElementById('sidebar').classList.remove('open');
-        }
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.sidebar-menu li[data-section]').forEach(item => {
+        item.addEventListener('click', function() {
+            const section = this.dataset.section;
+            navigateTo(section);
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        });
     });
 });
 
 // ============================================================
 // ORDER FILTERS
 // ============================================================
-document.querySelectorAll('#orderFilters .filter-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('#orderFilters .filter-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        renderOrders(this.dataset.filter);
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('#orderFilters .filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('#orderFilters .filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            renderOrders(this.dataset.filter);
+        });
     });
 });
 
 // ============================================================
 // LOGOUT
 // ============================================================
-document.getElementById('logoutBtn')?.addEventListener('click', function() {
-    if (confirm('Are you sure you want to logout?')) {
-        logout();
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                logout();
+            }
+        });
     }
 });
 
@@ -1407,13 +1838,25 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ============================================================
+// LOGIN FORM SUBMIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+});
+
+// ============================================================
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
     checkAuth();
 });
 
-// Expose functions to global scope
+// ============================================================
+// EXPOSE FUNCTIONS TO GLOBAL SCOPE
+// ============================================================
 window.navigateTo = navigateTo;
 window.refreshAll = refreshAll;
 window.addToCart = addToCart;
@@ -1447,5 +1890,9 @@ window.closeModal = closeModal;
 window.showToast = showToast;
 window.handleLogin = handleLogin;
 window.logout = logout;
+window.pinPress = pinPress;
+window.pinBackspace = pinBackspace;
+window.submitPin = submitPin;
+window.switchMethod = switchMethod;
 window.saveSettings = saveSettings;
 window.savePaymentSettings = savePaymentSettings;
