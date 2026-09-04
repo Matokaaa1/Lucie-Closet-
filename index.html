@@ -354,15 +354,17 @@
   <!-- TOAST -->
   <div class="toast-container" id="toastContainer"></div>
 
-<script>
+  <script>
     // ============================================================
-    // YOUR SUPABASE CREDENTIALS
+    // YOUR SUPABASE CREDENTIALS - FIXED: No redeclaration
     // ============================================================
     const SUPABASE_URL = 'https://tlsldwshtxofckvkixxz.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsc2xkd3NodHhvZmNrdmtpeHh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTksImV4cCI6MjEwMzc4NzU1OX0.BAfgQG4Z28bgKSfL9Li7Gbgp62sTM-5NxB4qVQ-b0H4';
 
-    // ✅ FIXED: Use 'supabase' (global from CDN), not 'supabaseClient'
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // ✅ FIXED: Use the global 'supabase' from the CDN - NO 'const' redeclaration!
+    // The CDN script already created 'supabase' globally, so we just use it.
+    // If you want a different name, use 'const sb = supabase.createClient(...)'
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // ============================================================
     // STATE
@@ -390,11 +392,26 @@
     const toastContainer = document.getElementById('toastContainer');
 
     // ============================================================
+    // TOAST - Must be defined before use
+    // ============================================================
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+      container.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+    window.showToast = showToast;
+
+    // ============================================================
     // LOAD PRODUCTS FROM SUPABASE
     // ============================================================
     async function loadProducts() {
       try {
-        const { data, error } = await supabase.from('products').select('*').order('id', { ascending: true });
+        // ✅ Use 'sb' instead of 'supabase'
+        const { data, error } = await sb.from('products').select('*').order('id', { ascending: true });
         if (error) throw error;
         if (data && data.length) {
           products = data;
@@ -624,7 +641,8 @@
       };
 
       try {
-        const { error } = await supabase.from('orders').insert([orderData]);
+        // ✅ Use 'sb' instead of 'supabase'
+        const { error } = await sb.from('orders').insert([orderData]);
         if (error) throw error;
         showToast('✅ Order placed successfully!', 'success');
         cart = [];
@@ -647,21 +665,9 @@
     window.placeOrder = placeOrder;
 
     // ============================================================
-    // TOAST
-    // ============================================================
-    function showToast(message, type = 'success') {
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
-      toastContainer.appendChild(toast);
-      setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
-    }
-    window.showToast = showToast;
-
-    // ============================================================
     // INIT
     // ============================================================
     loadProducts();
-</script>
+  </script>
 </body>
 </html>
