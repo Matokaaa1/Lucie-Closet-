@@ -4,12 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lucie Closet · Premium Fashion</title>
+  <!-- Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
+    /* ── reset & variables ── */
     * { margin:0; padding:0; box-sizing:border-box; }
     :root {
       --primary:#C62828; --primary-dark:#B71C1C; --primary-light:#EF5350; --primary-rgb:198,40,40;
@@ -21,7 +23,7 @@
     }
     html { scroll-behavior:smooth; }
     body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; }
-
+    /* ── top bar ── */
     .top-bar { background:var(--text); padding:8px 24px; color:rgba(255,255,255,0.7); font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05); }
     .top-bar-inner { max-width:1280px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
     .top-bar .contact-info { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
@@ -31,7 +33,7 @@
     .top-bar .social-icons { display:flex; align-items:center; gap:12px; }
     .top-bar .social-icons a { color:rgba(255,255,255,0.5); font-size:14px; transition:var(--transition); }
     .top-bar .social-icons a:hover { color:var(--gold); }
-
+    /* ── header ── */
     .header { background:var(--card); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; padding:0 24px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
     .header-inner { max-width:1280px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; height:72px; }
     .logo { text-decoration:none; display:flex; align-items:center; gap:10px; }
@@ -49,12 +51,11 @@
     .header-actions .icon-btn { width:42px; height:42px; border-radius:50%; border:none; background:transparent; color:var(--text-secondary); font-size:18px; cursor:pointer; transition:var(--transition); display:flex; align-items:center; justify-content:center; position:relative; }
     .header-actions .icon-btn:hover { background:rgba(var(--primary-rgb),0.08); color:var(--primary); }
     .cart-badge { position:absolute; top:-2px; right:-2px; background:var(--primary); color:#fff; font-size:10px; font-weight:700; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
-
     .btn-primary { padding:10px 24px; border:none; border-radius:var(--radius-sm); font-family:var(--font); font-weight:600; font-size:14px; background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; cursor:pointer; transition:var(--transition); text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
     .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(var(--primary-rgb),0.3); }
     .btn-outline { padding:10px 24px; border:2px solid var(--border); border-radius:var(--radius-sm); font-family:var(--font); font-weight:600; font-size:14px; background:transparent; color:var(--text-secondary); cursor:pointer; transition:var(--transition); text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
     .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
-
+    /* ── hero ── */
     .hero { background:linear-gradient(135deg,#1A1A2E 0%,#2D1B2E 50%,#3D1F2E 100%); padding:80px 24px 60px; text-align:center; color:#fff; position:relative; overflow:hidden; }
     .hero::before { content:''; position:absolute; top:-50%; right:-20%; width:600px; height:600px; background:radial-gradient(circle,rgba(198,40,40,0.12),transparent 70%); border-radius:50%; pointer-events:none; }
     .hero-inner { max-width:720px; margin:0 auto; position:relative; z-index:1; }
@@ -66,7 +67,7 @@
     .hero .hero-buttons { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
     .hero .btn-outline { border-color:rgba(255,255,255,0.2); color:rgba(255,255,255,0.8); padding:14px 40px; border-radius:var(--radius-sm); font-family:var(--font); font-weight:600; font-size:16px; background:transparent; cursor:pointer; transition:var(--transition); text-decoration:none; border:2px solid rgba(255,255,255,0.2); }
     .hero .btn-outline:hover { border-color:#fff; color:#fff; }
-
+    /* ── store info banner ── */
     .store-info { max-width:1280px; margin:-30px auto 0; padding:0 24px; position:relative; z-index:2; }
     .store-info-inner { background:linear-gradient(135deg,var(--text),#2D1B2E); border-radius:var(--radius); padding:20px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; box-shadow:0 12px 48px rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); }
     .store-info-inner .left { display:flex; align-items:center; gap:16px; }
@@ -77,7 +78,6 @@
     .store-info-inner .right .contact-item { display:flex; align-items:center; gap:8px; color:rgba(255,255,255,0.7); font-size:13px; }
     .store-info-inner .right .contact-item i { color:var(--gold); }
     .store-info-inner .badge { background:rgba(212,165,116,0.15); color:var(--gold-light); padding:6px 16px; border-radius:50px; font-weight:600; font-size:12px; border:1px solid rgba(212,165,116,0.2); display:flex; align-items:center; gap:8px; }
-
     .featured-banner { max-width:1280px; margin:24px auto 0; padding:0 24px; }
     .featured-banner-inner { background:linear-gradient(135deg,var(--gold),var(--gold-light)); border-radius:var(--radius); padding:20px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; box-shadow:0 8px 32px rgba(212,165,116,0.25); }
     .featured-banner-inner .left { display:flex; align-items:center; gap:16px; }
@@ -85,7 +85,7 @@
     .featured-banner-inner .left h3 { font-size:17px; font-weight:800; color:#78350F; }
     .featured-banner-inner .left p { font-size:13px; color:#92400E; opacity:0.8; }
     .featured-banner-inner .badge { background:#78350F; color:var(--gold-light); padding:6px 20px; border-radius:50px; font-weight:700; font-size:13px; display:flex; align-items:center; gap:8px; }
-
+    /* ── filters ── */
     .filters { max-width:1280px; margin:32px auto 0; padding:0 24px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .filters .filter-btn { padding:8px 18px; border:2px solid var(--border); border-radius:50px; font-family:var(--font); font-weight:500; font-size:13px; background:var(--card); color:var(--text-secondary); cursor:pointer; transition:var(--transition); }
     .filters .filter-btn:hover { border-color:var(--primary); color:var(--primary); }
@@ -100,7 +100,7 @@
     .filters .search-box input { border:none; outline:none; font-family:var(--font); font-size:14px; padding:10px 0; background:transparent; color:var(--text); width:160px; }
     .filters .search-box input::placeholder { color:var(--text-muted); }
     .filters .search-box button { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; padding:8px; }
-
+    /* ── products ── */
     .products-section { max-width:1280px; margin:32px auto 60px; padding:0 24px; }
     .products-section .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
     .products-section .section-header h2 { font-size:24px; font-weight:800; display:flex; align-items:center; gap:12px; }
@@ -128,7 +128,7 @@
     .product-card .product-info .add-to-cart:hover { background:var(--primary); color:#fff; }
     .product-card.best-quality .product-info .add-to-cart { background:rgba(212,165,116,0.15); color:#78350F; }
     .product-card.best-quality .product-info .add-to-cart:hover { background:var(--gold); color:#78350F; }
-
+    /* ── cart sidebar ── */
     .cart-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:200; opacity:0; visibility:hidden; transition:var(--transition); }
     .cart-overlay.open { opacity:1; visibility:visible; }
     .cart-sidebar { position:fixed; top:0; right:0; width:100%; max-width:420px; height:100%; background:var(--card); z-index:201; transform:translateX(100%); transition:var(--transition); display:flex; flex-direction:column; box-shadow:-8px 0 40px rgba(0,0,0,0.1); }
@@ -157,7 +157,7 @@
     .cart-sidebar .cart-footer .cart-total { display:flex; justify-content:space-between; font-weight:700; font-size:18px; margin-bottom:12px; }
     .checkout-btn { width:100%; padding:14px; border:none; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; font-family:var(--font); font-weight:700; font-size:16px; cursor:pointer; transition:var(--transition); display:flex; align-items:center; justify-content:center; gap:10px; }
     .checkout-btn:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(var(--primary-rgb),0.3); }
-
+    /* ── payment modal ── */
     .payment-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:300; align-items:center; justify-content:center; padding:20px; }
     .payment-modal.open { display:flex; }
     .payment-modal-content { background:var(--card); border-radius:var(--radius); padding:32px; max-width:500px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,0.3); animation:modalSlide 0.3s ease; }
@@ -179,13 +179,13 @@
     .payment-modal-content .payment-methods .method.active { border-color:var(--primary); background:rgba(var(--primary-rgb),0.05); }
     .payment-modal-content .payment-methods .method i { display:block; font-size:24px; margin-bottom:4px; }
     .payment-modal-content .btn-primary { width:100%; justify-content:center; padding:14px; font-size:16px; }
-
+    /* ── toast ── */
     .toast-container { position:fixed; bottom:24px; right:24px; z-index:999; display:flex; flex-direction:column; gap:10px; }
     .toast { background:var(--text); color:#fff; padding:12px 24px; border-radius:var(--radius-sm); box-shadow:0 8px 32px rgba(0,0,0,0.2); font-size:14px; animation:slideUp 0.4s ease; display:flex; align-items:center; gap:12px; }
     .toast.success { border-left:4px solid #22C55E; }
     .toast.error { border-left:4px solid #EF4444; }
     @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-
+    /* ── footer ── */
     .footer { background:var(--text); color:rgba(255,255,255,0.6); padding:40px 24px 24px; text-align:center; font-size:14px; border-top:1px solid rgba(255,255,255,0.05); margin-top:40px; }
     .footer .footer-inner { max-width:1280px; margin:0 auto; display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px; }
     .footer .footer-inner .col { text-align:left; }
@@ -193,7 +193,6 @@
     .footer .footer-inner .col a { display:block; color:rgba(255,255,255,0.5); text-decoration:none; margin-bottom:6px; font-size:13px; transition:var(--transition); }
     .footer .footer-inner .col a:hover { color:var(--gold); }
     .footer-bottom { max-width:1280px; margin:24px auto 0; padding-top:20px; border-top:1px solid rgba(255,255,255,0.05); font-size:13px; color:rgba(255,255,255,0.4); }
-
     @media (max-width:768px) {
       .hero h1 { font-size:34px; }
       .header-inner { height:60px; }
@@ -242,6 +241,7 @@
         <li><a href="#" onclick="filterProducts('sweater')">Sweaters</a></li>
         <li><a href="#" onclick="filterProducts('suit')">Suits</a></li>
         <li><a href="#" onclick="filterProducts('best')" class="best-link"><i class="fas fa-star"></i> Best Quality</a></li>
+        <li><a href="#" onclick="openAuthModal()"><i class="fas fa-user"></i> Account</a></li>
       </ul>
       <div class="header-actions">
         <button class="icon-btn" onclick="toggleCart()"><i class="fas fa-shopping-bag"></i><span class="cart-badge" id="cartCount">0</span></button>
@@ -321,7 +321,7 @@
     <div class="footer-bottom">© 2025 Lucie Closet · Premium Fashion. All rights reserved.</div>
   </footer>
 
-  <!-- CART -->
+  <!-- CART SIDEBAR -->
   <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
   <div class="cart-sidebar" id="cartSidebar">
     <div class="cart-header"><h3><i class="fas fa-shopping-bag"></i> Your Cart</h3><button class="close-btn" onclick="toggleCart()"><i class="fas fa-times"></i></button></div>
@@ -351,32 +351,43 @@
     </div>
   </div>
 
-  <!-- TOAST -->
+  <!-- AUTH MODAL -->
+  <div class="payment-modal" id="authModal">
+    <div class="payment-modal-content" style="max-width:420px;">
+      <div class="modal-header"><h3><i class="fas fa-user-circle"></i> My Account</h3><button class="close-modal" onclick="closeAuthModal()"><i class="fas fa-times"></i></button></div>
+      <div id="authContent">
+        <div class="form-group"><label>Email</label><input type="email" id="authEmail" placeholder="you@example.com"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="authPassword" placeholder="••••••••"></div>
+        <button class="btn-primary" onclick="authSignUp()" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-user-plus"></i> Sign Up</button>
+        <button class="btn-outline" onclick="authSignIn()" style="width:100%;justify-content:center;"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+        <div id="authStatus" style="margin-top:12px;font-size:13px;color:var(--text-muted);text-align:center;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    // ============================================================
-    // YOUR SUPABASE CREDENTIALS - FIXED: No redeclaration
-    // ============================================================
+    // ──────────────────────────────────────────────────────────────
+    // 1. SUPABASE SETUP
+    // ──────────────────────────────────────────────────────────────
     const SUPABASE_URL = 'https://tlsldwshtxofckvkixxz.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsc2xkd3NodHhvZmNrdmtpeHh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTksImV4cCI6MjEwMzc4NzU1OX0.BAfgQG4Z28bgKSfL9Li7Gbgp62sTM-5NxB4qVQ-b0H4';
-
-    // ✅ FIXED: Use the global 'supabase' from the CDN - NO 'const' redeclaration!
-    // The CDN script already created 'supabase' globally, so we just use it.
-    // If you want a different name, use 'const sb = supabase.createClient(...)'
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ============================================================
-    // STATE
-    // ============================================================
+    // ──────────────────────────────────────────────────────────────
+    // 2. STATE
+    // ──────────────────────────────────────────────────────────────
     let products = [];
     let cart = [];
     let currentCategory = 'all';
     let currentGender = 'all';
+    let currentUser = null;
 
-    // ============================================================
-    // DOM REFS
-    // ============================================================
+    // ──────────────────────────────────────────────────────────────
+    // 3. DOM REFS
+    // ──────────────────────────────────────────────────────────────
     const grid = document.getElementById('productGrid');
     const countEl = document.getElementById('productCount');
     const sectionTitle = document.getElementById('sectionTitle');
@@ -390,10 +401,12 @@
     const paymentTotal = document.getElementById('paymentTotal');
     const paymentItems = document.getElementById('paymentItems');
     const toastContainer = document.getElementById('toastContainer');
+    const authModal = document.getElementById('authModal');
+    const authStatus = document.getElementById('authStatus');
 
-    // ============================================================
-    // TOAST - Must be defined before use
-    // ============================================================
+    // ──────────────────────────────────────────────────────────────
+    // 4. TOAST
+    // ──────────────────────────────────────────────────────────────
     function showToast(message, type = 'success') {
       const container = document.getElementById('toastContainer');
       if (!container) return;
@@ -405,12 +418,60 @@
     }
     window.showToast = showToast;
 
-    // ============================================================
-    // LOAD PRODUCTS FROM SUPABASE
-    // ============================================================
+    // ──────────────────────────────────────────────────────────────
+    // 5. AUTH
+    // ──────────────────────────────────────────────────────────────
+    function openAuthModal() {
+      authModal.classList.add('open');
+      authStatus.textContent = '';
+      document.getElementById('authEmail').value = '';
+      document.getElementById('authPassword').value = '';
+    }
+    function closeAuthModal() { authModal.classList.remove('open'); }
+    window.openAuthModal = openAuthModal;
+    window.closeAuthModal = closeAuthModal;
+
+    async function authSignUp() {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value.trim();
+      if (!email || !password) { authStatus.textContent = 'Please fill in all fields'; return; }
+      try {
+        const { data, error } = await sb.auth.signUp({ email, password });
+        if (error) throw error;
+        authStatus.innerHTML = '✅ Account created! You can now sign in.';
+        showToast('Account created successfully', 'success');
+        currentUser = data.user;
+        closeAuthModal();
+      } catch (e) {
+        authStatus.textContent = '❌ ' + (e.message || 'Sign up failed');
+        showToast(e.message || 'Sign up failed', 'error');
+      }
+    }
+    window.authSignUp = authSignUp;
+
+    async function authSignIn() {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value.trim();
+      if (!email || !password) { authStatus.textContent = 'Please fill in all fields'; return; }
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        authStatus.innerHTML = '✅ Signed in!';
+        showToast('Welcome back!', 'success');
+        currentUser = data.user;
+        closeAuthModal();
+      } catch (e) {
+        authStatus.textContent = '❌ ' + (e.message || 'Sign in failed');
+        showToast(e.message || 'Sign in failed', 'error');
+      }
+    }
+    window.authSignIn = authSignIn;
+
+    // ──────────────────────────────────────────────────────────────
+    // 6. PRODUCTS
+    // ──────────────────────────────────────────────────────────────
     async function loadProducts() {
       try {
-        // ✅ Use 'sb' instead of 'supabase'
         const { data, error } = await sb.from('products').select('*').order('id', { ascending: true });
         if (error) throw error;
         if (data && data.length) {
@@ -456,9 +517,6 @@
       ];
     }
 
-    // ============================================================
-    // RENDER PRODUCTS
-    // ============================================================
     function renderProducts() {
       let filtered = [...products];
       if (currentCategory === 'best') {
@@ -507,28 +565,23 @@
       }).join('');
     }
 
-    // ============================================================
-    // FILTER FUNCTIONS
-    // ============================================================
-    function filterProducts(category) {
+    window.filterProducts = function(category) {
       currentCategory = category;
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.filter-btn').forEach(b => { if(b.dataset.filter === category) b.classList.add('active'); });
       renderProducts();
-    }
-    function filterGender(gender) {
+    };
+    window.filterGender = function(gender) {
       currentGender = gender;
       document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.gender-btn').forEach(b => { if(b.dataset.gender === gender) b.classList.add('active'); });
       renderProducts();
-    }
-    window.filterProducts = filterProducts;
-    window.filterGender = filterGender;
+    };
 
-    // ============================================================
-    // CART
-    // ============================================================
-    function addToCart(productId) {
+    // ──────────────────────────────────────────────────────────────
+    // 7. CART
+    // ──────────────────────────────────────────────────────────────
+    window.addToCart = function(productId) {
       const product = products.find(p => p.id === productId);
       if (!product) return;
       const existing = cart.find(item => item.id === productId);
@@ -540,14 +593,12 @@
       }
       updateCartUI();
       showToast(`${product.name} added to cart`, 'success');
-    }
-
-    function removeFromCart(productId) {
+    };
+    window.removeFromCart = function(productId) {
       cart = cart.filter(item => item.id !== productId);
       updateCartUI();
-    }
-
-    function updateQty(productId, delta) {
+    };
+    window.updateQty = function(productId, delta) {
       const item = cart.find(i => i.id === productId);
       if (!item) return;
       const stock = products.find(p => p.id === productId)?.stock || 0;
@@ -556,8 +607,7 @@
       if (newQty > stock) { showToast('Stock limit reached', 'error'); return; }
       item.qty = newQty;
       updateCartUI();
-    }
-
+    };
     function updateCartUI() {
       const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
       const totalPrice = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
@@ -584,45 +634,30 @@
       }
       cartTotalEl.textContent = `KSh ${totalPrice}`;
     }
-
-    function toggleCart() {
+    window.toggleCart = function() {
       overlay.classList.toggle('open');
       sidebar.classList.toggle('open');
-    }
-    window.toggleCart = toggleCart;
-    window.addToCart = addToCart;
-    window.removeFromCart = removeFromCart;
-    window.updateQty = updateQty;
+    };
 
-    // ============================================================
-    // PAYMENT MODAL
-    // ============================================================
+    // ──────────────────────────────────────────────────────────────
+    // 8. PAYMENT
+    // ──────────────────────────────────────────────────────────────
     let selectedPayment = 'mpesa';
-
-    function openPaymentModal() {
+    window.openPaymentModal = function() {
       if (!cart.length) { showToast('Cart is empty', 'error'); return; }
       const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
       paymentTotal.textContent = `KSh ${total}`;
       paymentItems.innerHTML = cart.map(i => `<div class="summary-item"><span>${i.name} × ${i.qty}</span><span>KSh ${i.price * i.qty}</span></div>`).join('') +
         `<div class="summary-item summary-total"><span>Total</span><span>KSh ${total}</span></div>`;
       paymentModal.classList.add('open');
-    }
-
-    function closePaymentModal() { paymentModal.classList.remove('open'); }
-    window.openPaymentModal = openPaymentModal;
-    window.closePaymentModal = closePaymentModal;
-
-    function selectPayment(method) {
+    };
+    window.closePaymentModal = function() { paymentModal.classList.remove('open'); };
+    window.selectPayment = function(method) {
       selectedPayment = method;
       document.querySelectorAll('.payment-methods .method').forEach(el => el.classList.remove('active'));
       document.querySelector(`.payment-methods .method[data-method="${method}"]`).classList.add('active');
-    }
-    window.selectPayment = selectPayment;
-
-    // ============================================================
-    // PLACE ORDER
-    // ============================================================
-    async function placeOrder() {
+    };
+    window.placeOrder = async function() {
       if (!cart.length) { showToast('Cart is empty', 'error'); return; }
       const name = document.getElementById('customerName').value.trim() || 'Guest';
       const phone = document.getElementById('customerPhone').value.trim() || 'N/A';
@@ -639,9 +674,7 @@
         status: 'pending',
         created_at: new Date().toISOString()
       };
-
       try {
-        // ✅ Use 'sb' instead of 'supabase'
         const { error } = await sb.from('orders').insert([orderData]);
         if (error) throw error;
         showToast('✅ Order placed successfully!', 'success');
@@ -661,12 +694,11 @@
         updateCartUI();
         closePaymentModal();
       }
-    }
-    window.placeOrder = placeOrder;
+    };
 
-    // ============================================================
-    // INIT
-    // ============================================================
+    // ──────────────────────────────────────────────────────────────
+    // 9. INIT
+    // ──────────────────────────────────────────────────────────────
     loadProducts();
   </script>
 </body>
