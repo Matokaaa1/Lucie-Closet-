@@ -354,14 +354,15 @@
   <!-- TOAST -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script>
+<script>
     // ============================================================
-    // YOUR SUPABASE CREDENTIALS (UPDATED)
+    // YOUR SUPABASE CREDENTIALS
     // ============================================================
     const SUPABASE_URL = 'https://tlsldwshtxofckvkixxz.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsc2xkd3NodHhvZmNrdmtpeHh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTksImV4cCI6MjEwMzc4NzU1OX0.BAfgQG4Z28bgKSfL9Li7Gbgp62sTM-5NxB4qVQ-b0H4';
 
-    const supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // ✅ FIXED: Use 'supabase' (global from CDN), not 'supabaseClient'
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // ============================================================
     // STATE
@@ -661,6 +662,6 @@
     // INIT
     // ============================================================
     loadProducts();
-  </script>
+</script>
 </body>
 </html>
