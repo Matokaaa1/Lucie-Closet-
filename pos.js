@@ -8,8 +8,35 @@
 const SUPABASE_URL = 'https://tlsldwshtxofckvkixxz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsc2xkd3NodHhvZmNrdmtpeHh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTksImV4cCI6MjEwMzc4NzU1OX0.BAfgQG4Z28bgKSfL9Li7Gbgp62sTM-5NxB4qVQ-b0H4';
 
-// ✅ Create Supabase client
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ✅ Use 'supabase' from CDN (not supabaseClient)
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ============================================================
+// TOAST - MUST BE DEFINED FIRST!
+// ============================================================
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    if (!container) {
+        console.log('Toast:', message, type);
+        return;
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icons = {
+        'success': 'fa-check-circle',
+        'error': 'fa-exclamation-circle',
+        'warning': 'fa-exclamation-triangle',
+        'info': 'fa-info-circle'
+    };
+    toast.innerHTML = `<i class="fas ${icons[type] || 'fa-info-circle'}"></i> ${message}`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+window.showToast = showToast;
 
 // ============================================================
 // STATE
@@ -37,10 +64,8 @@ let sessionTimeout = 30;
 const SESSION_KEY = 'luciecloset_session';
 
 // ============================================================
-// ✅ LOAD DATA FUNCTIONS - MOVED TO TOP
+// GET DEFAULT PRODUCTS
 // ============================================================
-
-// Get default products
 function getDefaultProducts() {
     return [
         { id: 1, code: '0001#', name: 'Classic Silk Dress', category: 'dress', gender: 'women', price: 500, stock: 12,
@@ -60,17 +85,19 @@ function getDefaultProducts() {
     ];
 }
 
-// LOAD PRODUCTS
+// ============================================================
+// LOAD DATA FUNCTIONS
+// ============================================================
 async function loadProducts() {
     try {
-        const { data, error } = await supabaseClient.from('products').select('*').order('id', { ascending: true });
+        const { data, error } = await supabase.from('products').select('*').order('id', { ascending: true });
         if (error) throw error;
         if (data && data.length) {
             products = data;
         } else {
             products = getDefaultProducts();
             for (const p of products) {
-                await supabaseClient.from('products').insert([p]);
+                await supabase.from('products').insert([p]);
             }
         }
         localStorage.setItem('luciecloset_products', JSON.stringify(products));
@@ -81,10 +108,9 @@ async function loadProducts() {
     }
 }
 
-// LOAD ORDERS
 async function loadOrders() {
     try {
-        const { data, error } = await supabaseClient.from('orders').select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
         if (error) throw error;
         orders = data || [];
         localStorage.setItem('luciecloset_orders', JSON.stringify(orders));
@@ -96,10 +122,9 @@ async function loadOrders() {
     if (badge) badge.textContent = orders.length;
 }
 
-// LOAD CUSTOMERS
 async function loadCustomers() {
     try {
-        const { data, error } = await supabaseClient.from('customers').select('*').order('name', { ascending: true });
+        const { data, error } = await supabase.from('customers').select('*').order('name', { ascending: true });
         if (error) throw error;
         customers = data || [];
         localStorage.setItem('luciecloset_customers', JSON.stringify(customers));
@@ -109,10 +134,9 @@ async function loadCustomers() {
     }
 }
 
-// ENSURE ADMIN USER EXISTS
 async function ensureAdminUser() {
     try {
-        const { data: users, error } = await supabaseClient
+        const { data: users, error } = await supabase
             .from('users')
             .select('id')
             .limit(1);
@@ -121,7 +145,7 @@ async function ensureAdminUser() {
         
         if (!users || users.length === 0) {
             console.log('👤 No users found, creating admin...');
-            const { error: insertError } = await supabaseClient
+            const { error: insertError } = await supabase
                 .from('users')
                 .insert([{
                     email: 'admin@luciecloset.co.ke',
@@ -134,13 +158,13 @@ async function ensureAdminUser() {
                 }]);
             if (insertError) throw insertError;
             console.log('✅ Admin user created! Email: admin@luciecloset.co.ke, PIN: 1234');
+            showToast('✅ Admin user created! Email: admin@luciecloset.co.ke, PIN: 1234', 'success');
         }
     } catch (error) {
         console.warn('Could not ensure admin user:', error);
     }
 }
 
-// ✅ LOAD DATA - MAIN FUNCTION
 async function loadData() {
     await Promise.all([
         loadProducts(),
@@ -153,8 +177,81 @@ async function loadData() {
 }
 
 // ============================================================
+// UPDATE STATS
+// ============================================================
+function updateStats() {
+    const today = new Date().toDateString();
+    const todayOrders = orders.filter(o => new Date(o.created_at).toDateString() === today && o.status === 'completed');
+    const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+    const todaySales = document.getElementById('todaySales');
+    const bestQualityCount = document.getElementById('bestQualityCount');
+    const totalOrders = document.getElementById('totalOrders');
+    const lowStock = document.getElementById('lowStock');
+    
+    if (todaySales) todaySales.textContent = `KES ${todayRevenue}`;
+    if (bestQualityCount) bestQualityCount.textContent = products.filter(p => p.best_quality).length;
+    if (totalOrders) totalOrders.textContent = orders.length;
+    if (lowStock) lowStock.textContent = products.filter(p => p.stock < 5).length;
+}
+
+// ============================================================
 // AUTH FUNCTIONS
 // ============================================================
+function resetSessionTimer() {
+    if (sessionTimer) clearTimeout(sessionTimer);
+    const timeout = (sessionTimeout || 30) * 60 * 1000;
+    sessionTimer = setTimeout(() => {
+        showToast('⚠️ Session expired. Please login again.', 'warning');
+        logout();
+    }, timeout);
+}
+
+async function logout() {
+    try {
+        if (supabase.auth) {
+            await supabase.auth.signOut().catch(() => {});
+        }
+    } catch (e) {}
+    localStorage.removeItem(SESSION_KEY);
+    showLogin();
+    showToast('Logged out successfully', 'info');
+}
+window.logout = logout;
+
+// ============================================================
+// LOGIN SCREEN FUNCTIONS
+// ============================================================
+function showLogin() {
+    const loginScreen = document.getElementById('loginScreen');
+    const dashboardScreen = document.getElementById('dashboardScreen');
+    if (loginScreen) loginScreen.style.display = 'flex';
+    if (dashboardScreen) dashboardScreen.style.display = 'none';
+    const alertEl = document.getElementById('loginAlert');
+    if (alertEl) {
+        alertEl.className = 'alert';
+        alertEl.textContent = '';
+    }
+}
+
+function showDashboard() {
+    const loginScreen = document.getElementById('loginScreen');
+    const dashboardScreen = document.getElementById('dashboardScreen');
+    if (loginScreen) loginScreen.style.display = 'none';
+    if (dashboardScreen) dashboardScreen.style.display = 'block';
+    
+    const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+    const userName = document.getElementById('userName');
+    const userRole = document.getElementById('userRole');
+    const userAvatar = document.getElementById('userAvatar');
+    
+    if (userName) userName.textContent = session.user?.full_name || 'Admin';
+    if (userRole) userRole.textContent = session.user?.role_name || 'Administrator';
+    if (userAvatar) userAvatar.textContent = (session.user?.full_name || 'A').charAt(0).toUpperCase();
+    
+    loadData();
+}
+
 async function checkAuth() {
     try {
         const stored = localStorage.getItem(SESSION_KEY);
@@ -211,61 +308,6 @@ function updateUI(user) {
     if (avatar) avatar.textContent = user.full_name?.charAt(0).toUpperCase() || 'A';
     if (userName) userName.textContent = user.full_name || 'User';
     if (userRole) userRole.textContent = user.role_name || 'Administrator';
-}
-
-function resetSessionTimer() {
-    if (sessionTimer) clearTimeout(sessionTimer);
-    const timeout = (sessionTimeout || 30) * 60 * 1000;
-    sessionTimer = setTimeout(() => {
-        showToast('⚠️ Session expired. Please login again.', 'warning');
-        logout();
-    }, timeout);
-}
-
-async function logout() {
-    try {
-        if (supabaseClient.auth) {
-            await supabaseClient.auth.signOut().catch(() => {});
-        }
-    } catch (e) {}
-    localStorage.removeItem(SESSION_KEY);
-    showLogin();
-    showToast('Logged out successfully', 'info');
-}
-window.logout = logout;
-
-// ============================================================
-// LOGIN SCREEN FUNCTIONS
-// ============================================================
-function showLogin() {
-    const loginScreen = document.getElementById('loginScreen');
-    const dashboardScreen = document.getElementById('dashboardScreen');
-    if (loginScreen) loginScreen.style.display = 'flex';
-    if (dashboardScreen) dashboardScreen.style.display = 'none';
-    const alertEl = document.getElementById('loginAlert');
-    if (alertEl) {
-        alertEl.className = 'alert';
-        alertEl.textContent = '';
-    }
-}
-
-function showDashboard() {
-    const loginScreen = document.getElementById('loginScreen');
-    const dashboardScreen = document.getElementById('dashboardScreen');
-    if (loginScreen) loginScreen.style.display = 'none';
-    if (dashboardScreen) dashboardScreen.style.display = 'block';
-    
-    const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-    const userName = document.getElementById('userName');
-    const userRole = document.getElementById('userRole');
-    const userAvatar = document.getElementById('userAvatar');
-    
-    if (userName) userName.textContent = session.user?.full_name || 'Admin';
-    if (userRole) userRole.textContent = session.user?.role_name || 'Administrator';
-    if (userAvatar) userAvatar.textContent = (session.user?.full_name || 'A').charAt(0).toUpperCase();
-    
-    // ✅ Now loadData is defined
-    loadData();
 }
 
 // ============================================================
@@ -479,7 +521,7 @@ async function handleLogin(e) {
 
             console.log('🔍 Looking for user:', email);
 
-            const { data: user, error } = await supabaseClient
+            const { data: user, error } = await supabase
                 .from('users')
                 .select('id, email, full_name, role_id, status, pin, pin_enabled')
                 .eq('email', email)
@@ -516,7 +558,7 @@ async function handleLogin(e) {
 
             let userData = { ...user, role_name: 'Admin' };
             try {
-                const { data: roleData } = await supabaseClient
+                const { data: roleData } = await supabase
                     .from('roles')
                     .select('name')
                     .eq('id', user.role_id)
@@ -540,7 +582,7 @@ async function handleLogin(e) {
             localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
 
             try {
-                await supabaseClient
+                await supabase
                     .from('users')
                     .update({ last_login: new Date().toISOString() })
                     .eq('id', user.id);
@@ -565,13 +607,13 @@ async function handleLogin(e) {
             if (!email || !password) throw new Error('Please enter both email and password.');
             if (!email.includes('@')) throw new Error('Please enter a valid email address.');
 
-            const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
+            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
                 email, password
             });
 
             if (authError) throw new Error(authError.message || 'Authentication failed.');
 
-            const { data: userData, error: userError } = await supabaseClient
+            const { data: userData, error: userError } = await supabase
                 .from('users')
                 .select('*')
                 .eq('email', email)
@@ -619,23 +661,13 @@ async function handleLogin(e) {
 }
 
 // ============================================================
-// UPDATE STATS
+// REFRESH ALL FUNCTION
 // ============================================================
-function updateStats() {
-    const today = new Date().toDateString();
-    const todayOrders = orders.filter(o => new Date(o.created_at).toDateString() === today && o.status === 'completed');
-    const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-
-    const todaySales = document.getElementById('todaySales');
-    const bestQualityCount = document.getElementById('bestQualityCount');
-    const totalOrders = document.getElementById('totalOrders');
-    const lowStock = document.getElementById('lowStock');
-    
-    if (todaySales) todaySales.textContent = `KES ${todayRevenue}`;
-    if (bestQualityCount) bestQualityCount.textContent = products.filter(p => p.best_quality).length;
-    if (totalOrders) totalOrders.textContent = orders.length;
-    if (lowStock) lowStock.textContent = products.filter(p => p.stock < 5).length;
+function refreshAll() {
+    showToast('🔄 Refreshing data...', 'info');
+    loadData();
 }
+window.refreshAll = refreshAll;
 
 // ============================================================
 // NAVIGATION
@@ -860,49 +892,169 @@ function renderSalesChart() {
 
 // ============================================================
 // ============================================================
-// ALL OTHER FUNCTIONS (POS, ORDERS, PRODUCTS, INVENTORY, ETC.)
+// PLACEHOLDER FUNCTIONS - ADD YOUR EXISTING FUNCTIONS HERE
 // ============================================================
 // ============================================================
 
-// [INSERT ALL YOUR EXISTING FUNCTIONS HERE]
-// - renderPOSProducts()
-// - addToCart()
-// - removeFromCart()
-// - updateQty()
-// - updateCartUI()
-// - clearCart()
-// - openCheckout()
-// - selectPayment()
-// - calculateChange()
-// - completeOrder()
-// - generateReceipt()
-// - printReceipt()
-// - renderOrders()
-// - viewOrder()
-// - updateOrderStatus()
-// - renderProductsTable()
-// - openProductModal()
-// - saveProduct()
-// - editProduct()
-// - deleteProduct()
-// - renderInventory()
-// - openStockModal()
-// - adjustStock()
-// - renderCustomersTable()
-// - openCustomerModal()
-// - saveCustomer()
-// - deleteCustomer()
-// - generateReport()
-// - exportReport()
-// - refreshProfitData()
-// - renderProfitChart()
-// - loadAuditLogs()
-// - saveSettings()
-// - savePaymentSettings()
-// - openModal()
-// - closeModal()
-// - showToast()
-// - refreshAll()
+// POS Functions
+function renderPOSProducts() {
+    const grid = document.getElementById('posProductGrid');
+    if (!grid) return;
+    // Your existing POS code here
+}
+
+function addToCart(productId) {
+    // Your existing addToCart code here
+}
+
+function removeFromCart(productId) {
+    // Your existing removeFromCart code here
+}
+
+function updateQty(productId, delta) {
+    // Your existing updateQty code here
+}
+
+function updateCartUI() {
+    // Your existing updateCartUI code here
+}
+
+function clearCart() {
+    // Your existing clearCart code here
+}
+
+function openCheckout() {
+    // Your existing openCheckout code here
+}
+
+function selectPayment(method) {
+    // Your existing selectPayment code here
+}
+
+function calculateChange() {
+    // Your existing calculateChange code here
+}
+
+function completeOrder() {
+    // Your existing completeOrder code here
+}
+
+function generateReceipt(order) {
+    // Your existing generateReceipt code here
+}
+
+function printReceipt() {
+    // Your existing printReceipt code here
+}
+
+// Order Functions
+function renderOrders(filter) {
+    // Your existing renderOrders code here
+}
+
+function viewOrder(id) {
+    // Your existing viewOrder code here
+}
+
+function updateOrderStatus(id, status) {
+    // Your existing updateOrderStatus code here
+}
+
+// Product Management
+function renderProductsTable() {
+    // Your existing renderProductsTable code here
+}
+
+function openProductModal(product) {
+    // Your existing openProductModal code here
+}
+
+function saveProduct(e) {
+    // Your existing saveProduct code here
+}
+
+function editProduct(id) {
+    // Your existing editProduct code here
+}
+
+function deleteProduct(id) {
+    // Your existing deleteProduct code here
+}
+
+// Inventory
+function renderInventory() {
+    // Your existing renderInventory code here
+}
+
+function openStockModal() {
+    // Your existing openStockModal code here
+}
+
+function adjustStock(e) {
+    // Your existing adjustStock code here
+}
+
+// Customers
+function renderCustomersTable() {
+    // Your existing renderCustomersTable code here
+}
+
+function openCustomerModal(customer) {
+    // Your existing openCustomerModal code here
+}
+
+function saveCustomer(e) {
+    // Your existing saveCustomer code here
+}
+
+function deleteCustomer(id) {
+    // Your existing deleteCustomer code here
+}
+
+// Reports & Profit
+function generateReport() {
+    // Your existing generateReport code here
+}
+
+function exportReport(format) {
+    // Your existing exportReport code here
+}
+
+function refreshProfitData() {
+    // Your existing refreshProfitData code here
+}
+
+function renderProfitChart(revenue, cost, profit) {
+    // Your existing renderProfitChart code here
+}
+
+function loadAuditLogs() {
+    // Your existing loadAuditLogs code here
+}
+
+// Settings
+function saveSettings(e) {
+    // Your existing saveSettings code here
+}
+
+function savePaymentSettings(e) {
+    // Your existing savePaymentSettings code here
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('active');
+}
+
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('active');
+}
+window.openModal = openModal;
+window.closeModal = closeModal;
 
 // ============================================================
 // THEME TOGGLE
@@ -1017,13 +1169,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================
-// INIT
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    checkAuth();
-});
-
-// ============================================================
 // EXPOSE FUNCTIONS TO GLOBAL SCOPE
 // ============================================================
 window.navigateTo = navigateTo;
@@ -1065,3 +1210,10 @@ window.submitPin = submitPin;
 window.switchMethod = switchMethod;
 window.saveSettings = saveSettings;
 window.savePaymentSettings = savePaymentSettings;
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    checkAuth();
+});
