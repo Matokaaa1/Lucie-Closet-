@@ -85,8 +85,21 @@
         .spinner { display:inline-block; width:20px; height:20px; border:3px solid rgba(255,255,255,0.3); border-radius:50%; border-top-color:#fff; animation:spin 0.8s linear infinite; }
         @keyframes spin { to { transform:rotate(360deg); } }
 
-        /* ── SIDEBAR ── */
-        .sidebar { width:250px; background:var(--card); border-right:1px solid var(--border); padding:20px 16px; min-height:100vh; position:sticky; top:0; height:100vh; overflow-y:auto; flex-shrink:0; }
+        /* ── SIDEBAR (FIXED) ── */
+        .sidebar { 
+            width: 250px; 
+            background: var(--card); 
+            border-right: 1px solid var(--border); 
+            padding: 20px 16px; 
+            min-height: 100vh; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            height: 100vh; 
+            overflow-y: auto; 
+            flex-shrink: 0; 
+            z-index: 50;
+        }
         .sidebar-brand { display:flex; align-items:center; gap:10px; margin-bottom:28px; padding:0 8px; }
         .sidebar-brand .logo-icon { font-size:28px; color:var(--gold); }
         .sidebar-brand .brand-text { font-weight:800; font-size:18px; color:var(--text); }
@@ -101,10 +114,34 @@
         .sidebar-menu .menu-label:hover { background:transparent; color:var(--text-muted); }
         .sidebar-menu .badge { margin-left:auto; background:var(--primary); color:#fff; font-size:10px; padding:2px 10px; border-radius:50px; font-weight:600; }
         .sidebar-menu .logout-btn { margin-top:20px; border-top:1px solid var(--border); padding-top:16px; color:var(--danger); }
-        .sidebar-toggle { display:none; position:fixed; bottom:20px; left:20px; z-index:100; background:var(--card); border:1px solid var(--border); border-radius:50%; width:44px; height:44px; font-size:20px; cursor:pointer; box-shadow:var(--shadow); }
+        .sidebar-toggle { 
+            display: none; 
+            position: fixed; 
+            bottom: 20px; 
+            left: 20px; 
+            z-index: 101; 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            border-radius: 50%; 
+            width: 44px; 
+            height: 44px; 
+            font-size: 20px; 
+            cursor: pointer; 
+            box-shadow: var(--shadow);
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+        .sidebar-toggle:hover { background:var(--bg); }
 
-        /* ── MAIN ── */
-        .main-content { flex:1; padding:24px 32px 40px; max-width:calc(100% - 250px); min-height:100vh; }
+        /* ── MAIN CONTENT (FIXED) ── */
+        .main-content { 
+            flex: 1; 
+            padding: 24px 32px 40px; 
+            margin-left: 250px; 
+            min-height: 100vh; 
+            width: calc(100% - 250px);
+        }
         .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; flex-wrap:wrap; gap:12px; }
         .top-bar .page-title h1 { font-size:24px; font-weight:800; }
         .top-bar .page-title p { font-size:13px; color:var(--text-muted); }
@@ -224,63 +261,39 @@
         .category-badge { padding:6px 16px; border-radius:50px; background:rgba(var(--primary-rgb),0.08); color:var(--primary); font-weight:500; font-size:13px; border:1px solid rgba(var(--primary-rgb),0.1); }
 
         /* ── RESPONSIVE ── */
-        @media (max-width:1024px) { .pos-layout { grid-template-columns:1fr; } .grid-2 { grid-template-columns:1fr; } .login-container { flex-direction:column; } .brand-panel, .auth-panel { width:100%; } .brand-panel { padding:30px; } .checkout-layout { grid-template-columns:1fr; } }
-    
-    @media (max-width:768px) { .sidebar { position:fixed; left:-280px; transition:0.3s; z-index:100; } .sidebar.open { left:0; } .sidebar-toggle { display:flex; } .main-content { padding:16px; max-width:100%; } .form-row { grid-template-columns:1fr; } }
-    /* ── SIDEBAR ── */
-.sidebar { 
-    width: 250px; 
-    background: var(--card); 
-    border-right: 1px solid var(--border); 
-    padding: 20px 16px; 
-    min-height: 100vh; 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    height: 100vh; 
-    overflow-y: auto; 
-    flex-shrink: 0; 
-    z-index: 50;
-}
-
-/* ── MAIN CONTENT ── */
-.main-content { 
-    flex: 1; 
-    padding: 24px 32px 40px; 
-    margin-left: 250px; 
-    min-height: 100vh; 
-    width: calc(100% - 250px);
-}
-
-/* ── RESPONSIVE ── */
-@media (max-width:768px) { 
-    .sidebar { 
-        position: fixed; 
-        left: -280px; 
-        transition: 0.3s; 
-        z-index: 100; 
-        box-shadow: none;
-    } 
-    .sidebar.open { 
-        left: 0; 
-        box-shadow: 4px 0 20px rgba(0,0,0,0.15);
-    } 
-    .sidebar-toggle { 
-        display: flex; 
-        position: fixed; 
-        bottom: 20px; 
-        left: 20px; 
-        z-index: 101;
-    } 
-    .main-content { 
-        padding: 16px; 
-        margin-left: 0; 
-        width: 100%;
-    } 
-    .form-row { 
-        grid-template-columns: 1fr; 
-    } 
-}
+        @media (max-width:1024px) { 
+            .pos-layout { grid-template-columns:1fr; } 
+            .grid-2 { grid-template-columns:1fr; } 
+            .login-container { flex-direction:column; } 
+            .brand-panel, .auth-panel { width:100%; } 
+            .brand-panel { padding:30px; } 
+            .checkout-layout { grid-template-columns:1fr; } 
+        }
+        @media (max-width:768px) { 
+            .sidebar { 
+                position: fixed; 
+                left: -280px; 
+                transition: 0.3s; 
+                z-index: 100; 
+                box-shadow: none;
+                width: 280px;
+            } 
+            .sidebar.open { 
+                left: 0; 
+                box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+            } 
+            .sidebar-toggle { 
+                display: flex; 
+            } 
+            .main-content { 
+                padding: 16px; 
+                margin-left: 0; 
+                width: 100%;
+            } 
+            .form-row { 
+                grid-template-columns: 1fr; 
+            } 
+        }
     </style>
 </head>
 <body>
@@ -429,7 +442,9 @@
             </ul>
         </nav>
 
-        <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle Sidebar">
+            <i class="fas fa-bars"></i>
+        </button>
 
         <!-- ===== MAIN CONTENT ===== -->
         <div class="main-content">
@@ -1074,7 +1089,6 @@
             </form>
         </div>
     </div>
-
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
