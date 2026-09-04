@@ -225,7 +225,62 @@
 
         /* ── RESPONSIVE ── */
         @media (max-width:1024px) { .pos-layout { grid-template-columns:1fr; } .grid-2 { grid-template-columns:1fr; } .login-container { flex-direction:column; } .brand-panel, .auth-panel { width:100%; } .brand-panel { padding:30px; } .checkout-layout { grid-template-columns:1fr; } }
-        @media (max-width:768px) { .sidebar { position:fixed; left:-280px; transition:0.3s; z-index:100; } .sidebar.open { left:0; } .sidebar-toggle { display:flex; } .main-content { padding:16px; max-width:100%; } .form-row { grid-template-columns:1fr; } }
+    
+    @media (max-width:768px) { .sidebar { position:fixed; left:-280px; transition:0.3s; z-index:100; } .sidebar.open { left:0; } .sidebar-toggle { display:flex; } .main-content { padding:16px; max-width:100%; } .form-row { grid-template-columns:1fr; } }
+    /* ── SIDEBAR ── */
+.sidebar { 
+    width: 250px; 
+    background: var(--card); 
+    border-right: 1px solid var(--border); 
+    padding: 20px 16px; 
+    min-height: 100vh; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    height: 100vh; 
+    overflow-y: auto; 
+    flex-shrink: 0; 
+    z-index: 50;
+}
+
+/* ── MAIN CONTENT ── */
+.main-content { 
+    flex: 1; 
+    padding: 24px 32px 40px; 
+    margin-left: 250px; 
+    min-height: 100vh; 
+    width: calc(100% - 250px);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width:768px) { 
+    .sidebar { 
+        position: fixed; 
+        left: -280px; 
+        transition: 0.3s; 
+        z-index: 100; 
+        box-shadow: none;
+    } 
+    .sidebar.open { 
+        left: 0; 
+        box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    } 
+    .sidebar-toggle { 
+        display: flex; 
+        position: fixed; 
+        bottom: 20px; 
+        left: 20px; 
+        z-index: 101;
+    } 
+    .main-content { 
+        padding: 16px; 
+        margin-left: 0; 
+        width: 100%;
+    } 
+    .form-row { 
+        grid-template-columns: 1fr; 
+    } 
+}
     </style>
 </head>
 <body>
