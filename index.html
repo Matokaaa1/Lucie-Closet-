@@ -319,7 +319,7 @@
     .product-grid { gap:20px; }
     .product-card { border-radius:18px; }
     .product-card .product-image { background:#F4F1F5; }
-    .product-card .product-image img { object-fit:contain; transition:transform .5s ease; }
+    .product-card .product-image img { object-fit:cover; transition:transform .5s ease; }
     .product-card:hover .product-image img { transform:scale(1.035); }
 
     .why-lucie { margin:0 auto 20px; padding:58px 24px; background:linear-gradient(135deg,#F8F2FB,#FFF8FB); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
@@ -373,168 +373,15 @@
       .why-heading h2 { font-size:26px; }
     }
 
-  </style>
-
-<style id="lucie-premium-overrides">
-  :root{
-    --lc-purple:#8B2FC9;
-    --lc-purple-2:#B53BE0;
-    --lc-pink:#E85AAE;
-    --lc-navy:#10152F;
-    --lc-ink:#171528;
-    --lc-muted:#747286;
-    --lc-line:#EAE6F0;
-    --lc-soft:#FAF7FC;
-    --lc-gold:#D8B36A;
-    --lc-white:#fff;
-  }
-  body{background:#fff;color:var(--lc-ink)}
-  .top-bar{background:var(--lc-navy);padding:7px 22px;font-size:12px}
-  .top-bar-inner{max-width:1320px}
-  .top-bar .contact-info{gap:18px}
-  .header{padding:0 22px;background:rgba(255,255,255,.94);border-bottom:1px solid rgba(20,15,35,.08)}
-  .header-inner{max-width:1320px;height:76px}
-  .logo .brand-text{font-size:30px;color:var(--lc-purple)}
-  .logo i{color:var(--lc-gold);font-size:24px}
-  .nav-links{gap:27px}
-  .nav-links a{font-size:13px;font-weight:650}
-  .header-actions{gap:6px}
-  .header-actions .icon-btn{width:44px;height:44px}
-  .user-badge{background:#F7F1FA!important;border:1px solid #E8D8F0!important}
-
-  .modern-hero{
-    padding:76px 24px 72px;
-    min-height:650px;
-    background:
-      radial-gradient(circle at 78% 18%,rgba(232,90,174,.18),transparent 28%),
-      radial-gradient(circle at 12% 88%,rgba(139,47,201,.22),transparent 32%),
-      linear-gradient(120deg,#0D1430,#171638 48%,#281633);
-  }
-  .modern-hero-inner{max-width:1320px;grid-template-columns:1fr .92fr;gap:70px}
-  .hero-copy{max-width:680px}
-  .modern-hero h1{font-size:clamp(46px,5.5vw,78px);line-height:1.02;letter-spacing:-3px}
-  .modern-hero h1 .brand-highlight{background:linear-gradient(120deg,#F4D7A4,#F0A7D3 52%,#CFA5F5);-webkit-background-clip:text}
-  .modern-hero p{font-size:17px;line-height:1.7;max-width:590px}
-  .hero-badge{padding:7px 15px;font-size:11px;letter-spacing:1px}
-  .hero-main-btn{padding:15px 28px}
-  .hero-outline-btn{padding:13px 25px!important}
-  .hero-proof{gap:24px}
-  .hero-proof span{display:flex;align-items:center}
-  .hero-visual{min-height:500px}
-  .hero-photo{border:7px solid rgba(255,255,255,.96);box-shadow:0 30px 80px rgba(0,0,0,.32)}
-  .hero-photo-main{width:375px;height:475px;right:24px;border-radius:190px 190px 28px 28px}
-  .hero-photo-small{width:185px;height:245px;left:8px;bottom:8px}
-  .hero-floating-card{right:-2px;bottom:36px;padding:14px 18px}
-
-  .store-info{margin:-34px auto 0}
-  .store-info-inner{max-width:1320px;padding:18px 26px;border-radius:16px}
-  .featured-banner{max-width:1320px}
-  .featured-banner-inner{border-radius:16px}
-
-  .category-showcase{max-width:1320px;margin:auto;padding:60px 24px 24px}
-  .category-heading{align-items:flex-end;margin-bottom:22px}
-  .category-heading h2{font-size:31px;letter-spacing:-.7px}
-  .category-cards{grid-template-columns:repeat(4,1fr);gap:16px}
-  .category-card{
-    min-height:128px;padding:20px;border-radius:20px;
-    position:relative;overflow:hidden;
-    background:linear-gradient(145deg,#fff,#FBF8FD);
-  }
-  .category-card .category-icon{width:56px;height:56px;border-radius:17px}
-
-  .filters{
-    max-width:1320px;margin:28px auto 0;padding:0 24px;
-    position:sticky;top:76px;z-index:50;
-    background:rgba(255,255,255,.93);backdrop-filter:blur(12px);
-    padding-top:14px;padding-bottom:14px;
-  }
-  .filters .filter-btn{padding:9px 18px}
-  .filters .search-box{box-shadow:0 3px 15px rgba(20,15,35,.05)}
-
-  .products-section{max-width:1320px;margin:24px auto 70px;padding:0 24px}
-  .products-section .section-header h2{font-size:30px;letter-spacing:-.7px}
-  .product-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
-  .product-card{
-    border-radius:18px;border:1px solid #ECE8F0;
-    box-shadow:0 5px 24px rgba(30,15,45,.055);
-  }
-  .product-card:hover{transform:translateY(-7px);box-shadow:0 18px 45px rgba(95,39,120,.13)}
-  .product-card .product-image{aspect-ratio:1/1;background:#F7F4F8}
-  .product-card .product-info{padding:15px 16px 17px}
-  .product-card .product-info .product-name{font-size:14px}
-  .product-card .product-info .product-price{font-size:18px}
-  .product-card .product-info .add-to-cart{padding:11px}
-
-  .why-lucie{padding:70px 24px;background:linear-gradient(135deg,#FBF7FD,#FFF8FB)}
-  .why-inner{max-width:1320px}
-  .why-heading h2{font-size:38px;letter-spacing:-1px}
-  .why-item{padding:18px;border-radius:17px}
-
-  .footer{padding-top:58px}
-  .footer .footer-inner{max-width:1320px}
-
-  /* Premium promotional strip */
-  .premium-strip{
-    max-width:1320px;margin:30px auto 0;padding:0 24px;
-  }
-  .premium-strip-inner{
-    display:grid;grid-template-columns:1.3fr .7fr 1fr;
-    gap:0;overflow:hidden;border-radius:20px;background:var(--lc-navy);color:#fff;
-  }
-  .premium-strip .ps-block{padding:22px 25px;border-right:1px solid rgba(255,255,255,.1)}
-  .premium-strip .ps-block:last-child{border-right:0}
-  .premium-strip strong{display:block;font-size:14px;margin-bottom:4px}
-  .premium-strip span{font-size:12px;color:rgba(255,255,255,.6)}
-  .premium-strip i{color:var(--lc-gold);margin-right:8px}
-
-  /* Quick view */
-  .quick-view-btn{
-    position:absolute;right:12px;bottom:12px;width:38px;height:38px;
-    border:0;border-radius:50%;background:rgba(255,255,255,.95);color:var(--lc-navy);
-    box-shadow:0 6px 18px rgba(0,0,0,.12);cursor:pointer;z-index:3;
-  }
-  .quick-view-btn:hover{color:var(--lc-purple);transform:scale(1.06)}
-  .product-card .product-image{position:relative}
-
-  @media(max-width:1100px){
-    .product-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-    .modern-hero-inner{grid-template-columns:1fr .8fr;gap:35px}
-  }
-  @media(max-width:900px){
-    .modern-hero-inner{grid-template-columns:1fr}
-    .hero-copy{text-align:center;margin:auto}
-    .modern-hero p{margin-left:auto;margin-right:auto}
-    .hero-buttons,.hero-proof{justify-content:center}
-    .hero-visual{width:min(620px,100%);margin:auto}
-    .premium-strip-inner{grid-template-columns:1fr}
-    .premium-strip .ps-block{border-right:0;border-bottom:1px solid rgba(255,255,255,.1)}
-    .premium-strip .ps-block:last-child{border-bottom:0}
-  }
-  @media(max-width:768px){
-    .top-bar .social-icons{display:none}
-    .header-inner{height:auto;min-height:64px}
-    .nav-links{gap:18px}
-    .filters{top:64px}
-    .category-showcase{padding-top:42px}
-    .category-cards{grid-template-columns:repeat(2,1fr)}
-    .product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-    .modern-hero{padding:50px 18px 56px}
-    .modern-hero h1{font-size:40px;letter-spacing:-1.5px}
-    .hero-visual{min-height:360px}
-    .hero-photo-main{width:63%;height:340px;right:2%}
-    .hero-photo-small{width:145px;height:190px}
-    .hero-floating-card{right:0;bottom:4px}
-    .store-info{padding:0 14px}
-    .store-info-inner{padding:18px}
-    .featured-banner{padding:0 14px}
-    .premium-strip{padding:0 14px}
-    .products-section{padding:0 14px}
-    .filters{padding-left:14px;padding-right:14px;overflow-x:auto;flex-wrap:nowrap}
-    .filters .gender-filter{flex-shrink:0}
-    .filters .search-box{min-width:220px;flex-shrink:0}
-  }
+  
+    .auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg);padding:5px;border-radius:12px;margin-bottom:20px;}
+    .auth-tab{border:0;background:transparent;padding:11px 10px;border-radius:9px;font:700 13px var(--font);color:var(--text-muted);cursor:pointer;transition:.2s;}
+    .auth-tab.active{background:var(--card);color:var(--primary);box-shadow:0 3px 12px rgba(0,0,0,.08);}
+    .signup-fields{display:none;}
+    .signup-fields.show{display:block;}
+    .account-note{margin-top:12px;padding:10px 12px;border-radius:10px;background:rgba(124,58,237,.06);color:var(--text-muted);font-size:12px;line-height:1.5;}
+    .required{color:var(--danger);}
 </style>
-
 </head>
 <body>
   <!-- TOP BAR -->
@@ -634,15 +481,6 @@
       <span class="badge"><i class="fas fa-star"></i> Premium Items</span>
     </div>
   </div>
-
-
-  <section class="premium-strip" aria-label="Lucie Closet shopping benefits">
-    <div class="premium-strip-inner">
-      <div class="ps-block"><strong><i class="fas fa-gem"></i> Curated quality</strong><span>Handpicked pieces selected for style and finish.</span></div>
-      <div class="ps-block"><strong><i class="fas fa-mobile-screen-button"></i> Easy ordering</strong><span>Simple online shopping with convenient checkout.</span></div>
-      <div class="ps-block"><strong><i class="fas fa-location-dot"></i> Shop in Eastleigh</strong><span>Visit Lucie Closet at Micki Mall, Room S12.</span></div>
-    </div>
-  </section>
 
   <!-- CATEGORY SHOWCASE -->
   <section class="category-showcase">
@@ -754,17 +592,6 @@
     </div>
   </div>
 
-
-  <div class="payment-modal" id="quickViewModal" style="z-index:350">
-    <div class="payment-modal-content" style="max-width:720px">
-      <div class="modal-header">
-        <h3><i class="fas fa-eye"></i> Product Preview</h3>
-        <button class="close-modal" onclick="closeQuickView()"><i class="fas fa-times"></i></button>
-      </div>
-      <div id="quickViewContent"></div>
-    </div>
-  </div>
-
   <!-- AUTH MODAL -->
   <div class="auth-modal" id="authModal">
     <div class="auth-modal-content">
@@ -773,21 +600,37 @@
         <button class="close-modal" onclick="closeAuthModal()"><i class="fas fa-times"></i></button>
       </div>
       
-      <!-- Login Form -->
+      <div class="auth-tabs">
+        <button type="button" id="signInTab" class="auth-tab active" onclick="setAuthMode('signin')">Sign In</button>
+        <button type="button" id="signUpTab" class="auth-tab" onclick="setAuthMode('signup')">Create Account</button>
+      </div>
       <div id="loginForm">
-        <div class="form-group">
-          <label><i class="fas fa-envelope"></i> Email</label>
-          <input type="email" id="authEmail" placeholder="you@example.com">
+        <div id="signupFields" class="signup-fields">
+          <div class="form-group">
+            <label><i class="fas fa-user"></i> Full Name <span class="required">*</span></label>
+            <input type="text" id="authFullName" placeholder="Enter your full name" autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label><i class="fas fa-phone"></i> Phone Number <span class="required">*</span></label>
+            <input type="tel" id="authPhone" placeholder="e.g. 0712 345 678" autocomplete="tel" inputmode="tel">
+          </div>
         </div>
         <div class="form-group">
-          <label><i class="fas fa-lock"></i> Password</label>
-          <input type="password" id="authPassword" placeholder="••••••••">
+          <label><i class="fas fa-envelope"></i> Email Address <span class="required">*</span></label>
+          <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email">
         </div>
-        <button class="btn btn-primary btn-block" onclick="authSignIn()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
-        
-        <div class="auth-divider">or</div>
-        
-        <button class="btn btn-outline btn-block" onclick="authSignUp()"><i class="fas fa-user-plus"></i> Create Account</button>
+        <div class="form-group">
+          <label><i class="fas fa-lock"></i> Password <span class="required">*</span></label>
+          <input type="password" id="authPassword" placeholder="At least 6 characters" autocomplete="current-password">
+        </div>
+        <div id="confirmPasswordField" class="signup-fields">
+          <div class="form-group">
+            <label><i class="fas fa-shield-alt"></i> Confirm Password <span class="required">*</span></label>
+            <input type="password" id="authConfirmPassword" placeholder="Re-enter your password" autocomplete="new-password">
+          </div>
+        </div>
+        <button id="authPrimaryBtn" class="btn btn-primary btn-block" onclick="authSignIn()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+        <div id="authHint" class="account-note"><i class="fas fa-lock"></i> Sign in with your registered email and password.</div>
         <div id="authStatus" class="auth-status"></div>
       </div>
     </div>
@@ -804,7 +647,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsc2xkd3NodHhvZmNrdmtpeHh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTksImV4cCI6MjEwMzc4NzU1OX0.BAfgQG4Z28bgKSfL9Li7Gbgp62sTM-5NxB4qVQ-b0H4';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const STORAGE_BASE = SUPABASE_URL + '/storage/v1/object/public/product-images/';
-    const IMAGE_CATALOG = {"LCIMG001":"LC_001_1004593949.jpg","LCIMG002":"LC_002_1004595326.jpg","LCIMG003":"LC_003_1004596511.jpg","LCIMG004":"LC_004_1004597461.jpg","LCIMG005":"LC_005_1004598415.jpg","LCIMG006":"LC_006_1004599415.jpg","LCIMG007":"LC_007_1004600565.jpg","LCIMG008":"LC_008_1004601620.jpg","LCIMG009":"LC_009_1004602728.jpg","LCIMG010":"LC_010_1004603830.jpg","LCIMG011":"LC_011_1004604867.jpg","LCIMG012":"LC_012_1004605963.jpg","LCIMG013":"LC_013_1004607016.jpg","LCIMG014":"LC_014_1004608070.jpg","LCIMG015":"LC_015_1004609128.jpg","LCIMG016":"LC_016_1004610206.jpg","LCIMG017":"LC_017_1004611241.jpg","LCIMG018":"LC_018_1004612265.jpg","LCIMG019":"LC_019_1004613350.jpg","LCIMG020":"LC_020_1004614394.jpg","LCIMG021":"LC_021_1004615442.jpg","LCIMG022":"LC_022_1004616491.jpg","LCIMG023":"LC_023_1004617536.jpg","LCIMG024":"LC_024_1004618577.jpg","LCIMG025":"LC_025_1004619622.jpg","LCIMG026":"LC_026_1004620674.jpg","LCIMG027":"LC_027_1004621714.jpg","LCIMG028":"LC_028_1004622763.jpg","LCIMG029":"LC_029_1004623811.jpg","LCIMG030":"LC_030_1004624865.jpg","LCIMG031":"LC_031_1004625912.jpg","LCIMG032":"LC_032_1004626958.jpg","LCIMG033":"LC_033_1004628007.jpg","LCIMG034":"LC_034_1004629054.jpg","LCIMG035":"LC_035_1004630106.jpg","LCIMG036":"LC_036_1004631151.jpg","LCIMG037":"LC_037_1004632198.jpg","LCIMG038":"LC_038_1004633245.jpg","LCIMG039":"LC_039_1004634294.jpg","LCIMG040":"LC_040_1004635343.jpg","LCIMG041":"LC_041_1004636392.jpg","LCIMG042":"LC_042_1004637441.jpg","LCIMG043":"LC_043_1004638490.jpg","LCIMG044":"LC_044_1004639540.jpg","LCIMG045":"LC_045_1004663288.jpg","LCIMG046":"LC_046_1004664333.jpg"};
+    const IMAGE_CATALOG = {"LCIMG001":"LC_001_1004593949.jpg","LCIMG002":"LC_002_1004593985.jpg","LCIMG003":"LC_003_1004662163.jpg","LCIMG004":"LC_004_1004662167.jpg","LCIMG005":"LC_005_1004662171.jpg","LCIMG006":"LC_006_1004662172.jpg","LCIMG007":"LC_007_1004662223.jpg","LCIMG008":"LC_008_1004662242.jpg","LCIMG009":"LC_009_1004662296.jpg","LCIMG010":"LC_010_1004662299.jpg","LCIMG011":"LC_011_1004662311.jpg","LCIMG012":"LC_012_1004664184.jpg","LCIMG013":"LC_013_1004664191.jpg","LCIMG014":"LC_014_1004664192.jpg","LCIMG015":"LC_015_1004664193.jpg","LCIMG016":"LC_016_1004664194.jpg","LCIMG017":"LC_017_1004664197.jpg","LCIMG018":"LC_018_1004664199.jpg","LCIMG019":"LC_019_1004664212.jpg","LCIMG020":"LC_020_1004664214.jpg","LCIMG021":"LC_021_1004664215.jpg","LCIMG022":"LC_022_1004664216.jpg","LCIMG023":"LC_023_1004664217.jpg","LCIMG024":"LC_024_1004664218.jpg","LCIMG025":"LC_025_1004664219.jpg","LCIMG026":"LC_026_1004664220.jpg","LCIMG027":"LC_027_1004664221.jpg","LCIMG028":"LC_028_1004664222.jpg","LCIMG029":"LC_029_1004664223.jpg","LCIMG030":"LC_030_1004664224.jpg","LCIMG031":"LC_031_1004664225.jpg","LCIMG032":"LC_032_1004664244.jpg","LCIMG033":"LC_033_1004664245.jpg","LCIMG034":"LC_034_1004664246.jpg","LCIMG035":"LC_035_1004664247.jpg","LCIMG036":"LC_036_1004664248.jpg","LCIMG037":"LC_037_1004664254.jpg","LCIMG038":"LC_038_1004664289.jpg","LCIMG039":"LC_039_1004664291.jpg","LCIMG040":"LC_040_1004664309.jpg","LCIMG041":"LC_041_1004664310.jpg","LCIMG042":"LC_042_1004664327.jpg","LCIMG043":"LC_043_1004664329.jpg","LCIMG044":"LC_044_1004664330.jpg","LCIMG045":"LC_045_1004664332.jpg","LCIMG046":"LC_046_1004664333.jpg"};
     function productImageUrl(p) {
       if (p?.image_url) return p.image_url;
       const code = String(p?.code || '').trim();
@@ -892,12 +735,35 @@
       }
     }
 
-    function openAuthModal() {
+    let authMode = 'signin';
+
+    function setAuthMode(mode) {
+      authMode = mode === 'signup' ? 'signup' : 'signin';
+      const signupFields = document.getElementById('signupFields');
+      const confirmField = document.getElementById('confirmPasswordField');
+      const signInTab = document.getElementById('signInTab');
+      const signUpTab = document.getElementById('signUpTab');
+      const primary = document.getElementById('authPrimaryBtn');
+      const hint = document.getElementById('authHint');
+      const password = document.getElementById('authPassword');
+      if (signupFields) signupFields.classList.toggle('show', authMode === 'signup');
+      if (confirmField) confirmField.classList.toggle('show', authMode === 'signup');
+      if (signInTab) signInTab.classList.toggle('active', authMode === 'signin');
+      if (signUpTab) signUpTab.classList.toggle('active', authMode === 'signup');
+      if (primary) {
+        primary.innerHTML = authMode === 'signup' ? '<i class="fas fa-user-plus"></i> Create My Account' : '<i class="fas fa-sign-in-alt"></i> Sign In';
+        primary.onclick = authMode === 'signup' ? authSignUp : authSignIn;
+      }
+      if (hint) hint.innerHTML = authMode === 'signup' ? '<i class="fas fa-info-circle"></i> Full name, phone number, email and password are required.' : '<i class="fas fa-lock"></i> Sign in with your registered email and password.';
+      if (password) password.autocomplete = authMode === 'signup' ? 'new-password' : 'current-password';
+      if (authStatus) authStatus.textContent = '';
+    }
+
+    function openAuthModal(mode = 'signin') {
       authModal.classList.add('open');
-      authStatus.textContent = '';
-      document.getElementById('authEmail').value = '';
-      document.getElementById('authPassword').value = '';
-      document.getElementById('authModalTitle').textContent = currentUser ? 'My Account' : 'Sign In';
+      ['authFullName','authPhone','authEmail','authPassword','authConfirmPassword'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+      document.getElementById('authModalTitle').textContent = mode === 'signup' ? 'Create Your Account' : 'Welcome Back';
+      setAuthMode(mode);
     }
     window.openAuthModal = openAuthModal;
 
@@ -906,12 +772,27 @@
 
     // ✅ AUTO-VERIFIED SIGN UP
     async function authSignUp() {
+      const fullName = document.getElementById('authFullName').value.trim();
+      const phone = document.getElementById('authPhone').value.trim();
       const email = document.getElementById('authEmail').value.trim();
       const password = document.getElementById('authPassword').value.trim();
+      const confirmPassword = document.getElementById('authConfirmPassword').value.trim();
       
-      if (!email || !password) { 
-        authStatus.textContent = '⚠️ Please fill in all fields'; 
+      // Every customer account field is mandatory.
+      if (!fullName || !phone || !email || !password || !confirmPassword) { 
+        authStatus.textContent = '⚠️ Please complete your full name, phone number, email and password fields.'; 
         return; 
+      }
+
+      if (fullName.length < 2) {
+        authStatus.textContent = '⚠️ Please enter your full name.';
+        return;
+      }
+
+      const phoneDigits = phone.replace(/\D/g, '');
+      if (phoneDigits.length < 9 || phoneDigits.length > 15) {
+        authStatus.textContent = '⚠️ Please enter a valid phone number.';
+        return;
       }
       
       if (password.length < 6) {
@@ -919,16 +800,22 @@
         return;
       }
 
-      authStatus.textContent = '⏳ Creating account...';
+      if (password !== confirmPassword) {
+        authStatus.textContent = '⚠️ Passwords do not match.';
+        return;
+      }
+
+      authStatus.textContent = '⏳ Creating your customer account...';
       
       try {
-        // ✅ Sign up with auto-confirm (if email confirmation is OFF in Supabase settings)
+        // Store the complete customer profile in Supabase Auth metadata.
         const { data, error } = await sb.auth.signUp({
           email: email,
           password: password,
           options: {
             data: {
-              full_name: email.split('@')[0],
+              full_name: fullName,
+              phone: phone,
               role: 'customer'
             }
           }
@@ -937,26 +824,34 @@
         if (error) throw error;
         
         if (data.user) {
-          // ✅ Create user record in your users table
+          // Keep the same complete customer details in the users table.
           const { error: insertError } = await sb
             .from('users')
             .insert({
               id: data.user.id,
               email: email,
-              full_name: email.split('@')[0],
-              role_id: 2, // Cashier/Customer
-              status: 'active', // ✅ Auto-active
-              pin: '1234', // Default PIN
-              pin_enabled: true,
-              phone: '',
+              full_name: fullName,
+              role_id: 2,
+              status: 'active',
+              phone: phone,
               created_at: new Date().toISOString()
             });
           
           if (insertError) {
             console.warn('Could not create user record:', insertError);
           }
+
+          // Also keep the customer in the customer register for POS/order lookup.
+          try {
+            const { error: customerError } = await sb
+              .from('customers')
+              .insert([{ name: fullName, phone: phone, email: email }]);
+            if (customerError) console.warn('Could not create customer record:', customerError);
+          } catch (customerErr) {
+            console.warn('Customer register insert skipped:', customerErr);
+          }
           
-          authStatus.innerHTML = '✅ Account created successfully! You are now logged in.';
+          authStatus.innerHTML = '✅ Account created successfully! Your full name and phone number have been saved.';
           showToast('🎉 Account created successfully!', 'success');
           currentUser = data.user;
           updateUserUI();
@@ -1143,7 +1038,6 @@
               ${imgHtml}
               ${genderTag}
               <span class="stock-badge">${p.stock ?? 0} in stock</span>
-              <button class="quick-view-btn" aria-label="Quick view" onclick="event.stopPropagation(); quickView(${p.id})"><i class="fas fa-eye"></i></button>
             </div>
             <div class="product-info">
               <div class="product-code">${escapeHtml(p.code || 'N/A')}</div>
@@ -1179,34 +1073,6 @@
       document.querySelectorAll('.gender-btn').forEach(b => { if(b.dataset.gender === gender) b.classList.add('active'); });
       renderProducts();
     };
-
-
-    // Premium product quick view
-    window.quickView = function(productId) {
-      const p = products.find(x => x.id === productId);
-      if (!p) return;
-      const modal = document.getElementById('quickViewModal');
-      const box = document.getElementById('quickViewContent');
-      const image = productImageUrl(p);
-      const icon = p.category === 'dress' ? '👗' : p.category === 'top' ? '👚' : p.category === 'sweater' ? '🧥' : '👔';
-      box.innerHTML = `
-        <div style="display:grid;grid-template-columns:minmax(220px,.9fr) 1.1fr;gap:26px;align-items:center">
-          <div style="aspect-ratio:1/1;border-radius:18px;overflow:hidden;background:#F7F4F8;display:grid;place-items:center;font-size:70px">
-            ${image ? `<img src="${image}" alt="${escapeHtml(p.name)}" style="width:100%;height:100%;object-fit:cover">` : icon}
-          </div>
-          <div>
-            ${p.best_quality ? '<div style="display:inline-flex;padding:5px 12px;border-radius:50px;background:#FBF0D9;color:#805B1C;font-size:11px;font-weight:800;margin-bottom:10px"><i class="fas fa-crown"></i>&nbsp; BEST QUALITY</div>' : ''}
-            <div style="font-size:11px;color:var(--lc-muted);font-weight:700;letter-spacing:.7px;text-transform:uppercase">${escapeHtml(p.code || '')}</div>
-            <h2 style="font-size:28px;line-height:1.15;margin:6px 0 10px">${escapeHtml(p.name)}</h2>
-            <div style="font-size:23px;font-weight:800;color:var(--lc-purple);margin-bottom:8px">KSh ${Number(p.price || 0).toLocaleString()}</div>
-            <div style="color:#D8B36A;margin-bottom:15px"><i class="fas fa-star"></i> ${p.rating || 4.0} <span style="color:var(--lc-muted);font-size:12px">Customer rating</span></div>
-            <p style="color:var(--lc-muted);font-size:14px;line-height:1.6;margin-bottom:18px">A carefully selected Lucie Closet piece designed to bring effortless style and confidence to your wardrobe.</p>
-            <button class="btn-primary" style="width:100%;justify-content:center" onclick="addToCart(${p.id});closeQuickView();toggleCart()"><i class="fas fa-bag-shopping"></i> Add to Cart</button>
-          </div>
-        </div>`;
-      modal.classList.add('open');
-    };
-    window.closeQuickView = function(){ document.getElementById('quickViewModal')?.classList.remove('open'); };
 
     // ──────────────────────────────────────────────────────────────
     // 7. CART
