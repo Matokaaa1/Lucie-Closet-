@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2503,28 +2502,7 @@ function printReceipt() {
         printWindow.document.write(`
             <html><head><title>Receipt</title>
             <style>body{font-family:monospace;padding:20px;white-space:pre-wrap;font-size:14px;}</style>
-            </head><body>${content}\n\n
-
-<script id="lucie-business-intelligence">
-(function(){
- const money=n=>'KES '+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});
- window.setLCSalesTarget=function(){const current=Number(localStorage.getItem('lc_sales_target')||100000);const v=prompt('Enter today\'s sales target (KES):',current);if(v!==null&&Number(v)>0){localStorage.setItem('lc_sales_target',Number(v));refreshLCBusinessIntel();addLCNotification('Sales target updated',`Today\'s target is ${money(v)}.`,'info','fa-bullseye',true)}};
- window.refreshLCBusinessIntel=function(){
-  const target=Number(localStorage.getItem('lc_sales_target')||100000); const today=new Date().toDateString();
-  const todayOrders=(window.orders||[]).filter(o=>new Date(o.created_at).toDateString()===today&&o.status==='completed');
-  const sales=todayOrders.reduce((a,o)=>a+Number(o.total||0),0); const units=todayOrders.reduce((a,o)=>a+(o.items||[]).reduce((x,i)=>x+Number(i.qty||0),0),0);
-  const profit=todayOrders.reduce((a,o)=>a+(o.items||[]).reduce((x,i)=>x+(Number(i.price||0)-Number(i.cost_price||0))*Number(i.qty||0),0),0);
-  const stockValue=(window.products||[]).reduce((a,p)=>a+Number(p.stock||0)*Number(p.cost_price||p.buying_price||0),0); const pct=Math.min(100,(sales/target)*100);
-  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v}; set('lcTargetProgress',`${money(sales)} / ${money(target)}`);set('lcTargetPercent',`${pct.toFixed(1)}% achieved`);set('lcIntelProfit',money(profit));set('lcIntelStockValue',money(stockValue));set('lcIntelUnits',units);const bar=document.getElementById('lcTargetBar');if(bar)bar.style.width=pct+'%';
-  const low=(window.products||[]).filter(p=>Number(p.stock||0)>0&&Number(p.stock||0)<=5).length, out=(window.products||[]).filter(p=>Number(p.stock||0)<=0).length;
-  const alerts=[]; if(out)alerts.push(['danger','Out of stock',`${out} product${out===1?'':'s'} need replenishment.`]); if(low)alerts.push(['warn','Low stock',`${low} product${low===1?'':'s'} are at or below 5 units.`]); if(pct>=100)alerts.push(['success','Target achieved',`You have reached today\'s ${money(target)} target.`]); if(!alerts.length)alerts.push(['success','Everything looks good','No urgent stock alerts right now.']);
-  const box=document.getElementById('lcBusinessAlerts');if(box)box.innerHTML=alerts.slice(0,4).map(a=>`<div class="lc-alert-row"><span class="lc-alert-dot ${a[0]}"></span><div><strong>${a[1]}</strong><small>${a[2]}</small></div></div>`).join('');
- };
- const oldRender=window.renderDashboard; if(typeof oldRender==='function'){window.renderDashboard=function(){oldRender.apply(this,arguments);setTimeout(refreshLCBusinessIntel,0)}}
- setTimeout(refreshLCBusinessIntel,800);
-})();
-</script>
-</body></html>
+            </head><body>${content}</body></html>
         `);
         printWindow.document.close();
         printWindow.print();
@@ -4707,6 +4685,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
 })();
 
+</script>
+
+<script id="lucie-business-intelligence">
+(function(){
+ const money=n=>'KES '+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});
+ window.setLCSalesTarget=function(){const current=Number(localStorage.getItem('lc_sales_target')||100000);const v=prompt('Enter today\'s sales target (KES):',current);if(v!==null&&Number(v)>0){localStorage.setItem('lc_sales_target',Number(v));refreshLCBusinessIntel();addLCNotification('Sales target updated',`Today\'s target is ${money(v)}.`,'info','fa-bullseye',true)}};
+ window.refreshLCBusinessIntel=function(){
+  const target=Number(localStorage.getItem('lc_sales_target')||100000); const today=new Date().toDateString();
+  const todayOrders=(window.orders||[]).filter(o=>new Date(o.created_at).toDateString()===today&&o.status==='completed');
+  const sales=todayOrders.reduce((a,o)=>a+Number(o.total||0),0); const units=todayOrders.reduce((a,o)=>a+(o.items||[]).reduce((x,i)=>x+Number(i.qty||0),0),0);
+  const profit=todayOrders.reduce((a,o)=>a+(o.items||[]).reduce((x,i)=>x+(Number(i.price||0)-Number(i.cost_price||0))*Number(i.qty||0),0),0);
+  const stockValue=(window.products||[]).reduce((a,p)=>a+Number(p.stock||0)*Number(p.cost_price||p.buying_price||0),0); const pct=Math.min(100,(sales/target)*100);
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v}; set('lcTargetProgress',`${money(sales)} / ${money(target)}`);set('lcTargetPercent',`${pct.toFixed(1)}% achieved`);set('lcIntelProfit',money(profit));set('lcIntelStockValue',money(stockValue));set('lcIntelUnits',units);const bar=document.getElementById('lcTargetBar');if(bar)bar.style.width=pct+'%';
+  const low=(window.products||[]).filter(p=>Number(p.stock||0)>0&&Number(p.stock||0)<=5).length, out=(window.products||[]).filter(p=>Number(p.stock||0)<=0).length;
+  const alerts=[]; if(out)alerts.push(['danger','Out of stock',`${out} product${out===1?'':'s'} need replenishment.`]); if(low)alerts.push(['warn','Low stock',`${low} product${low===1?'':'s'} are at or below 5 units.`]); if(pct>=100)alerts.push(['success','Target achieved',`You have reached today\'s ${money(target)} target.`]); if(!alerts.length)alerts.push(['success','Everything looks good','No urgent stock alerts right now.']);
+  const box=document.getElementById('lcBusinessAlerts');if(box)box.innerHTML=alerts.slice(0,4).map(a=>`<div class="lc-alert-row"><span class="lc-alert-dot ${a[0]}"></span><div><strong>${a[1]}</strong><small>${a[2]}</small></div></div>`).join('');
+ };
+ const oldRender=window.renderDashboard; if(typeof oldRender==='function'){window.renderDashboard=function(){oldRender.apply(this,arguments);setTimeout(refreshLCBusinessIntel,0)}}
+ setTimeout(refreshLCBusinessIntel,800);
+})();
 </script>
 
 <script id="lucie-pro-enhancements">
