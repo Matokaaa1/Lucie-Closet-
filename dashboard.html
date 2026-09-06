@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucie Closet · My Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* ── reset & variables ── */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --primary:#C62828; --primary-dark:#B71C1C; --primary-light:#EF5350; --primary-rgb:198,40,40;
+            --gold:#D4A574; --gold-light:#E8C9A0;
+            --bg:#F5F0EB; --card:#FFFFFF; --text:#1A1A2E; --text-secondary:#4A4A5A; --text-muted:#8A8A9A;
+            --border:#E8E4E0; --shadow:0 4px 24px rgba(0,0,0,0.06); --shadow-lg:0 12px 48px rgba(0,0,0,0.1);
+            --radius:16px; --radius-sm:10px; --transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+            --font:'Inter',sans-serif; --font-display:'Playfair Display',serif;
+            --sidebar-width:260px;
+        }
+        [data-theme="dark"] { --bg:#0F172A; --card:#1E293B; --text:#F1F5F9; --text-secondary:#94A3B8; --text-muted:#64748B; --border:#334155; }
+        body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; transition:var(--transition); }
+        ::-webkit-scrollbar { width:6px; }
+        ::-webkit-scrollbar-track { background:var(--bg); }
+        ::-webkit-scrollbar-thumb { background:var(--gold); border-radius:9999px; }
+
+        /* ── layout ── */
+        .dashboard-container { display:flex; min-height:100vh; }
+        
+        /* ── sidebar ── */
+        .sidebar { width:var(--sidebar-width); background:linear-gradient(180deg,#1A1A2E,#2D1B2E); padding:24px 16px; position:fixed; top:0; left:0; height:100vh; overflow-y:auto; z-index:100; transition:var(--transition); }
+        .sidebar-brand { display:flex; align-items:center; gap:12px; padding:0 8px 20px; border-bottom:1px solid rgba(255,255,255,0.06); margin-bottom:20px; }
+        .sidebar-brand .logo-icon { width:44px; height:44px; background:var(--primary-gradient); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; font-size:20px; color:#fff; flex-shrink:0; box-shadow:0 4px 16px rgba(198,40,40,0.3); }
+        .sidebar-brand .brand-text { font-family:var(--font-display); font-size:20px; font-weight:700; color:#fff; font-style:italic; }
+        .sidebar-brand .brand-text .gold { color:var(--gold); }
+        .sidebar-brand .brand-sub { font-size:9px; color:rgba(255,255,255,0.3); display:block; letter-spacing:2px; text-transform:uppercase; }
+        
+        .sidebar-menu { list-style:none; }
+        .sidebar-menu .menu-label { font-size:10px; font-weight:700; color:rgba(255,255,255,0.2); text-transform:uppercase; letter-spacing:1.5px; padding:16px 12px 8px; }
+        .sidebar-menu li { padding:10px 14px; margin:2px 0; border-radius:var(--radius-sm); cursor:pointer; transition:var(--transition); display:flex; align-items:center; gap:14px; font-size:13px; font-weight:500; color:rgba(255,255,255,0.5); }
+        .sidebar-menu li:hover { background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.8); }
+        .sidebar-menu li.active { background:rgba(198,40,40,0.12); color:#fff; box-shadow:inset 3px 0 0 var(--primary); }
+        .sidebar-menu li.active i { color:var(--gold); }
+        .sidebar-menu li i { width:20px; text-align:center; transition:var(--transition); }
+        .sidebar-menu li .badge { margin-left:auto; background:var(--primary-gradient); color:#fff; padding:0 10px; border-radius:9999px; font-size:10px; font-weight:700; }
+        .sidebar-menu .logout-btn { margin-top:16px; border-top:1px solid rgba(255,255,255,0.06); padding-top:16px; color:rgba(255,255,255,0.3); }
+        .sidebar-menu .logout-btn:hover { background:rgba(239,68,68,0.15); color:#EF4444; }
+        .sidebar-toggle { display:none; position:fixed; bottom:24px; right:24px; z-index:999; width:56px; height:56px; border-radius:50%; background:var(--primary-gradient); color:#fff; border:none; font-size:22px; box-shadow:0 8px 32px rgba(198,40,40,0.4); cursor:pointer; }
+        
+        /* ── main content ── */
+        .main-content { margin-left:var(--sidebar-width); padding:24px 32px 40px; flex:1; min-height:100vh; }
+        
+        /* ── top bar ── */
+        .top-bar { display:flex; justify-content:space-between; align-items:center; padding:14px 24px; background:var(--card); border-radius:var(--radius); border:1px solid var(--border); margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+        .top-bar .page-title h1 { font-size:22px; font-weight:700; background:var(--primary-gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .top-bar .page-title p { font-size:13px; color:var(--text-muted); margin-top:2px; -webkit-text-fill-color:var(--text-muted); }
+        .top-bar .user-info { display:flex; align-items:center; gap:12px; }
+        .top-bar .user-info .avatar { width:40px; height:40px; border-radius:50%; background:var(--primary-gradient); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; }
+        .top-bar .user-info .user-name { font-weight:600; font-size:14px; }
+        .top-bar .user-info .user-role { font-size:12px; color:var(--text-muted); }
+        .theme-toggle { width:40px; height:40px; border-radius:50%; border:1px solid var(--border); background:var(--card); color:var(--text-secondary); cursor:pointer; transition:var(--transition); display:flex; align-items:center; justify-content:center; font-size:18px; }
+        .theme-toggle:hover { border-color:var(--gold); color:var(--gold); }
+        
+        /* ── stats ── */
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-bottom:24px; }
+        .stat-card { background:var(--card); border-radius:var(--radius); padding:16px 20px; border:1px solid var(--border); transition:var(--transition); }
+        .stat-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); }
+        .stat-card .stat-icon { font-size:22px; color:var(--primary); margin-bottom:4px; }
+        .stat-card .stat-value { font-size:24px; font-weight:800; }
+        .stat-card .stat-label { font-size:12px; color:var(--text-muted); }
+        
+        /* ── cards ── */
+        .card { background:var(--card); border-radius:var(--radius); padding:20px 24px; border:1px solid var(--border); margin-bottom:20px; transition:var(--transition); }
+        .card:hover { box-shadow:var(--shadow-lg); }
+        .card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+        .card-header h3 { font-size:16px; font-weight:700; display:flex; align-items:center; gap:8px; }
+        .card-header h3 i { color:var(--gold); }
+        
+        /* ── buttons ── */
+        .btn { display:inline-flex; align-items:center; gap:8px; padding:9px 18px; border:none; border-radius:var(--radius-sm); font-weight:600; font-size:14px; cursor:pointer; transition:var(--transition); font-family:var(--font); }
+        .btn-primary { background:var(--primary-gradient); color:#fff; box-shadow:0 4px 16px rgba(198,40,40,0.3); }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(198,40,40,0.4); }
+        .btn-success { background:#10B981; color:#fff; }
+        .btn-danger { background:#EF4444; color:#fff; }
+        .btn-warning { background:#F59E0B; color:#fff; }
+        .btn-outline { background:transparent; color:var(--text-secondary); border:1px solid var(--border); }
+        .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+        .btn-sm { padding:5px 12px; font-size:12px; }
+        .btn-block { width:100%; justify-content:center; }
+        
+        /* ── tables ── */
+        .table-wrapper { overflow-x:auto; }
+        .data-table { width:100%; border-collapse:collapse; font-size:14px; }
+        .data-table thead { background:var(--bg); }
+        .data-table th { padding:10px 14px; text-align:left; font-weight:600; color:var(--text-secondary); font-size:11px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid var(--border); }
+        .data-table td { padding:10px 14px; border-bottom:1px solid var(--border); color:var(--text-secondary); }
+        .data-table tbody tr:hover { background:var(--bg); }
+        
+        /* ── badges ── */
+        .status-badge { display:inline-flex; align-items:center; gap:6px; padding:3px 14px; border-radius:9999px; font-size:12px; font-weight:600; }
+        .status-badge::before { content:''; width:7px; height:7px; border-radius:50%; display:inline-block; }
+        .status-badge.pending::before { background:#F59E0B; }
+        .status-badge.processing::before { background:#3B82F6; }
+        .status-badge.shipped::before { background:#8B5CF6; }
+        .status-badge.delivered::before { background:#10B981; }
+        .status-badge.cancelled::before { background:#EF4444; }
+        .status-badge.pending { background:rgba(245,158,11,0.1); color:#D97706; }
+        .status-badge.processing { background:rgba(59,130,246,0.1); color:#2563EB; }
+        .status-badge.shipped { background:rgba(139,92,246,0.1); color:#7C3AED; }
+        .status-badge.delivered { background:rgba(16,185,129,0.1); color:#059669; }
+        .status-badge.cancelled { background:rgba(239,68,68,0.1); color:#DC2626; }
+        
+        /* ── delivery addresses ── */
+        .address-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+        .address-card { background:var(--bg); border-radius:var(--radius-sm); padding:16px 18px; border:1px solid var(--border); transition:var(--transition); }
+        .address-card:hover { border-color:var(--gold); }
+        .address-card .default-badge { background:var(--primary); color:#fff; padding:1px 10px; border-radius:9999px; font-size:10px; font-weight:700; }
+        .address-card .address-actions { display:flex; gap:6px; margin-top:10px; }
+        
+        /* ── tracking timeline ── */
+        .tracking-timeline { position:relative; padding-left:28px; }
+        .tracking-timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:2px; background:var(--border); }
+        .tracking-item { position:relative; padding-bottom:20px; }
+        .tracking-item::before { content:''; position:absolute; left:-24px; top:4px; width:12px; height:12px; border-radius:50%; border:3px solid var(--border); background:var(--card); }
+        .tracking-item.completed::before { background:var(--success); border-color:var(--success); }
+        .tracking-item .tracking-time { font-size:12px; color:var(--text-muted); }
+        .tracking-item .tracking-title { font-weight:600; font-size:14px; }
+        .tracking-item .tracking-desc { font-size:13px; color:var(--text-secondary); }
+        
+        /* ── modals ── */
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); z-index:500; align-items:center; justify-content:center; padding:20px; }
+        .modal-overlay.active { display:flex; }
+        .modal { background:var(--card); border-radius:var(--radius); max-width:560px; width:100%; max-height:90vh; overflow-y:auto; padding:28px 32px; border:1px solid var(--border); box-shadow:var(--shadow-lg); animation:slideUp 0.3s ease; }
+        .modal-lg { max-width:720px; }
+        @keyframes slideUp { from { transform:translateY(30px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+        .modal-header h3 { font-size:20px; font-weight:800; display:flex; align-items:center; gap:10px; }
+        .modal-header h3 i { color:var(--gold); }
+        .modal-header .close { width:36px; height:36px; border-radius:50%; border:none; background:var(--bg); color:var(--text-secondary); font-size:18px; cursor:pointer; transition:var(--transition); display:flex; align-items:center; justify-content:center; }
+        .modal-header .close:hover { background:var(--danger); color:#fff; }
+        .form-group { margin-bottom:14px; }
+        .form-group label { display:block; font-weight:600; font-size:13px; color:var(--text-secondary); margin-bottom:4px; }
+        .form-group input, .form-group select, .form-group textarea { width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-size:14px; font-family:var(--font); background:var(--bg); color:var(--text); transition:var(--transition); }
+        .form-group input:focus, .form-group select:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 4px rgba(198,40,40,0.06); }
+        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        .modal-actions { display:flex; gap:10px; margin-top:20px; justify-content:flex-end; }
+        
+        /* ── empty state ── */
+        .empty-state { text-align:center; padding:40px 20px; color:var(--text-muted); }
+        .empty-state i { font-size:48px; margin-bottom:12px; opacity:0.2; display:block; }
+        .empty-state h4 { font-size:18px; color:var(--text-secondary); margin-bottom:6px; }
+        .empty-state p { font-size:14px; }
+        
+        /* ── toast ── */
+        .toast-container { position:fixed; bottom:24px; right:24px; z-index:999; display:flex; flex-direction:column; gap:10px; max-width:400px; }
+        .toast { padding:14px 20px; border-radius:var(--radius-sm); color:#fff; font-weight:500; font-size:14px; box-shadow:var(--shadow-lg); animation:slideRight 0.4s ease; display:flex; align-items:center; gap:12px; }
+        .toast.success { background:linear-gradient(135deg,#059669,#10B981); }
+        .toast.error { background:linear-gradient(135deg,#DC2626,#EF4444); }
+        .toast.info { background:linear-gradient(135deg,#C62828,#EF5350); }
+        @keyframes slideRight { from { transform:translateX(100px); opacity:0; } to { transform:translateX(0); opacity:1; } }
+        
+        /* ── responsive ── */
+        @media (max-width:1024px) { .form-row { grid-template-columns:1fr; } }
+        @media (max-width:768px) {
+            .sidebar { transform:translateX(-100%); width:280px; }
+            .sidebar.open { transform:translateX(0); }
+            .sidebar-toggle { display:flex; }
+            .main-content { margin-left:0; padding:14px; }
+            .stats-grid { grid-template-columns:repeat(2,1fr); }
+            .address-grid { grid-template-columns:1fr; }
+            .top-bar .page-title h1 { font-size:18px; }
+        }
+        @media (max-width:480px) { .stats-grid { grid-template-columns:1fr; } .modal { padding:20px; } }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+
+    <!-- ===== SIDEBAR ===== -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="logo-icon"><i class="fas fa-crown"></i></div>
+            <div>
+                <span class="brand-text">Lucie <span class="gold">Closet</span></span>
+                <span class="brand-sub">My Dashboard</span>
+            </div>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="menu-label">Main</li>
+            <li class="active" data-section="overview"><i class="fas fa-th-large"></i> Overview</li>
+            <li data-section="orders"><i class="fas fa-shopping-bag"></i> Orders <span class="badge" id="orderBadge">0</span></li>
+            <li data-section="tracking"><i class="fas fa-truck"></i> Track Delivery</li>
+            <li class="menu-label">Account</li>
+            <li data-section="addresses"><i class="fas fa-map-marker-alt"></i> Addresses</li>
+            <li data-section="settings"><i class="fas fa-cog"></i> Settings</li>
+            <li class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</li>
+        </ul>
+    </nav>
+
+    <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content">
+
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="page-title">
+                <h1 id="pageTitle">👋 My Dashboard</h1>
+                <p id="pageSubtitle">Welcome back! Here's your activity summary.</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <span id="currentTime" style="font-size:13px;color:var(--text-muted);">--:--:--</span>
+                <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon"></i></button>
+                <div class="user-info">
+                    <div class="avatar" id="userAvatar">A</div>
+                    <div>
+                        <div class="user-name" id="userName">User</div>
+                        <div class="user-role" id="userRole">Customer</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ===== OVERVIEW ===== -->
+        <section id="overviewSection" class="section-page active">
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
+                    <div class="stat-value" id="totalOrders">0</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="color:var(--gold);"><i class="fas fa-truck"></i></div>
+                    <div class="stat-value" id="deliveredOrders">0</div>
+                    <div class="stat-label">Delivered</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="color:#F59E0B;"><i class="fas fa-clock"></i></div>
+                    <div class="stat-value" id="pendingOrders">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="color:#10B981;"><i class="fas fa-map-marker-alt"></i></div>
+                    <div class="stat-value" id="addressCount">0</div>
+                    <div class="stat-label">Saved Addresses</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header"><h3>⚡ Quick Actions</h3></div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    <button class="btn btn-primary" onclick="switchTab('orders')"><i class="fas fa-plus"></i> New Order</button>
+                    <button class="btn btn-success" onclick="switchTab('addresses')"><i class="fas fa-plus"></i> Add Address</button>
+                    <button class="btn btn-warning" onclick="switchTab('tracking')"><i class="fas fa-search"></i> Track Order</button>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>📦 Recent Orders</h3>
+                    <button class="btn btn-sm btn-outline" onclick="switchTab('orders')">View All →</button>
+                </div>
+                <div id="recentOrders"><div class="empty-state"><i class="fas fa-inbox"></i><p>No orders yet</p></div></div>
+            </div>
+        </section>
+
+        <!-- ===== ORDERS ===== -->
+        <section id="ordersSection" class="section-page" style="display:none;">
+            <div class="card">
+                <div class="card-header">
+                    <h3>🛒 My Orders</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openNewOrderModal()"><i class="fas fa-plus"></i> New Order</button>
+                </div>
+                <div id="ordersList"><div class="empty-state"><i class="fas fa-inbox"></i><p>No orders found</p></div></div>
+            </div>
+        </section>
+
+        <!-- ===== TRACKING ===== -->
+        <section id="trackingSection" class="section-page" style="display:none;">
+            <div class="card">
+                <div class="card-header"><h3>🚚 Track Delivery</h3></div>
+                <div class="form-group" style="max-width:400px;">
+                    <label>Enter Order Number</label>
+                    <div style="display:flex;gap:10px;">
+                        <input type="text" id="trackingInput" placeholder="e.g. ORD-123456">
+                        <button class="btn btn-primary" onclick="trackOrder()"><i class="fas fa-search"></i> Track</button>
+                    </div>
+                </div>
+                <div id="trackingResult"></div>
+            </div>
+        </section>
+
+        <!-- ===== ADDRESSES ===== -->
+        <section id="addressesSection" class="section-page" style="display:none;">
+            <div class="card">
+                <div class="card-header">
+                    <h3>📍 Delivery Addresses</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openAddressModal()"><i class="fas fa-plus"></i> Add Address</button>
+                </div>
+                <div id="addressesList"><div class="empty-state"><i class="fas fa-map-marker-alt"></i><p>No addresses saved</p></div></div>
+            </div>
+        </section>
+
+        <!-- ===== SETTINGS ===== -->
+        <section id="settingsSection" class="section-page" style="display:none;">
+            <div class="card">
+                <div class="card-header"><h3>⚙️ Account Settings</h3></div>
+                <form id="settingsForm" onsubmit="updateProfile(event)">
+                    <div class="form-group"><label>Full Name</label><input type="text" id="profileName" required></div>
+                    <div class="form-group"><label>Email</label><input type="email" id="profileEmail" disabled></div>
+                    <div class="form-group"><label>Phone</label><input type="tel" id="profilePhone"></div>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Profile</button>
+                </form>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- New Order Modal -->
+<div class="modal-overlay" id="newOrderModal">
+    <div class="modal modal-lg">
+        <div class="modal-header">
+            <h3><i class="fas fa-shopping-bag"></i> New Order</h3>
+            <button class="close" onclick="closeModal('newOrderModal')">&times;</button>
+        </div>
+        <form id="newOrderForm" onsubmit="submitOrder(event)">
+            <div class="form-group">
+                <label>Select Address <span class="required">*</span></label>
+                <select id="orderAddress" required></select>
+            </div>
+            <div class="form-group">
+                <label>Items</label>
+                <div id="orderItemsList"></div>
+            </div>
+            <div class="form-group">
+                <label>Delivery Notes</label>
+                <textarea id="orderNotes" placeholder="Any special instructions..."></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Payment Method <span class="required">*</span></label>
+                    <select id="orderPayment" required>
+                        <option value="mpesa">M-Pesa</option>
+                        <option value="cash">Cash on Delivery</option>
+                        <option value="card">Credit/Debit Card</option>
+                        <option value="bank">Bank Transfer</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeModal('newOrderModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="submitOrderBtn"><i class="fas fa-check"></i> Place Order</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Address Modal -->
+<div class="modal-overlay" id="addressModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3><i class="fas fa-map-marker-alt"></i> <span id="addressModalTitle">Add Address</span></h3>
+            <button class="close" onclick="closeModal('addressModal')">&times;</button>
+        </div>
+        <form id="addressForm" onsubmit="saveAddress(event)">
+            <input type="hidden" id="editAddressId">
+            <div class="form-group"><label>Full Name *</label><input type="text" id="addressName" required></div>
+            <div class="form-group"><label>Phone *</label><input type="tel" id="addressPhone" required></div>
+            <div class="form-group"><label>Address Line 1 *</label><input type="text" id="addressLine1" required></div>
+            <div class="form-group"><label>Address Line 2</label><input type="text" id="addressLine2"></div>
+            <div class="form-row">
+                <div class="form-group"><label>City *</label><input type="text" id="addressCity" required></div>
+                <div class="form-group"><label>Postal Code</label><input type="text" id="addressPostal"></div>
+            </div>
+            <div class="form-group">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                    <input type="checkbox" id="addressDefault"> Set as default address
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeModal('addressModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Address</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+    // ============================================================
+    // 1. SUPABASE CONFIG
+    // ============================================================
+    const SUPABASE_URL = 'https://tlsldwshtxofckvkixxz.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsc2xkd3NodHhvZmNrdmtpeHh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTksImV4cCI6MjEwMzc4NzU1OX0.BAfgQG4Z28bgKSfL9Li7Gbgp62sTM-5NxB4qVQ-b0H4';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SESSION_KEY = 'luciecloset_session';
+
+    // ============================================================
+    // 2. STATE
+    // ============================================================
+    let currentUser = null;
+    let orders = [];
+    let addresses = [];
+    let currentTab = 'overview';
+
+    // ============================================================
+    // 3. DOM REFS
+    // ============================================================
+    const toastContainer = document.getElementById('toastContainer');
+
+    // ============================================================
+    // 4. TOAST
+    // ============================================================
+    function showToast(message, type = 'success') {
+        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle', warning: 'fa-exclamation-triangle' };
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas ${icons[type] || 'fa-info-circle'}"></i> ${message}`;
+        toastContainer.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3500);
+    }
+
+    // ============================================================
+    // 5. AUTH - CHECK SESSION
+    // ============================================================
+    async function checkAuth() {
+        try {
+            const stored = localStorage.getItem(SESSION_KEY);
+            if (!stored) {
+                window.location.href = 'index.html';
+                return;
+            }
+            const session = JSON.parse(stored);
+            if (!session.user) {
+                window.location.href = 'index.html';
+                return;
+            }
+            currentUser = session.user;
+            
+            // Update UI
+            document.getElementById('userName').textContent = currentUser.full_name || currentUser.email;
+            document.getElementById('userAvatar').textContent = (currentUser.full_name || 'U').charAt(0).toUpperCase();
+            document.getElementById('userRole').textContent = currentUser.role_name || 'Customer';
+            
+            // Load data
+            await loadOrders();
+            await loadAddresses();
+            renderCurrentTab();
+            updateStats();
+            
+        } catch (e) {
+            console.error('Auth error:', e);
+            window.location.href = 'index.html';
+        }
+    }
+
+    // ============================================================
+    // 6. LOAD ORDERS
+    // ============================================================
+    async function loadOrders() {
+        try {
+            const { data, error } = await sb
+                .from('orders')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            orders = data || [];
+            document.getElementById('orderBadge').textContent = orders.filter(o => o.status === 'pending' || o.status === 'processing').length;
+        } catch (e) {
+            console.error('Load orders error:', e);
+        }
+    }
+
+    // ============================================================
+    // 7. LOAD ADDRESSES
+    // ============================================================
+    async function loadAddresses() {
+        try {
+            const { data, error } = await sb
+                .from('addresses')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('is_default', { ascending: false });
+            
+            if (error) throw error;
+            addresses = data || [];
+        } catch (e) {
+            console.error('Load addresses error:', e);
+        }
+    }
+
+    // ============================================================
+    // 8. UPDATE STATS
+    // ============================================================
+    function updateStats() {
+        document.getElementById('totalOrders').textContent = orders.length;
+        document.getElementById('deliveredOrders').textContent = orders.filter(o => o.status === 'delivered').length;
+        document.getElementById('pendingOrders').textContent = orders.filter(o => o.status === 'pending' || o.status === 'processing').length;
+        document.getElementById('addressCount').textContent = addresses.length;
+    }
+
+    // ============================================================
+    // 9. NAVIGATION
+    // ============================================================
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.section-page').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.sidebar-menu li').forEach(el => el.classList.remove('active'));
+        
+        const tabMap = {
+            'overview': 'overviewSection',
+            'orders': 'ordersSection',
+            'tracking': 'trackingSection',
+            'addresses': 'addressesSection',
+            'settings': 'settingsSection'
+        };
+        
+        const target = document.getElementById(tabMap[tab]);
+        if (target) target.style.display = 'block';
+        
+        const navItem = document.querySelector(`.sidebar-menu li[data-section="${tab}"]`);
+        if (navItem) navItem.classList.add('active');
+        
+        const titles = {
+            'overview': '👋 My Dashboard',
+            'orders': '🛒 My Orders',
+            'tracking': '🚚 Track Delivery',
+            'addresses': '📍 Delivery Addresses',
+            'settings': '⚙️ Account Settings'
+        };
+        
+        document.getElementById('pageTitle').textContent = titles[tab] || 'Dashboard';
+        renderCurrentTab();
+    }
+    window.switchTab = switchTab;
+
+    // ============================================================
+    // 10. RENDER CURRENT TAB
+    // ============================================================
+    function renderCurrentTab() {
+        if (currentTab === 'overview') renderRecentOrders();
+        else if (currentTab === 'orders') renderOrders();
+        else if (currentTab === 'addresses') renderAddresses();
+        else if (currentTab === 'settings') loadProfile();
+    }
+
+    // ============================================================
+    // 11. RENDER RECENT ORDERS
+    // ============================================================
+    function renderRecentOrders() {
+        const recent = orders.slice(0, 5);
+        const container = document.getElementById('recentOrders');
+        if (!recent.length) {
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No orders yet</p></div>';
+            return;
+        }
+        container.innerHTML = recent.map(o => `
+            <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);align-items:center;flex-wrap:wrap;gap:8px;">
+                <div>
+                    <div style="font-weight:600;">${o.order_number || 'ORD-' + o.id.slice(0,8)}</div>
+                    <div style="font-size:13px;color:var(--text-muted);">${new Date(o.created_at).toLocaleDateString()}</div>
+                </div>
+                <div>
+                    <span class="status-badge ${o.status || 'pending'}">${o.status || 'pending'}</span>
+                    <span style="font-weight:700;color:var(--primary);margin-left:12px;">KES ${o.total || 0}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ============================================================
+    // 12. RENDER ORDERS
+    // ============================================================
+    function renderOrders() {
+        const container = document.getElementById('ordersList');
+        if (!orders.length) {
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No orders found</p></div>';
+            return;
+        }
+        container.innerHTML = `
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+                            <th>Tracking</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orders.map(o => `
+                            <tr>
+                                <td><strong>${o.order_number || 'ORD-' + o.id.slice(0,8)}</strong></td>
+                                <td>${new Date(o.created_at).toLocaleDateString()}</td>
+                                <td>${o.items ? o.items.reduce((s,i) => s + i.qty, 0) : 0} items</td>
+                                <td><strong>KES ${o.total || 0}</strong></td>
+                                <td>${o.payment_method || 'N/A'}</td>
+                                <td><span class="status-badge ${o.status || 'pending'}">${o.status || 'pending'}</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline" onclick="trackOrderNumber('${o.order_number}')">
+                                        <i class="fas fa-truck"></i> Track
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // 13. RENDER ADDRESSES
+    // ============================================================
+    function renderAddresses() {
+        const container = document.getElementById('addressesList');
+        if (!addresses.length) {
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-map-marker-alt"></i><p>No addresses saved</p></div>';
+            return;
+        }
+        container.innerHTML = `<div class="address-grid">${addresses.map(a => `
+            <div class="address-card">
+                <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
+                    <div>
+                        <strong>${a.name}</strong>
+                        ${a.is_default ? '<span class="default-badge">Default</span>' : ''}
+                    </div>
+                </div>
+                <div style="font-size:14px;color:var(--text-secondary);">
+                    <div>${a.address_line1}</div>
+                    ${a.address_line2 ? `<div>${a.address_line2}</div>` : ''}
+                    <div>${a.city} ${a.postal_code || ''}</div>
+                    <div style="margin-top:4px;"><i class="fas fa-phone"></i> ${a.phone}</div>
+                </div>
+                <div class="address-actions">
+                    <button class="btn btn-sm btn-primary" onclick="editAddress('${a.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteAddress('${a.id}')"><i class="fas fa-trash"></i></button>
+                    ${!a.is_default ? `<button class="btn btn-sm btn-success" onclick="setDefaultAddress('${a.id}')"><i class="fas fa-check"></i> Set Default</button>` : ''}
+                </div>
+            </div>
+        `).join('')}</div>`;
+    }
+
+    // ============================================================
+    // 14. OPEN NEW ORDER MODAL
+    // ============================================================
+    function openNewOrderModal() {
+        const select = document.getElementById('orderAddress');
+        select.innerHTML = addresses.map(a => 
+            `<option value="${a.id}" ${a.is_default ? 'selected' : ''}>${a.name} - ${a.address_line1}, ${a.city}</option>`
+        ).join('');
+        document.getElementById('orderItemsList').innerHTML = `<div class="empty-state"><p>Select products from the store</p></div>`;
+        openModal('newOrderModal');
+    }
+    window.openNewOrderModal = openNewOrderModal;
+
+    // ============================================================
+    // 15. SUBMIT ORDER
+    // ============================================================
+    async function submitOrder(e) {
+        e.preventDefault();
+        const addressId = document.getElementById('orderAddress').value;
+        const payment = document.getElementById('orderPayment').value;
+        const notes = document.getElementById('orderNotes').value;
+        
+        if (!addressId) {
+            showToast('Please select a delivery address', 'error');
+            return;
+        }
+        
+        // Get address details
+        const address = addresses.find(a => a.id === addressId);
+        
+        // Create order items (for demo, use sample items)
+        const items = [
+            { id: 1, name: 'Sample Item', qty: 1, price: 500 }
+        ];
+        const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+        
+        const orderData = {
+            order_number: 'ORD-' + Date.now().toString().slice(-6),
+            user_id: currentUser.id,
+            customer_name: currentUser.full_name || currentUser.email,
+            customer_phone: address.phone,
+            customer_email: currentUser.email,
+            address: address,
+            items: items,
+            total: total,
+            payment_method: payment,
+            delivery_notes: notes,
+            status: 'pending',
+            created_at: new Date().toISOString()
+        };
+        
+        try {
+            const { error } = await sb.from('orders').insert([orderData]);
+            if (error) throw error;
+            showToast('✅ Order placed successfully!', 'success');
+            closeModal('newOrderModal');
+            await loadOrders();
+            renderCurrentTab();
+            updateStats();
+            switchTab('orders');
+        } catch (e) {
+            showToast('❌ Error placing order: ' + e.message, 'error');
+        }
+    }
+    window.submitOrder = submitOrder;
+
+    // ============================================================
+    // 16. ADDRESS CRUD
+    // ============================================================
+    function openAddressModal(address = null) {
+        document.getElementById('editAddressId').value = address ? address.id : '';
+        document.getElementById('addressModalTitle').textContent = address ? 'Edit Address' : 'Add Address';
+        document.getElementById('addressName').value = address ? address.name : '';
+        document.getElementById('addressPhone').value = address ? address.phone : '';
+        document.getElementById('addressLine1').value = address ? address.address_line1 : '';
+        document.getElementById('addressLine2').value = address ? address.address_line2 : '';
+        document.getElementById('addressCity').value = address ? address.city : '';
+        document.getElementById('addressPostal').value = address ? address.postal_code : '';
+        document.getElementById('addressDefault').checked = address ? address.is_default : false;
+        openModal('addressModal');
+    }
+    window.openAddressModal = openAddressModal;
+
+    function editAddress(id) {
+        const address = addresses.find(a => a.id === id);
+        if (address) openAddressModal(address);
+    }
+    window.editAddress = editAddress;
+
+    async function saveAddress(e) {
+        e.preventDefault();
+        const id = document.getElementById('editAddressId').value;
+        const data = {
+            user_id: currentUser.id,
+            name: document.getElementById('addressName').value.trim(),
+            phone: document.getElementById('addressPhone').value.trim(),
+            address_line1: document.getElementById('addressLine1').value.trim(),
+            address_line2: document.getElementById('addressLine2').value.trim(),
+            city: document.getElementById('addressCity').value.trim(),
+            postal_code: document.getElementById('addressPostal').value.trim(),
+            is_default: document.getElementById('addressDefault').checked
+        };
+        
+        if (!data.name || !data.phone || !data.address_line1 || !data.city) {
+            showToast('Please fill in all required fields', 'error');
+            return;
+        }
+        
+        try {
+            if (id) {
+                // Update
+                const { error } = await sb.from('addresses').update(data).eq('id', id);
+                if (error) throw error;
+                showToast('Address updated!', 'success');
+            } else {
+                // Insert
+                const { error } = await sb.from('addresses').insert([data]);
+                if (error) throw error;
+                showToast('Address added!', 'success');
+            }
+            await loadAddresses();
+            renderAddresses();
+            updateStats();
+            closeModal('addressModal');
+        } catch (e) {
+            showToast('❌ Error saving address: ' + e.message, 'error');
+        }
+    }
+    window.saveAddress = saveAddress;
+
+    async function deleteAddress(id) {
+        if (!confirm('Delete this address?')) return;
+        try {
+            const { error } = await sb.from('addresses').delete().eq('id', id);
+            if (error) throw error;
+            showToast('Address deleted', 'success');
+            await loadAddresses();
+            renderAddresses();
+            updateStats();
+        } catch (e) {
+            showToast('❌ Error deleting address', 'error');
+        }
+    }
+    window.deleteAddress = deleteAddress;
+
+    async function setDefaultAddress(id) {
+        try {
+            // Remove default from all addresses
+            await sb.from('addresses').update({ is_default: false }).eq('user_id', currentUser.id);
+            // Set this one as default
+            await sb.from('addresses').update({ is_default: true }).eq('id', id);
+            showToast('Default address updated!', 'success');
+            await loadAddresses();
+            renderAddresses();
+        } catch (e) {
+            showToast('❌ Error setting default address', 'error');
+        }
+    }
+    window.setDefaultAddress = setDefaultAddress;
+
+    // ============================================================
+    // 17. TRACK ORDER
+    // ============================================================
+    function trackOrderNumber(orderNumber) {
+        document.getElementById('trackingInput').value = orderNumber;
+        switchTab('tracking');
+        setTimeout(trackOrder, 300);
+    }
+    window.trackOrderNumber = trackOrderNumber;
+
+    function trackOrder() {
+        const orderNumber = document.getElementById('trackingInput').value.trim();
+        const container = document.getElementById('trackingResult');
+        
+        if (!orderNumber) {
+            container.innerHTML = '<div class="empty-state"><p>Please enter an order number</p></div>';
+            return;
+        }
+        
+        const order = orders.find(o => o.order_number === orderNumber);
+        if (!order) {
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Order not found</p></div>';
+            return;
+        }
+        
+        // Tracking timeline
+        const statuses = ['pending', 'processing', 'shipped', 'delivered'];
+        const statusLabels = {
+            'pending': 'Order Placed',
+            'processing': 'Processing',
+            'shipped': 'Shipped',
+            'delivered': 'Delivered'
+        };
+        const statusIcons = {
+            'pending': 'fa-clock',
+            'processing': 'fa-spinner',
+            'shipped': 'fa-truck',
+            'delivered': 'fa-check-circle'
+        };
+        
+        const currentIndex = statuses.indexOf(order.status);
+        
+        container.innerHTML = `
+            <div style="background:var(--bg);border-radius:var(--radius-sm);padding:20px;margin-top:12px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+                    <div>
+                        <h4 style="font-size:16px;">${order.order_number}</h4>
+                        <div style="font-size:13px;color:var(--text-muted);">${new Date(order.created_at).toLocaleString()}</div>
+                    </div>
+                    <span class="status-badge ${order.status}">${order.status}</span>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                    <div><strong>Total:</strong> KES ${order.total}</div>
+                    <div><strong>Payment:</strong> ${order.payment_method || 'N/A'}</div>
+                    <div><strong>Delivery:</strong> ${order.address ? order.address.name + ', ' + order.address.city : 'N/A'}</div>
+                </div>
+                <div class="tracking-timeline">
+                    ${statuses.map((s, i) => `
+                        <div class="tracking-item ${i <= currentIndex ? 'completed' : ''}">
+                            <div class="tracking-time">${i <= currentIndex ? '✅ Completed' : '⏳ Pending'}</div>
+                            <div class="tracking-title"><i class="fas ${statusIcons[s]}"></i> ${statusLabels[s]}</div>
+                            <div class="tracking-desc">${i <= currentIndex ? 'Completed on ' + new Date(order.created_at).toLocaleDateString() : 'Awaiting...'}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+    window.trackOrder = trackOrder;
+
+    // ============================================================
+    // 18. PROFILE
+    // ============================================================
+    function loadProfile() {
+        document.getElementById('profileName').value = currentUser.full_name || '';
+        document.getElementById('profileEmail').value = currentUser.email || '';
+        document.getElementById('profilePhone').value = currentUser.phone || '';
+    }
+
+    async function updateProfile(e) {
+        e.preventDefault();
+        const name = document.getElementById('profileName').value.trim();
+        const phone = document.getElementById('profilePhone').value.trim();
+        
+        try {
+            const { error } = await sb
+                .from('users')
+                .update({ full_name: name, phone: phone })
+                .eq('id', currentUser.id);
+            
+            if (error) throw error;
+            currentUser.full_name = name;
+            currentUser.phone = phone;
+            localStorage.setItem(SESSION_KEY, JSON.stringify({ user: currentUser }));
+            document.getElementById('userName').textContent = name;
+            document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
+            showToast('Profile updated!', 'success');
+        } catch (e) {
+            showToast('❌ Error updating profile: ' + e.message, 'error');
+        }
+    }
+    window.updateProfile = updateProfile;
+
+    // ============================================================
+    // 19. MODALS
+    // ============================================================
+    function openModal(id) {
+        document.getElementById(id).classList.add('active');
+    }
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+
+    // ============================================================
+    // 20. LOGOUT
+    // ============================================================
+    async function logout() {
+        try {
+            await sb.auth.signOut();
+        } catch (e) {}
+        localStorage.removeItem(SESSION_KEY);
+        window.location.href = 'index.html';
+    }
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        if (confirm('Are you sure you want to logout?')) logout();
+    });
+
+    // ============================================================
+    // 21. SIDEBAR TOGGLE
+    // ============================================================
+    document.getElementById('sidebarToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+    });
+
+    // ============================================================
+    // 22. THEME TOGGLE
+    // ============================================================
+    document.getElementById('themeToggle').addEventListener('click', function() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        this.innerHTML = isDark ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+        localStorage.setItem('luciecloset_theme', isDark ? 'light' : 'dark');
+    });
+    const savedTheme = localStorage.getItem('luciecloset_theme');
+    if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+    }
+
+    // ============================================================
+    // 23. CLOCK
+    // ============================================================
+    function updateClock() {
+        document.getElementById('currentTime').textContent = new Date().toLocaleTimeString('en-KE', { hour12: false });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ============================================================
+    // 24. SIDEBAR CLICK HANDLERS
+    // ============================================================
+    document.querySelectorAll('.sidebar-menu li[data-section]').forEach(item => {
+        item.addEventListener('click', function() {
+            const section = this.dataset.section;
+            switchTab(section);
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        });
+    });
+
+    // ============================================================
+    // 25. INIT
+    // ============================================================
+    checkAuth();
+</script>
+</body>
+</html>
