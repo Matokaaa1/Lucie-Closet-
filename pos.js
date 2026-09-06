@@ -478,22 +478,52 @@ function hideAlert() {
 }
 
 // ============================================================
-// KEYBOARD SUPPORT
+// KEYBOARD SHORTCUTS - FIXED (doesn't block number input)
 // ============================================================
 document.addEventListener('keydown', function(e) {
-    if (currentMethod !== 'pin') return;
-    if (e.key >= '0' && e.key <= '9') {
-        e.preventDefault();
-        pinPress(e.key);
-    } else if (e.key === 'Backspace') {
-        e.preventDefault();
-        pinBackspace();
-    } else if (e.key === 'Enter') {
-        e.preventDefault();
-        submitPin();
+    // ✅ ONLY intercept keys when login screen is visible AND method is pin
+    const loginScreen = document.getElementById('loginScreen');
+    const isLoginVisible = loginScreen && loginScreen.style.display !== 'none';
+    
+    // PIN login - ONLY when login screen is visible
+    if (isLoginVisible && currentMethod === 'pin') {
+        if (e.key >= '0' && e.key <= '9') {
+            e.preventDefault();
+            pinPress(e.key);
+            return;
+        } else if (e.key === 'Backspace') {
+            e.preventDefault();
+            pinBackspace();
+            return;
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            submitPin();
+            return;
+        }
     }
+    
+    // ✅ Escape key - always works (close modals)
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.active').forEach(el => el.classList.remove('active'));
+        return;
+    }
+    
+    // ✅ Ctrl+K - search in POS (only if POS section is active)
+    if (e.ctrlKey && e.key === 'k') {
+        e.preventDefault();
+        const search = document.getElementById('posSearch');
+        if (search) {
+            // Check if POS section is visible
+            const posSection = document.getElementById('posSection');
+            if (posSection && posSection.classList.contains('active')) {
+                search.focus();
+            }
+        }
+        return;
+    }
+    
+    // ✅ For everything else, let the browser handle it (typing works!)
 });
-
 // ============================================================
 // LOGIN HANDLER
 // ============================================================
