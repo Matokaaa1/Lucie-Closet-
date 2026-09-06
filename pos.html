@@ -1418,7 +1418,7 @@ body:not(.authenticated) #sidebarToggle{display:none!important;}
     <!-- ===== LOYALTY MODAL ===== -->
     <div class="modal-overlay" id="loyaltyModal"><div class="modal"><div class="modal-header"><h3>🎁 Loyalty Settings</h3><button class="close" onclick="closeModal('loyaltyModal')">&times;</button></div><form id="loyaltyForm" onsubmit="saveLoyalty(event)"><div class="form-group"><label>Points per KES</label><input type="number" id="loyaltyPointsRate" min="1" value="100"></div><div class="form-group"><label>Redemption Value (KES per point)</label><input type="number" id="loyaltyRedemption" min="0" step="0.01" value="1"></div><div class="modal-actions"><button type="button" class="btn btn-outline" onclick="closeModal('loyaltyModal')">Cancel</button><button class="btn btn-primary">Save Rule</button></div></form></div></div>
     <!-- ===== USER MODAL ===== -->
-    <div class="modal-overlay" id="userModal"><div class="modal"><div class="modal-header"><h3>👤 Staff User</h3><button class="close" onclick="closeModal('userModal')">&times;</button></div><form id="userForm" onsubmit="saveUser(event)"><div class="form-group"><label>Full Name *</label><input id="staffName" required></div><div class="form-group"><label>Email</label><input id="staffEmail" type="email"></div><div class="form-row"><div class="form-group"><label>Role *</label><select id="staffRole" required><option>Owner</option><option>Administrator</option><option>Manager</option><option>Accountant</option><option>Stock Manager</option><option>Cashier</option></select></div><div class="form-group"><label>PIN</label><input id="staffPin" inputmode="numeric" maxlength="6"></div></div><div class="modal-actions"><button type="button" class="btn btn-outline" onclick="closeModal('userModal')">Cancel</button><button class="btn btn-primary">Save User</button></div></form></div></div>
+    <div class="modal-overlay" id="userModal"><div class="modal"><div class="modal-header"><h3 id="userModalTitle">👤 Add Staff User</h3><button class="close" onclick="closeModal('userModal')">&times;</button></div><form id="userForm" onsubmit="saveUser(event)"><input type="hidden" id="staffId"><div class="form-group"><label>Full Name *</label><input id="staffName" required></div><div class="form-group"><label>Email</label><input id="staffEmail" type="email"></div><div class="form-row"><div class="form-group"><label>Phone</label><input id="staffPhone" type="tel" placeholder="+254..."></div><div class="form-group"><label>Status</label><select id="staffStatus"><option value="active">Active</option><option value="inactive">Inactive</option><option value="suspended">Suspended</option></select></div></div><div class="form-row"><div class="form-group"><label>Role *</label><select id="staffRole" required><option>Owner</option><option>Administrator</option><option>Manager</option><option>Accountant</option><option>Stock Manager</option><option>Cashier</option></select></div><div class="form-group"><label>PIN</label><input id="staffPin" inputmode="numeric" maxlength="6" placeholder="Leave blank to keep existing PIN"></div></div><div class="modal-actions"><button type="button" class="btn btn-outline" onclick="closeModal('userModal')">Cancel</button><button class="btn btn-primary" id="userSaveBtn">Save User</button></div></form></div></div>
 
     <!-- Smart Notification Center -->
     <div class="lc-notification-panel" id="lcNotificationPanel" aria-hidden="true">
@@ -3134,73 +3134,7 @@ function printReceipt() {
     printWindow.document.write(`<!doctype html><html><head><title>Lucie Closet Receipt</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>
         *{box-sizing:border-box}body{margin:0;padding:18px;background:#fff;font-family:Arial,sans-serif;color:#17141a}.receipt-paper{width:100%;max-width:420px;margin:auto}.receipt-brand{text-align:center;padding-bottom:16px;border-bottom:1px dashed #bbb}.receipt-logo{width:44px;height:44px;border-radius:12px;margin:0 auto 8px;background:#7C3AED;color:#fff;display:flex;align-items:center;justify-content:center}.receipt-brand h2{margin:0;font-size:20px}.receipt-brand p{margin:4px 0;color:#777;font-size:10px}.receipt-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 0;border-bottom:1px solid #ddd}.receipt-meta div{font-size:9px;color:#777}.receipt-meta strong{display:block;color:#222;font-size:10px;margin-top:2px}.receipt-items{width:100%;border-collapse:collapse;margin:10px 0}.receipt-items th{text-align:left;font-size:9px;color:#777;padding:6px 0;border-bottom:1px solid #ddd}.receipt-items td{padding:7px 0;font-size:10px;border-bottom:1px solid #eee}.receipt-items th:last-child,.receipt-items td:last-child{text-align:right}.receipt-totals{border-top:1px dashed #bbb;padding-top:8px}.receipt-total-row{display:flex;justify-content:space-between;padding:3px 0;font-size:10px}.receipt-total-row.grand{font-size:15px;font-weight:900}.receipt-payment{margin-top:10px;padding:8px;background:#f3efff;color:#5B21B6;font-size:9px}.receipt-thanks{text-align:center;margin-top:12px;padding-top:10px;border-top:1px dashed #bbb;color:#777;font-size:9px;line-height:1.5}@media print{body{padding:0}.receipt-paper{max-width:none}}
     </style></head><body>${content}
-<script>
-/* ============================================================
-   LUCIE CLOSET PRODUCT EDITOR - COMPLETE FIELD EDITING
-   ============================================================ */
-(function(){
-  const q=id=>document.getElementById(id);
-  const val=id=>q(id)?.value ?? '';
-  const set=(id,v)=>{if(q(id)) q(id).value=v==null?'':v};
-  const check=(id,v)=>{if(q(id)) q(id).checked=!!v};
 
-  window.renderProductVariants=function(list){
-    const body=q('variantsList'); if(!body)return;
-    const arr=Array.isArray(list)?list:[];
-    body.innerHTML=arr.map((v,i)=>`<tr><td>${LC.escape(v.size||'')}</td><td>${LC.escape(v.color||'')}</td><td>${Number(v.stock||0)}</td><td><button type="button" class="btn btn-sm btn-danger" onclick="removeVariant(${i})"><i class="fas fa-trash"></i></button></td></tr>`).join('');
-    if(q('variantsData')) q('variantsData').value=JSON.stringify(arr);
-  };
-  window.addVariant=function(){
-    const arr=JSON.parse(q('variantsData')?.value||'[]');
-    const size=val('variantSize').trim(), color=val('variantColor').trim(), stock=Number(val('variantStock')||0);
-    if(!size && !color){showToast('Enter a size or colour for the variant.','error');return;}
-    arr.push({size,color,stock}); renderProductVariants(arr); set('variantSize','');set('variantColor','');set('variantStock','');
-  };
-  window.removeVariant=function(i){const arr=JSON.parse(q('variantsData')?.value||'[]');arr.splice(i,1);renderProductVariants(arr)};
-
-  window.openProductModal=function(product=null){
-    set('editProductId',product?.id||'');
-    set('productName',product?.name); set('productCode',product?.code); set('productCategory',product?.category);
-    set('productGender',product?.gender||'unisex'); set('productPrice',product?.price); set('productStock',product?.stock);
-    set('productCostPrice',product?.cost_price ?? product?.cost); set('productReorderLevel',product?.reorder_level ?? product?.minimum_stock ?? 5);
-    set('productColour',product?.colour ?? product?.color); set('productSize',product?.size ?? product?.variant);
-    set('productSupplier',product?.supplier); set('productBarcode',product?.barcode); set('productMaterial',product?.material); set('productTax',product?.tax ?? product?.tax_rate ?? 0);
-    set('productDescription',product?.description); set('productImageUrl',product?.image_url);
-    set('productComparePrice',product?.compare_price ?? product?.original_price ?? product?.old_price);
-    set('productSalePrice',product?.sale_price ?? product?.discount_price); set('productFit',product?.fit); set('productOccasion',product?.occasion);
-    set('productCare',product?.care_instructions ?? product?.care); set('productSizes',Array.isArray(product?.sizes)?product.sizes.join(', '):(product?.sizes||''));
-    set('productRating',product?.rating ?? 0); set('productReviews',product?.reviews_count ?? product?.review_count ?? 0);
-    set('productTags',Array.isArray(product?.tags)?product.tags.join(', '):(product?.tags||'')); check('productBestQuality',product?.best_quality);
-    let variants=product?.variants; if(typeof variants==='string'){try{variants=JSON.parse(variants)}catch(e){variants=[]}} renderProductVariants(variants||[]);
-    const preview=q('imagePreview'); if(preview) preview.innerHTML=product?.image_url?`<img src="${LC.escape(product.image_url)}" alt="Product image" style="max-width:100%;max-height:180px;object-fit:contain;border-radius:12px;">`:'';
-    if(q('productModalTitle'))q('productModalTitle').textContent=product?'✏️ Edit Product':'📦 Add Product';
-    if(q('saveProductBtn'))q('saveProductBtn').innerHTML=product?'<i class="fas fa-save"></i> Update Product':'<i class="fas fa-save"></i> Save Product';
-    openModal('productModal');
-  };
-
-  window.saveProduct=async function(e){
-    e.preventDefault(); if(!LC.permissionToast('manageProducts'))return;
-    const id=val('editProductId'); const name=val('productName').trim(), code=val('productCode').trim(), category=val('productCategory');
-    const price=Number(val('productPrice')), stock=Number(val('productStock'));
-    if(!name||!code||!category||!Number.isFinite(price)||price<0||!Number.isFinite(stock)||stock<0){showToast('Complete the required product fields.','error');return}
-    const num=(id,def=null)=>{const n=Number(val(id));return Number.isFinite(n)&&val(id)!==''?n:def};
-    const csv=id=>val(id).split(',').map(x=>x.trim()).filter(Boolean);
-    const variants=JSON.parse(val('variantsData')||'[]');
-    const data={name,code,category,gender:val('productGender')||'unisex',price,stock,best_quality:!!q('productBestQuality')?.checked,
-      cost_price:num('productCostPrice',0),reorder_level:num('productReorderLevel',5),colour:val('productColour').trim()||null,size:val('productSize').trim()||null,
-      supplier:val('productSupplier').trim()||null,barcode:val('productBarcode').trim()||null,material:val('productMaterial').trim()||null,tax:num('productTax',0),
-      description:val('productDescription').trim()||null,image_url:val('productImageUrl').trim()||null,
-      compare_price:num('productComparePrice',null),sale_price:num('productSalePrice',null),fit:val('productFit').trim()||null,occasion:val('productOccasion').trim()||null,
-      care_instructions:val('productCare').trim()||null,sizes:csv('productSizes'),rating:num('productRating',0),reviews_count:num('productReviews',0),tags:csv('productTags'),variants};
-    const base={name,code,category,gender:data.gender,price,stock,best_quality:data.best_quality,image_url:data.image_url};
-    try{let r;if(id)r=await sb.from('products').update(data).eq('id',Number(id));else r=await sb.from('products').insert([data]);
-      if(r.error){console.warn('Extended product fields unavailable; retrying core fields:',r.error); if(id)r=await sb.from('products').update(base).eq('id',Number(id));else r=await sb.from('products').insert([base]); if(r.error)throw r.error; showToast('Saved core fields. Some detailed fields need matching columns in products table.','warning')}
-      else showToast(id?'Product updated successfully.':'Product added successfully.','success');
-      await loadProducts();updateStats();renderCurrentTab();closeModal('productModal');
-    }catch(err){console.error(err);showToast('Could not save product: '+(err.message||'Unknown error'),'error')}
-  };
-})();
-</script>
 </body></html>`);
     printWindow.document.close();
     setTimeout(() => { printWindow.focus(); printWindow.print(); }, 250);
@@ -5302,36 +5236,106 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // ---------- Users & Roles ----------
-    window.openUserModal=function(){safe('userForm')?.reset();safe('userModal')?.classList.add('active');};
+    window.openUserModal=function(user){
+        const form=safe('userForm'); if(!form)return;
+        form.reset();
+        const id=safe('staffId'), title=safe('userModalTitle'), btn=safe('userSaveBtn');
+        if(id)id.value=user?.id||'';
+        if(title)title.textContent=user?'✏️ Edit Staff User':'👤 Add Staff User';
+        if(btn)btn.textContent=user?'Update User':'Save User';
+        if(user){
+            if(safe('staffName'))safe('staffName').value=user.full_name||'';
+            if(safe('staffEmail'))safe('staffEmail').value=user.email||'';
+            if(safe('staffPhone'))safe('staffPhone').value=user.phone||'';
+            if(safe('staffRole'))safe('staffRole').value=user.role||'Cashier';
+            if(safe('staffStatus'))safe('staffStatus').value=user.status||'active';
+            if(safe('staffPin'))safe('staffPin').value='';
+        }else{
+            if(safe('staffStatus'))safe('staffStatus').value='active';
+            if(safe('staffRole'))safe('staffRole').value='Cashier';
+        }
+        safe('userModal')?.classList.add('active');
+    };
+
     window.saveUser=async function(e){
         e.preventDefault();
-        const name=val('staffName'), email=val('staffEmail'), role=val('staffRole'), pin=val('staffPin');
+        const id=val('staffId'), name=val('staffName'), email=val('staffEmail'), phone=val('staffPhone'), role=val('staffRole'), status=val('staffStatus')||'active', pin=val('staffPin');
         if(!name||!role)return toast('Name and role are required.','error');
         if(pin&&!/^\d{4,6}$/.test(pin))return toast('PIN must contain 4 to 6 digits.','error');
         try{
             const client=window.sb||sb;
             if(!client || typeof client.from!=='function') throw new Error('Supabase client is unavailable. Refresh the page and try again.');
             let roleId=null;
-            const rr=await client.from('roles').select('id,name').ilike('name',role).maybeSingle();
-            if(rr.error && rr.error.code!=='PGRST116') console.warn('Role lookup warning:',rr.error);
-            roleId=rr.data?.id||null;
-            const {data,error}=await client.from('users').insert({
-                full_name:name, email:email||null, role:role, role_id:roleId,
-                pin:pin||null, pin_enabled:!!pin, status:'active'
-            }).select().single();
-            if(error) throw error;
-            closeModal('userModal');
-            toast(`User ${name} created successfully.`,'success');
-            await audit('user_created',{name,email,role,role_id:roleId,user_id:data?.id});
-            loadUsers();
+            try{
+                const rr=await client.from('roles').select('id,name').ilike('name',role).maybeSingle();
+                if(!rr.error) roleId=rr.data?.id||null;
+            }catch(_){ }
+
+            if(id){
+                const payload={full_name:name,email:email||null,phone:phone||null,role,status,updated_at:new Date().toISOString()};
+                if(roleId!==null)payload.role_id=roleId;
+                if(pin){payload.pin=pin;payload.pin_enabled=true;}
+                const {data,error}=await client.from('users').update(payload).eq('id',id).select().single();
+                if(error)throw error;
+                closeModal('userModal');
+                toast(`User ${name} updated successfully.`,'success');
+                await audit('user_updated',{name,email,phone,role,status,role_id:roleId,user_id:id});
+            }else{
+                const payload={full_name:name,email:email||null,phone:phone||null,role,role_id:roleId,pin:pin||null,pin_enabled:!!pin,status};
+                const {data,error}=await client.from('users').insert(payload).select().single();
+                if(error)throw error;
+                closeModal('userModal');
+                toast(`User ${name} created successfully.`,'success');
+                await audit('user_created',{name,email,phone,role,status,role_id:roleId,user_id:data?.id});
+            }
+            await loadUsers();
         }catch(err){
-            console.error('Create user error:',err);
-            toast(`Could not create user: ${err.message||'Unknown error'}`,'error');
+            console.error('Save user error:',err);
+            toast(`Could not save user: ${err.message||'Unknown error'}`,'error');
         }
     };
+
+    window.editUser=async function(id){
+        try{
+            const client=window.sb||sb;
+            const {data,error}=await client.from('users').select('*').eq('id',id).single();
+            if(error)throw error;
+            openUserModal(data);
+        }catch(err){toast(`Could not open user: ${err.message||'Unknown error'}`,'error');}
+    };
+
+    window.deleteUser=async function(id,name){
+        const current=window.currentUser||currentUser;
+        if(String(current?.id)===String(id))return toast('You cannot delete the account currently signed in.','error');
+        if(!confirm(`Delete user "${name||'this user'}"? This cannot be undone.`))return;
+        try{
+            const client=window.sb||sb;
+            const {error}=await client.from('users').delete().eq('id',id);
+            if(error)throw error;
+            toast(`User ${name||''} deleted successfully.`,'success');
+            await audit('user_deleted',{name,user_id:id});
+            await loadUsers();
+        }catch(err){
+            console.error('Delete user error:',err);
+            toast(`Could not delete user: ${err.message||'Unknown error'}`,'error');
+        }
+    };
+
     window.loadUsers=async function(){
         const box=safe('usersTable');if(!box)return;
-        try{const rows=await select('users',{order:'name',ascending:true});box.innerHTML=rows.length?`<div class="table-wrapper"><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td><strong>${esc(r.full_name||r.name||'')}</strong></td><td>${esc(r.email||'')}</td><td><span class="badge primary">${esc(r.role||r.role_name||'')}</span></td><td><span class="badge success">${esc(r.status||'active')}</span></td></tr>`).join('')}</tbody></table></div>`:`<div class="empty-state"><i class="fas fa-users"></i><h4>No staff users</h4><p>Add your first staff account.</p></div>`;}catch(err){box.innerHTML='<div class="empty-state"><p>Unable to load users.</p></div>';}
+        box.innerHTML='<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading staff users...</p></div>';
+        try{
+            const rows=await select('users',{order:'full_name',ascending:true});
+            box.innerHTML=rows.length?`<div class="table-wrapper"><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Status</th><th>Last Login</th><th>Actions</th></tr></thead><tbody>${rows.map(r=>{
+                const status=String(r.status||'active').toLowerCase();
+                const statusClass=status==='active'?'success':status==='suspended'?'danger':'warning';
+                const safeName=esc(r.full_name||'Unnamed User');
+                return `<tr><td><strong>${safeName}</strong></td><td>${esc(r.email||'')}</td><td>${esc(r.phone||'—')}</td><td><span class="badge primary">${esc(r.role||('Role '+(r.role_id??'')))}</span></td><td><span class="badge ${statusClass}">${esc(r.status||'active')}</span></td><td>${r.last_login?esc(new Date(r.last_login).toLocaleString('en-KE')):'Never'}</td><td><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-sm btn-outline" onclick="editUser(${Number(r.id)},'${String(r.full_name||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')"><i class="fas fa-edit"></i> Edit</button><button class="btn btn-sm btn-danger" onclick="deleteUser(${Number(r.id)},'${String(r.full_name||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i> Delete</button></div></td></tr>`;
+            }).join('')}</tbody></table></div>`:`<div class="empty-state"><i class="fas fa-users"></i><h4>No staff users</h4><p>Add your first staff account.</p></div>`;
+        }catch(err){
+            console.error('Load users error:',err);
+            box.innerHTML=`<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h4>Unable to load users</h4><p>${esc(err?.message||'Could not retrieve users from Supabase.')}</p><button class="btn btn-sm btn-secondary" onclick="loadUsers()"><i class="fas fa-sync-alt"></i> Retry</button></div>`;
+        }
     };
 
     // ---------- Helpers ----------
@@ -5894,6 +5898,74 @@ document.addEventListener('DOMContentLoaded', function() {
     // Quick checkout is deliberately at the top of the catalogue toolbar and mirrors cart total.
     setTimeout(()=>{if(typeof updateCartUI==='function')updateCartUI();},300);
   });
+})();
+</script>
+
+<script>
+/* ============================================================
+   LUCIE CLOSET PRODUCT EDITOR - COMPLETE FIELD EDITING
+   ============================================================ */
+(function(){
+  const q=id=>document.getElementById(id);
+  const val=id=>q(id)?.value ?? '';
+  const set=(id,v)=>{if(q(id)) q(id).value=v==null?'':v};
+  const check=(id,v)=>{if(q(id)) q(id).checked=!!v};
+
+  window.renderProductVariants=function(list){
+    const body=q('variantsList'); if(!body)return;
+    const arr=Array.isArray(list)?list:[];
+    body.innerHTML=arr.map((v,i)=>`<tr><td>${LC.escape(v.size||'')}</td><td>${LC.escape(v.color||'')}</td><td>${Number(v.stock||0)}</td><td><button type="button" class="btn btn-sm btn-danger" onclick="removeVariant(${i})"><i class="fas fa-trash"></i></button></td></tr>`).join('');
+    if(q('variantsData')) q('variantsData').value=JSON.stringify(arr);
+  };
+  window.addVariant=function(){
+    const arr=JSON.parse(q('variantsData')?.value||'[]');
+    const size=val('variantSize').trim(), color=val('variantColor').trim(), stock=Number(val('variantStock')||0);
+    if(!size && !color){showToast('Enter a size or colour for the variant.','error');return;}
+    arr.push({size,color,stock}); renderProductVariants(arr); set('variantSize','');set('variantColor','');set('variantStock','');
+  };
+  window.removeVariant=function(i){const arr=JSON.parse(q('variantsData')?.value||'[]');arr.splice(i,1);renderProductVariants(arr)};
+
+  window.openProductModal=function(product=null){
+    set('editProductId',product?.id||'');
+    set('productName',product?.name); set('productCode',product?.code); set('productCategory',product?.category);
+    set('productGender',product?.gender||'unisex'); set('productPrice',product?.price); set('productStock',product?.stock);
+    set('productCostPrice',product?.cost_price ?? product?.cost); set('productReorderLevel',product?.reorder_level ?? product?.minimum_stock ?? 5);
+    set('productColour',product?.colour ?? product?.color); set('productSize',product?.size ?? product?.variant);
+    set('productSupplier',product?.supplier); set('productBarcode',product?.barcode); set('productMaterial',product?.material); set('productTax',product?.tax ?? product?.tax_rate ?? 0);
+    set('productDescription',product?.description); set('productImageUrl',product?.image_url);
+    set('productComparePrice',product?.compare_price ?? product?.original_price ?? product?.old_price);
+    set('productSalePrice',product?.sale_price ?? product?.discount_price); set('productFit',product?.fit); set('productOccasion',product?.occasion);
+    set('productCare',product?.care_instructions ?? product?.care); set('productSizes',Array.isArray(product?.sizes)?product.sizes.join(', '):(product?.sizes||''));
+    set('productRating',product?.rating ?? 0); set('productReviews',product?.reviews_count ?? product?.review_count ?? 0);
+    set('productTags',Array.isArray(product?.tags)?product.tags.join(', '):(product?.tags||'')); check('productBestQuality',product?.best_quality);
+    let variants=product?.variants; if(typeof variants==='string'){try{variants=JSON.parse(variants)}catch(e){variants=[]}} renderProductVariants(variants||[]);
+    const preview=q('imagePreview'); if(preview) preview.innerHTML=product?.image_url?`<img src="${LC.escape(product.image_url)}" alt="Product image" style="max-width:100%;max-height:180px;object-fit:contain;border-radius:12px;">`:'';
+    if(q('productModalTitle'))q('productModalTitle').textContent=product?'✏️ Edit Product':'📦 Add Product';
+    if(q('saveProductBtn'))q('saveProductBtn').innerHTML=product?'<i class="fas fa-save"></i> Update Product':'<i class="fas fa-save"></i> Save Product';
+    openModal('productModal');
+  };
+
+  window.saveProduct=async function(e){
+    e.preventDefault(); if(!LC.permissionToast('manageProducts'))return;
+    const id=val('editProductId'); const name=val('productName').trim(), code=val('productCode').trim(), category=val('productCategory');
+    const price=Number(val('productPrice')), stock=Number(val('productStock'));
+    if(!name||!code||!category||!Number.isFinite(price)||price<0||!Number.isFinite(stock)||stock<0){showToast('Complete the required product fields.','error');return}
+    const num=(id,def=null)=>{const n=Number(val(id));return Number.isFinite(n)&&val(id)!==''?n:def};
+    const csv=id=>val(id).split(',').map(x=>x.trim()).filter(Boolean);
+    const variants=JSON.parse(val('variantsData')||'[]');
+    const data={name,code,category,gender:val('productGender')||'unisex',price,stock,best_quality:!!q('productBestQuality')?.checked,
+      cost_price:num('productCostPrice',0),reorder_level:num('productReorderLevel',5),colour:val('productColour').trim()||null,size:val('productSize').trim()||null,
+      supplier:val('productSupplier').trim()||null,barcode:val('productBarcode').trim()||null,material:val('productMaterial').trim()||null,tax:num('productTax',0),
+      description:val('productDescription').trim()||null,image_url:val('productImageUrl').trim()||null,
+      compare_price:num('productComparePrice',null),sale_price:num('productSalePrice',null),fit:val('productFit').trim()||null,occasion:val('productOccasion').trim()||null,
+      care_instructions:val('productCare').trim()||null,sizes:csv('productSizes'),rating:num('productRating',0),reviews_count:num('productReviews',0),tags:csv('productTags'),variants};
+    const base={name,code,category,gender:data.gender,price,stock,best_quality:data.best_quality,image_url:data.image_url};
+    try{let r;if(id)r=await sb.from('products').update(data).eq('id',Number(id));else r=await sb.from('products').insert([data]);
+      if(r.error){console.warn('Extended product fields unavailable; retrying core fields:',r.error); if(id)r=await sb.from('products').update(base).eq('id',Number(id));else r=await sb.from('products').insert([base]); if(r.error)throw r.error; showToast('Saved core fields. Some detailed fields need matching columns in products table.','warning')}
+      else showToast(id?'Product updated successfully.':'Product added successfully.','success');
+      await loadProducts();updateStats();renderCurrentTab();closeModal('productModal');
+    }catch(err){console.error(err);showToast('Could not save product: '+(err.message||'Unknown error'),'error')}
+  };
 })();
 </script>
 </body>
