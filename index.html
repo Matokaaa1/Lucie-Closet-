@@ -169,6 +169,35 @@
     .checkout-btn { width:100%; padding:14px; border:none; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; font-family:var(--font); font-weight:700; font-size:16px; cursor:pointer; transition:var(--transition); display:flex; align-items:center; justify-content:center; gap:10px; }
     .checkout-btn:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(var(--primary-rgb),0.3); }
     
+    /* ── product detail modal ── */
+    .product-detail-modal{display:none;position:fixed;inset:0;background:rgba(15,10,30,.72);backdrop-filter:blur(10px);z-index:500;align-items:center;justify-content:center;padding:18px}
+    .product-detail-modal.open{display:flex}
+    .product-detail-content{background:var(--card);width:min(1050px,100%);max-height:92vh;overflow-y:auto;border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.35);position:relative}
+    .product-detail-close{position:absolute;right:16px;top:16px;width:42px;height:42px;border:0;border-radius:50%;background:rgba(255,255,255,.9);color:var(--text);font-size:20px;cursor:pointer;z-index:4;box-shadow:0 4px 15px rgba(0,0,0,.12)}
+    .product-detail-layout{display:grid;grid-template-columns:minmax(320px,1fr) minmax(340px,1fr);gap:0}
+    .product-detail-gallery{background:linear-gradient(135deg,#f7f1f7,#eee7f2);min-height:620px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .product-detail-gallery img{width:100%;height:620px;object-fit:cover}
+    .product-detail-gallery .detail-placeholder{font-size:100px;opacity:.25}
+    .product-detail-info{padding:42px 42px 36px}
+    .detail-code{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);font-weight:700;margin-bottom:8px}
+    .detail-title{font-family:var(--font-display);font-size:34px;line-height:1.15;margin:0 0 10px;color:var(--text)}
+    .detail-rating{display:flex;align-items:center;gap:6px;color:var(--gold);font-size:14px;margin-bottom:16px}
+    .detail-price{font-size:28px;font-weight:900;color:var(--primary);margin-bottom:18px}
+    .detail-description{font-size:14px;line-height:1.75;color:var(--text-secondary);margin-bottom:22px}
+    .detail-section-title{font-size:13px;text-transform:uppercase;letter-spacing:.7px;font-weight:800;margin:20px 0 10px;color:var(--text)}
+    .detail-specs{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:18px}
+    .detail-spec{padding:11px 12px;border:1px solid var(--border);border-radius:12px;background:#fff}
+    .detail-spec small{display:block;color:var(--text-muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+    .detail-spec strong{font-size:13px;color:var(--text)}
+    .detail-sizes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+    .detail-size{min-width:48px;padding:9px 13px;border:1px solid var(--border);border-radius:10px;background:#fff;font-weight:700;font-size:12px;text-align:center}
+    .detail-size.available{border-color:var(--primary);color:var(--primary)}
+    .detail-size.unavailable{opacity:.45;text-decoration:line-through}
+    .detail-actions{display:flex;gap:10px;margin-top:22px}
+    .detail-actions .btn{flex:1;justify-content:center}
+    .detail-stock{font-size:12px;margin-top:10px;color:var(--text-muted)}
+    @media(max-width:800px){.product-detail-layout{grid-template-columns:1fr}.product-detail-gallery,.product-detail-gallery img{min-height:390px;height:390px}.product-detail-info{padding:28px 22px 24px}.detail-title{font-size:28px}}
+
     /* ── payment modal ── */
     .payment-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:300; align-items:center; justify-content:center; padding:20px; }
     .payment-modal.open { display:flex; }
@@ -391,7 +420,7 @@
         <a href="tel:+254794789345"><i class="fas fa-phone"></i> 0794 789 345</a>
         <a href="tel:+254726945270"><i class="fas fa-phone"></i> 0726 945 270</a>
         <a href="mailto:info@luciecloset.co.ke"><i class="fas fa-envelope"></i> info@luciecloset.co.ke</a>
-        <span><i class="fas fa-map-marker-alt"></i> Eastleigh 5th St, Micki Mall, Rm S12</span>
+        <span><i class="fas fa-map-marker-alt"></i> Miski Shopping Centre, 2nd Floor, Room S12</span>
       </div>
       <div class="social-icons">
         <a href="#"><i class="fab fa-facebook"></i></a>
@@ -465,7 +494,7 @@
   <!-- STORE INFO -->
   <div class="store-info">
     <div class="store-info-inner">
-      <div class="left"><span class="icon"><i class="fas fa-store"></i></span><div><h3>Lucie Closet Boutique</h3><p>Eastleigh 5th St, Micki Mall, Rm S12</p></div></div>
+      <div class="left"><span class="icon"><i class="fas fa-store"></i></span><div><h3>Lucie Closet Boutique</h3><p>Miski Shopping Centre, 2nd Floor, Room S12</p></div></div>
       <div class="right">
         <span class="contact-item"><i class="fas fa-phone"></i> 0794 789 345</span>
         <span class="contact-item"><i class="fas fa-phone"></i> 0726 945 270</span>
@@ -547,7 +576,7 @@
       <div class="why-grid">
         <div class="why-item"><span><i class="fas fa-gem"></i></span><div><strong>Curated quality</strong><p>Selected pieces with a premium look and feel.</p></div></div>
         <div class="why-item"><span><i class="fas fa-mobile-screen-button"></i></span><div><strong>Easy checkout</strong><p>Order online with convenient payment options.</p></div></div>
-        <div class="why-item"><span><i class="fas fa-store"></i></span><div><strong>Visit our boutique</strong><p>Find us at Micki Mall, Eastleigh 5th Street.</p></div></div>
+        <div class="why-item"><span><i class="fas fa-store"></i></span><div><strong>Visit our boutique</strong><p>Find us at Miski Shopping Centre, 2nd Floor, Room S12.</p></div></div>
       </div>
     </div>
   </section>
@@ -557,7 +586,7 @@
     <div class="footer-inner">
       <div class="col"><h4>Lucie Closet</h4><p style="max-width:250px;">Premium fashion in Eastleigh, Nairobi. Carefully selected pieces for women, men and modern wardrobes.</p></div>
       <div class="col"><h4>Shop</h4><a href="#" onclick="filterProducts('all')">All Collections</a><a href="#" onclick="filterProducts('dress')">Dresses</a><a href="#" onclick="filterProducts('top')">Tops</a><a href="#" onclick="filterProducts('sweater')">Sweaters</a><a href="#" onclick="filterProducts('suit')">Suits</a></div>
-      <div class="col"><h4>Contact</h4><a href="tel:+254794789345"><i class="fas fa-phone"></i> 0794 789 345</a><a href="tel:+254726945270"><i class="fas fa-phone"></i> 0726 945 270</a><a href="mailto:info@luciecloset.co.ke"><i class="fas fa-envelope"></i> info@luciecloset.co.ke</a><span class="footer-address"><i class="fas fa-location-dot"></i> Eastleigh 5th St, Micki Mall, Rm S12</span></div>
+      <div class="col"><h4>Contact</h4><a href="tel:+254794789345"><i class="fas fa-phone"></i> 0794 789 345</a><a href="tel:+254726945270"><i class="fas fa-phone"></i> 0726 945 270</a><a href="mailto:info@luciecloset.co.ke"><i class="fas fa-envelope"></i> info@luciecloset.co.ke</a><span class="footer-address"><i class="fas fa-location-dot"></i> Miski Shopping Centre, 2nd Floor, Room S12</span></div>
     </div>
     <div class="footer-bottom">© 2026 Lucie Closet · Premium Fashion. All rights reserved.</div>
   </footer>
@@ -633,6 +662,14 @@
         <div id="authHint" class="account-note"><i class="fas fa-lock"></i> Sign in with your registered email and password.</div>
         <div id="authStatus" class="auth-status"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- PRODUCT DETAIL MODAL -->
+  <div class="product-detail-modal" id="productDetailModal" aria-hidden="true">
+    <div class="product-detail-content" role="dialog" aria-modal="true" aria-labelledby="detailProductName">
+      <button class="product-detail-close" onclick="closeProductDetail()" aria-label="Close product details"><i class="fas fa-times"></i></button>
+      <div id="productDetailBody"></div>
     </div>
   </div>
 
@@ -1044,6 +1081,7 @@
               <div class="product-name">${escapeHtml(p.name)}</div>
               <div class="product-price">KSh ${p.price} <span class="original">${Math.round(p.price*1.2)}</span></div>
               <div class="product-rating"><i class="fas fa-star"></i> ${p.rating || 4.0} <span>(${5 + (Number(p.id || 0) % 16)} reviews)</span></div>
+              <button class="add-to-cart" onclick="openProductDetail(${p.id})"><i class="fas fa-eye"></i> View Details</button>
               <button class="add-to-cart" onclick="addToCart(${p.id})"><i class="fas fa-plus"></i> Add to Cart</button>
             </div>
           </div>
@@ -1051,6 +1089,87 @@
       }).join('');
     }
 
+
+    function firstValue(obj, keys, fallback='Not specified') {
+      for (const key of keys) {
+        const v = obj?.[key];
+        if (v !== undefined && v !== null && String(v).trim() !== '') return v;
+      }
+      return fallback;
+    }
+
+    function normalizeSizes(p) {
+      let raw = firstValue(p, ['sizes','available_sizes','size_options','size'], '');
+      if (Array.isArray(raw)) return raw.map(String).map(x=>x.trim()).filter(Boolean);
+      if (typeof raw === 'object' && raw) return Object.keys(raw).filter(k=>raw[k]);
+      if (typeof raw === 'string') return raw.split(/[,|/]+/).map(x=>x.trim()).filter(Boolean);
+      return [];
+    }
+
+    function productDescription(p) {
+      return firstValue(p, ['description','full_description','product_description','details'], `A ${String(p?.category || 'fashion').toLowerCase()} piece selected for the Lucie Closet collection. View the specifications below for the information currently available for this product. For additional measurements, styling guidance or material details, please contact Lucie Closet before ordering.`);
+    }
+
+    window.openProductDetail = function(productId) {
+      const p = products.find(x => String(x.id) === String(productId));
+      if (!p) return;
+      const modal = document.getElementById('productDetailModal');
+      const body = document.getElementById('productDetailBody');
+      if (!modal || !body) return;
+      const imageUrl = productImageUrl(p);
+      const icon = p.category === 'dress' ? '👗' : p.category === 'top' ? '👕' : p.category === 'sweater' ? '🧥' : '👔';
+      const sizes = normalizeSizes(p);
+      const stock = Number(p.stock || 0);
+      const rating = Number(p.rating || 4);
+      const reviews = Number(p.review_count || p.reviews_count || (5 + (Number(p.id || 0) % 16)));
+      const original = Number(p.original_price || p.compare_at_price || 0);
+      const image = imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(p.name)}" onerror="this.outerHTML='<div class=\"detail-placeholder\">${icon}</div>'">` : `<div class="detail-placeholder">${icon}</div>`;
+      const sizeHtml = sizes.length ? sizes.map(sz => `<span class="detail-size available">${escapeHtml(sz)}</span>`).join('') : '<span class="detail-size">Size details on request</span>';
+      body.innerHTML = `
+        <div class="product-detail-layout">
+          <div class="product-detail-gallery">${image}</div>
+          <div class="product-detail-info">
+            <div class="detail-code">Product Code: ${escapeHtml(p.code || 'N/A')}</div>
+            <h2 class="detail-title" id="detailProductName">${escapeHtml(p.name || 'Product')}</h2>
+            <div class="detail-rating"><i class="fas fa-star"></i> ${rating.toFixed(1)} <span style="color:var(--text-muted)">(${reviews} reviews)</span></div>
+            <div class="detail-price">KSh ${Number(p.price || 0).toLocaleString('en-KE')}${original > Number(p.price||0) ? `<span class="original" style="font-size:14px;color:var(--text-muted);text-decoration:line-through;margin-left:10px;font-weight:400">KSh ${original.toLocaleString('en-KE')}</span>` : ''}</div>
+            <div class="detail-description">${escapeHtml(productDescription(p))}</div>
+            <div class="detail-section-title">Product Information</div>
+            <div class="detail-specs">
+              <div class="detail-spec"><small>Category</small><strong>${escapeHtml(firstValue(p,['category'],'Not specified'))}</strong></div>
+              <div class="detail-spec"><small>Gender</small><strong>${escapeHtml(firstValue(p,['gender'],'Women'))}</strong></div>
+              <div class="detail-spec"><small>Material / Fabric</small><strong>${escapeHtml(firstValue(p,['material','fabric','fabric_type'],'Not specified'))}</strong></div>
+              <div class="detail-spec"><small>Colour</small><strong>${escapeHtml(firstValue(p,['color','colour'],'Not specified'))}</strong></div>
+              <div class="detail-spec"><small>Fit / Style</small><strong>${escapeHtml(firstValue(p,['fit','style'],'Not specified'))}</strong></div>
+              <div class="detail-spec"><small>Stock</small><strong>${stock > 0 ? stock + ' available' : 'Out of stock'}</strong></div>
+            </div>
+            <div class="detail-section-title">Available Sizes</div>
+            <div class="detail-sizes">${sizeHtml}</div>
+            <div class="detail-section-title">Care & Additional Details</div>
+            <div class="detail-description" style="margin-bottom:0">${escapeHtml(firstValue(p,['care_instructions','care','washing_instructions'],'Please check the garment label for care instructions. Contact Lucie Closet if you need exact measurements or additional product information.'))}</div>
+            <div class="detail-actions">
+              <button class="btn btn-primary" ${stock<=0?'disabled style="opacity:.5;cursor:not-allowed"':''} onclick="addToCart(${p.id}); closeProductDetail();"><i class="fas fa-bag-shopping"></i> ${stock>0?'Add to Cart':'Out of Stock'}</button>
+              <button class="btn btn-outline" onclick="closeProductDetail()"><i class="fas fa-arrow-left"></i> Continue Shopping</button>
+            </div>
+            <div class="detail-stock"><i class="fas fa-location-dot"></i> Available at Lucie Closet, Miski Shopping Centre, 2nd Floor, Room S12.</div>
+          </div>
+        </div>`;
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden','false');
+      document.body.style.overflow='hidden';
+    };
+
+    window.closeProductDetail = function() {
+      const modal=document.getElementById('productDetailModal');
+      if(modal){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); }
+      document.body.style.overflow='';
+    };
+
+    document.addEventListener('click', function(e){
+      const modal=document.getElementById('productDetailModal');
+      if(e.target===modal) window.closeProductDetail();
+    });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') window.closeProductDetail(); });
 
     function setHeroImages() {
       const withImages = products.filter(p => productImageUrl(p));
