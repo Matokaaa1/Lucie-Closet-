@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="robots" content="noindex, nofollow">
-    <title>Lucie Closet | Professional POS & Business Management</title>
+    <title>Lucie Closet | POS</title>
     <meta name="description" content="Lucie Closet professional point of sale, inventory, customer, sales and business management system.">
     <meta name="theme-color" content="#7C3AED">
 
@@ -463,17 +463,25 @@ body:before{background-image:linear-gradient(rgba(91,33,182,.018) 1px,transparen
 <style id="lucie-intelligence-upgrade">
 .lc-dashboard-intelligence{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin:18px 0}.lc-intel-card{background:var(--card-bg,#fff);border:1px solid var(--border,#eee);border-radius:18px;padding:20px;box-shadow:0 8px 30px rgba(35,20,70,.06)}.lc-intel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.lc-intel-head h3{margin:0;font-size:16px}.lc-target-value{font-size:28px;font-weight:800}.lc-progress{height:9px;background:rgba(124,58,237,.1);border-radius:99px;overflow:hidden;margin:10px 0}.lc-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#ec4899);border-radius:99px;transition:width .5s}.lc-alert-row{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--border,#eee)}.lc-alert-row:last-child{border-bottom:0}.lc-alert-dot{width:9px;height:9px;border-radius:50%;background:#7c3aed;flex:none}.lc-alert-dot.warn{background:#f59e0b}.lc-alert-dot.danger{background:#ef4444}.lc-alert-dot.success{background:#10b981}.lc-alert-row strong{display:block;font-size:13px}.lc-alert-row small{color:var(--text-muted,#777)}.lc-mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}.lc-mini{padding:12px;border-radius:12px;background:rgba(124,58,237,.05)}.lc-mini b{display:block;font-size:18px}.lc-mini span{font-size:11px;color:var(--text-muted,#777)}@media(max-width:800px){.lc-dashboard-intelligence{grid-template-columns:1fr}.lc-mini-grid{grid-template-columns:1fr 1fr}}
 </style>
+
+<style id="cashier-login-first">
+/* Cashier terminal always opens on login. */
+body:not(.authenticated) .auth-screen{display:flex!important;}
+body:not(.authenticated) .main-content,
+body:not(.authenticated) #sidebar,
+body:not(.authenticated) #sidebarToggle{display:none!important;}
+</style>
 </head>
 <body>
 
     <!-- ===== SECURE LOGIN SCREEN ===== -->
-    <div class="auth-screen" id="loginScreen">
+    <div class="auth-screen" id="loginScreen" style="display:flex;">
       <div class="auth-card">
         <div class="auth-brand"><div class="auth-logo"><i class="fas fa-crown"></i></div><h1>Lucie Closet</h1><p>Professional POS & Business Management</p></div>
-        <div class="login-tabs"><button class="login-tab active" type="button" onclick="showLoginPane('pinPane')">PIN Login</button><button class="login-tab" type="button" onclick="showLoginPane('emailPane')">Email Login</button></div>
+        <div class="login-tabs"><button class="login-tab active" id="emailTab" type="button" onclick="showLoginPane('emailPane')">Email Login</button><button class="login-tab" id="pinTab" type="button" onclick="showLoginPane('pinPane')">PIN Login</button></div>
         <div id="loginAlert" class="login-alert"></div>
-        <div id="pinPane"><div class="form-group"><label>Staff Email / Username</label><input id="pinEmail" type="text" placeholder="admin or staff email"></div><div class="pin-dots" id="pinDots"><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span></div><input id="pinInput" type="password" inputmode="numeric" maxlength="6" class="hidden"><div class="pin-keypad"><button type="button" onclick="pinKey('1')">1</button><button type="button" onclick="pinKey('2')">2</button><button type="button" onclick="pinKey('3')">3</button><button type="button" onclick="pinKey('4')">4</button><button type="button" onclick="pinKey('5')">5</button><button type="button" onclick="pinKey('6')">6</button><button type="button" onclick="pinKey('7')">7</button><button type="button" onclick="pinKey('8')">8</button><button type="button" onclick="pinKey('9')">9</button><button type="button" onclick="pinClear()">⌫</button><button type="button" onclick="pinKey('0')">0</button><button type="button" id="pinEnter" onclick="handleLogin(event)">✓</button></div></div>
-        <div id="emailPane" class="hidden"><form id="loginForm" onsubmit="handleLogin(event)"><div class="form-group"><label>Email</label><input id="emailInput" type="email" required placeholder="name@company.com"></div><div class="form-group"><label>Password</label><input id="passwordInput" type="password" required placeholder="Password"></div><button class="btn btn-primary btn-block" id="loginBtn" type="submit"><span id="btnText">Sign In</span><i id="btnSpinner" class="fas fa-spinner fa-spin hidden"></i></button></form></div>
+        <div id="pinPane" class="hidden"><div class="form-group"><label>Staff Email / Username</label><input id="pinEmail" type="text" placeholder="admin or staff email"></div><div class="pin-dots" id="pinDots"><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span></div><input id="pinInput" type="password" inputmode="numeric" maxlength="6" class="hidden"><div class="pin-keypad"><button type="button" onclick="pinKey('1')">1</button><button type="button" onclick="pinKey('2')">2</button><button type="button" onclick="pinKey('3')">3</button><button type="button" onclick="pinKey('4')">4</button><button type="button" onclick="pinKey('5')">5</button><button type="button" onclick="pinKey('6')">6</button><button type="button" onclick="pinKey('7')">7</button><button type="button" onclick="pinKey('8')">8</button><button type="button" onclick="pinKey('9')">9</button><button type="button" onclick="pinClear()">⌫</button><button type="button" onclick="pinKey('0')">0</button><button type="button" id="pinEnter" onclick="handleLogin(event)">✓</button></div></div>
+        <div id="emailPane"><form id="loginForm" onsubmit="handleLogin(event)"><div class="form-group"><label>Email</label><input id="emailInput" type="email" required placeholder="name@company.com"></div><div class="form-group"><label>Password</label><input id="passwordInput" type="password" required placeholder="Password"></div><button class="btn btn-primary btn-block" id="loginBtn" type="submit"><span id="btnText">Sign In</span><i id="btnSpinner" class="fas fa-spinner fa-spin hidden"></i></button></form></div>
         <p style="text-align:center;color:#999;font-size:11px;margin-top:18px">Authorized staff only • Session protected</p>
       </div>
     </div>
@@ -1195,6 +1203,7 @@ let orders = [];
 let customers = [];
 let cart = [];
 let currentUser = null;
+window.currentUser = null;
 let currentTab = 'dashboard';
 let currentCategory = 'all';
 let selectedPayment = 'mpesa';
@@ -1373,6 +1382,7 @@ window.logout = logout;
 // LOGIN SCREEN FUNCTIONS
 // ============================================================
 function showLogin() {
+    document.body.classList.remove('authenticated');
     const loginScreen = document.getElementById('loginScreen');
     const dashboardScreen = document.getElementById('dashboardScreen');
     if (loginScreen) loginScreen.style.display = 'flex';
@@ -1385,7 +1395,12 @@ function showLogin() {
 }
 
 function showDashboard() {
+    document.body.classList.add('authenticated');
     const loginScreen = document.getElementById('loginScreen');
+    const main = document.querySelector('.main-content');
+    const sidebar = document.getElementById('sidebar');
+    if(main) main.style.display='block';
+    if(sidebar) sidebar.style.display='block';
     const dashboardScreen = document.getElementById('dashboardScreen');
     if (loginScreen) loginScreen.style.display = 'none';
     if (dashboardScreen) dashboardScreen.style.display = 'block';
@@ -1404,6 +1419,7 @@ function showDashboard() {
 
 async function checkAuth() {
     try {
+        // Cashier terminal uses its own session and never reuses the Admin POS session.
         const stored = localStorage.getItem(SESSION_KEY);
         if (!stored) {
             console.log('❌ No session found');
@@ -1437,6 +1453,7 @@ async function checkAuth() {
 
         console.log('✅ User authenticated:', user.email);
         currentUser = user;
+        window.currentUser = user;
         updateUI(user);
         resetSessionTimer();
         showDashboard();
@@ -1556,6 +1573,30 @@ function submitPin() {
     if (form) form.dispatchEvent(new Event('submit'));
 }
 window.submitPin = submitPin;
+
+// Compatibility handlers used by the cashier login keypad/tabs.
+// The HTML calls pinKey() and showLoginPane() directly.
+function pinKey(n) {
+    pinPress(String(n));
+}
+window.pinKey = pinKey;
+
+function pinClear() {
+    pinValue = '';
+    const pinInput = document.getElementById('pinInput');
+    if (pinInput) pinInput.value = '';
+    renderDots();
+}
+window.pinClear = pinClear;
+
+function showLoginPane(paneId) {
+    if (paneId === 'pinPane') {
+        switchMethod('pin');
+    } else if (paneId === 'emailPane') {
+        switchMethod('email');
+    }
+}
+window.showLoginPane = showLoginPane;
 
 // ============================================================
 // SWITCH LOGIN METHOD
@@ -1719,7 +1760,7 @@ async function handleLogin(e) {
 
             console.log('✅ PIN verified successfully!');
 
-            let userData = { ...user, role_name: 'Admin' };
+            let userData = { ...user, role_name: user.role || 'Cashier' };
             try {
                 const { data: roleData } = await sb
                     .from('roles')
@@ -1737,7 +1778,7 @@ async function handleLogin(e) {
             const sessionData = {
                 user: {
                     ...userData,
-                    role_name: userData.role_name || 'Admin'
+                    role_name: userData.role_name || userData.role || 'Cashier'
                 },
                 loginMethod: 'pin',
                 loginTime: Date.now()
@@ -1754,6 +1795,7 @@ async function handleLogin(e) {
             }
 
             currentUser = sessionData.user;
+            window.currentUser = currentUser;
             showDashboard();
             showLCWelcome(sessionData.user);
 
@@ -1784,11 +1826,10 @@ async function handleLogin(e) {
 
             if (userError || !userData) throw new Error('User profile not found');
             if (userData.status !== 'active') throw new Error('Account is inactive');
-
             const sessionData = {
                 user: {
                     ...userData,
-                    role_name: 'Admin'
+                    role_name: userData.role_name || userData.role || 'Cashier'
                 },
                 session: authData.session,
                 loginMethod: 'email',
@@ -1797,6 +1838,7 @@ async function handleLogin(e) {
             localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
 
             currentUser = sessionData.user;
+            window.currentUser = currentUser;
             showDashboard();
             showLCWelcome(sessionData.user);
         }
@@ -2502,7 +2544,10 @@ function printReceipt() {
         printWindow.document.write(`
             <html><head><title>Receipt</title>
             <style>body{font-family:monospace;padding:20px;white-space:pre-wrap;font-size:14px;}</style>
-            </head><body>${content}</body></html>
+            </head><body>${content}
+
+
+</body></html>
         `);
         printWindow.document.close();
         printWindow.print();
@@ -3461,7 +3506,7 @@ window.updateStats = updateStats;
 // ------------------------------------------------------------
 const originalNavigateTo = navigateTo;
 navigateTo = function(section) {
-    const role = currentUser?.role_name || 'Admin';
+    const role = currentUser?.role_name || 'Cashier';
     const allowed = LC.roles[role] || LC.roles.Administrator || LC.roles.Owner;
     if (!allowed.includes(section)) {
         showToast(`Access denied for ${role}.`, 'error');
@@ -4595,8 +4640,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ---------- Login UX ----------
     window.showLogin = function(){
-        safe('loginScreen')?.classList.remove('hidden');
-        safe('dashboardScreen')?.classList.add('hidden');
+        const login = safe('loginScreen');
+        if(login){ login.classList.remove('hidden'); login.style.display='flex'; }
+        document.body.classList.remove('cashier-mode','cashier-authenticated');
+        document.querySelectorAll('.section-page').forEach(s=>s.classList.remove('active'));
+        // Never expose the application behind the login screen.
+        const main = document.querySelector('.main-content');
+        const sidebar = safe('sidebar');
+        if(main) main.style.display='none';
+        if(sidebar) sidebar.style.display='none';
     };
 
     // ---------- Keyboard shortcuts ----------
@@ -4816,6 +4868,78 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
   window.LucieClosetDiagnostics=Object.assign(window.LucieClosetDiagnostics||{}, {version:'ULTRA MODERN 2026', visualRefresh:true, preservedCoreLogic:true});
+})();
+</script>
+
+
+<script id="lucie-role-based-access">
+(function(){
+  'use strict';
+  const roleSections={
+    Admin:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','quotations','accounting','branches','compliance','businessHub','settings'],
+    Owner:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','quotations','accounting','branches','compliance','businessHub','settings'],
+    Administrator:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','quotations','accounting','branches','compliance','businessHub','settings'],
+    Manager:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','quotations','accounting'],
+    Accountant:['dashboard','orders','customers','reports','profit','quotations','accounting'],
+    'Stock Manager':['dashboard','products','inventory','suppliers','purchases'],
+    Cashier:['dashboard','pos','orders','customers'],
+    'Sales Assistant':['dashboard','pos','orders','customers'],
+    'sales_assistant':['dashboard','pos','orders','customers'],
+    Employee:['dashboard','pos','orders','customers']
+  };
+  const normalize=r=>{const x=String(r||'Cashier').trim(); const key=Object.keys(roleSections).find(k=>k.toLowerCase()===x.toLowerCase()); return key||'Cashier';};
+  window.LC=window.LC||{}; window.LC.roleSections=roleSections; window.LC.getRole=()=>normalize(window.currentUser?.role_name||window.currentUser?.role);
+  function applyRole(){
+    const u=window.currentUser || (typeof currentUser!=='undefined'?currentUser:null);
+    const role=normalize(u?.role_name||u?.role);
+    const allowed=roleSections[role]||roleSections.Cashier;
+    document.body.classList.remove('cashier-mode');
+    if(u) document.body.classList.add('authenticated');
+    document.querySelectorAll('.sidebar-menu li[data-section]').forEach(li=>{li.style.display=allowed.includes(li.dataset.section)?'flex':'none';});
+    document.querySelectorAll('.sidebar-menu .menu-label').forEach(label=>{
+      let next=label.nextElementSibling, has=false;
+      while(next && !next.classList.contains('menu-label')){if(next.dataset?.section && next.style.display!=='none') has=true; next=next.nextElementSibling;}
+      label.style.display=has?'block':'none';
+    });
+    const sub=document.getElementById('userRole'); if(sub&&u) sub.textContent=role;
+    const name=document.getElementById('userName'); if(name&&u) name.textContent=u.full_name||u.name||u.email||'User';
+    const av=document.getElementById('userAvatar'); if(av&&u) av.textContent=(u.full_name||u.name||u.email||'U').charAt(0).toUpperCase();
+    const brand=document.querySelector('.brand-sub'); if(brand&&u) brand.textContent=role==='Cashier'||role==='Sales Assistant'||role==='Employee'?'Employee POS':'POS + Admin';
+    if(window.currentTab && !allowed.includes(window.currentTab)) { window.currentTab=allowed.includes('dashboard')?'dashboard':allowed[0]; }
+  }
+  window.applyRoleBasedAccess=applyRole;
+  const oldShowDashboard=window.showDashboard;
+  window.showDashboard=function(){
+    if(oldShowDashboard) oldShowDashboard();
+    applyRole();
+    const role=normalize(window.currentUser?.role_name||window.currentUser?.role);
+    if(role==='Cashier'||role==='Sales Assistant'||role==='Employee') {
+      if(typeof navigateTo==='function') navigateTo('dashboard');
+    }
+  };
+  const oldShowLogin=window.showLogin;
+  window.showLogin=function(){
+    document.body.classList.remove('authenticated','cashier-mode');
+    if(oldShowLogin) oldShowLogin();
+    const login=document.getElementById('loginScreen'); if(login){login.style.display='flex';login.classList.remove('hidden');}
+    const main=document.querySelector('.main-content'), side=document.getElementById('sidebar'), toggle=document.getElementById('sidebarToggle');
+    if(main) main.style.display='none'; if(side) side.style.display='none'; if(toggle) toggle.style.display='none';
+  };
+  const oldNavigate=window.navigateTo;
+  window.navigateTo=function(section){
+    const u=window.currentUser || (typeof currentUser!=='undefined'?currentUser:null);
+    if(!u) { window.showLogin(); return; }
+    const role=normalize(u.role_name||u.role), allowed=roleSections[role]||roleSections.Cashier;
+    if(!allowed.includes(section)){
+      if(typeof showToast==='function') showToast('Access denied for '+role+'.','error');
+      return;
+    }
+    return oldNavigate ? oldNavigate(section) : undefined;
+  };
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{
+    const u=window.currentUser || (typeof currentUser!=='undefined'?currentUser:null);
+    if(!u) window.showLogin(); else applyRole();
+  },250));
 })();
 </script>
 </body>
