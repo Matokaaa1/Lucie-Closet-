@@ -1,38 +1,54 @@
-// ============================================================
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lucie Closet - pos.js Source</title>
+<style>
+body{font-family:Consolas,Monaco,"Courier New",monospace;background:#fff;color:#111;margin:0}
+header{position:sticky;top:0;background:#f3f4f6;border-bottom:1px solid #d1d5db;padding:12px 16px;font-family:Arial,sans-serif;z-index:2}
+header strong{margin-right:12px}
+header a{display:inline-block;padding:8px 12px;border:1px solid #9ca3af;border-radius:6px;text-decoration:none;color:#111;background:#fff}
+pre{margin:0;padding:20px;white-space:pre-wrap;word-break:break-word;line-height:1.45;font-size:14px}
+</style>
+</head>
+<body>
+<header><strong>Lucie Closet — pos.js</strong><a href="pos.js" download>Download pos.js</a></header>
+<pre>// ============================================================
 // LUCIE CLOSET · POS + ADMIN SYSTEM - COMPLETE FIXED
 // ============================================================
 
 // ============================================================
 // SUPABASE CONFIG - FIXED (no redeclaration)
 // ============================================================
-const SUPABASE_URL = 'https://tlsldwshtxofckvkixxz.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsc2xkd3NodHhvZmNrdmtpeHh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTksImV4cCI6MjEwMzc4NzU1OX0.BAfgQG4Z28bgKSfL9Li7Gbgp62sTM-5NxB4qVQ-b0H4';
+const SUPABASE_URL = &#x27;https://tlsldwshtxofckvkixxz.supabase.co&#x27;;
+const SUPABASE_ANON_KEY = &#x27;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsc2xkd3NodHhvZmNrdmtpeHh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTksImV4cCI6MjEwMzc4NzU1OX0.BAfgQG4Z28bgKSfL9Li7Gbgp62sTM-5NxB4qVQ-b0H4&#x27;;
 
-// ✅ FIXED: Use 'sb' instead of 'supabase' to avoid redeclaration
+// ✅ FIXED: Use &#x27;sb&#x27; instead of &#x27;supabase&#x27; to avoid redeclaration
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============================================================
 // TOAST - Must be defined first
 // ============================================================
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toastContainer');
+function showToast(message, type = &#x27;success&#x27;) {
+    const container = document.getElementById(&#x27;toastContainer&#x27;);
     if (!container) {
-        console.log('Toast:', message, type);
+        console.log(&#x27;Toast:&#x27;, message, type);
         return;
     }
-    const toast = document.createElement('div');
+    const toast = document.createElement(&#x27;div&#x27;);
     toast.className = `toast ${type}`;
     const icons = {
-        'success': 'fa-check-circle',
-        'error': 'fa-exclamation-circle',
-        'warning': 'fa-exclamation-triangle',
-        'info': 'fa-info-circle'
+        &#x27;success&#x27;: &#x27;fa-check-circle&#x27;,
+        &#x27;error&#x27;: &#x27;fa-exclamation-circle&#x27;,
+        &#x27;warning&#x27;: &#x27;fa-exclamation-triangle&#x27;,
+        &#x27;info&#x27;: &#x27;fa-info-circle&#x27;
     };
-    toast.innerHTML = `<i class="fas ${icons[type] || 'fa-info-circle'}"></i> ${message}`;
+    toast.innerHTML = `&lt;i class=&quot;fas ${icons[type] || &#x27;fa-info-circle&#x27;}&quot;&gt;&lt;/i&gt; ${message}`;
     container.appendChild(toast);
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
+    setTimeout(() =&gt; {
+        toast.style.opacity = &#x27;0&#x27;;
+        setTimeout(() =&gt; toast.remove(), 300);
     }, 3000);
 }
 window.showToast = showToast;
@@ -45,9 +61,9 @@ let orders = [];
 let customers = [];
 let cart = [];
 let currentUser = null;
-let currentTab = 'dashboard';
-let currentCategory = 'all';
-let selectedPayment = 'mpesa';
+let currentTab = &#x27;dashboard&#x27;;
+let currentCategory = &#x27;all&#x27;;
+let selectedPayment = &#x27;mpesa&#x27;;
 let salesChartInstance = null;
 let profitChartInstance = null;
 let isInitialized = false;
@@ -55,31 +71,31 @@ let isInitialized = false;
 // ============================================================
 // PIN LOGIN STATE
 // ============================================================
-let pinValue = '';
+let pinValue = &#x27;&#x27;;
 let isSubmitting = false;
-let currentMethod = 'pin';
+let currentMethod = &#x27;pin&#x27;;
 let sessionTimer = null;
 let sessionTimeout = 30;
-const SESSION_KEY = 'luciecloset_session';
+const SESSION_KEY = &#x27;luciecloset_session&#x27;;
 
 // ============================================================
 // GET DEFAULT PRODUCTS
 // ============================================================
 function getDefaultProducts() {
     return [
-        { id: 1, code: '0001#', name: 'Classic Silk Dress', category: 'dress', gender: 'women', price: 500, stock: 12,
+        { id: 1, code: &#x27;0001#&#x27;, name: &#x27;Classic Silk Dress&#x27;, category: &#x27;dress&#x27;, gender: &#x27;women&#x27;, price: 500, stock: 12,
             image_url: null, best_quality: true, rating: 4.8 },
-        { id: 2, code: '6195-1#', name: 'Summer Floral Dress', category: 'dress', gender: 'women', price: 500, stock: 6,
+        { id: 2, code: &#x27;6195-1#&#x27;, name: &#x27;Summer Floral Dress&#x27;, category: &#x27;dress&#x27;, gender: &#x27;women&#x27;, price: 500, stock: 6,
             image_url: null, best_quality: false, rating: 4.2 },
-        { id: 3, code: '6169-145A', name: 'Elegant Evening Gown', category: 'dress', gender: 'women', price: 600, stock: 6,
+        { id: 3, code: &#x27;6169-145A&#x27;, name: &#x27;Elegant Evening Gown&#x27;, category: &#x27;dress&#x27;, gender: &#x27;women&#x27;, price: 600, stock: 6,
             image_url: null, best_quality: true, rating: 4.9 },
-        { id: 4, code: '5918', name: 'Pie Top', category: 'top', gender: 'women', price: 600, stock: 10, image_url: null,
+        { id: 4, code: &#x27;5918&#x27;, name: &#x27;Pie Top&#x27;, category: &#x27;top&#x27;, gender: &#x27;women&#x27;, price: 600, stock: 10, image_url: null,
             best_quality: false, rating: 4.2 },
-        { id: 5, code: '5918 1', name: 'Polo Top with A-Top', category: 'top', gender: 'unisex', price: 700, stock: 10,
+        { id: 5, code: &#x27;5918 1&#x27;, name: &#x27;Polo Top with A-Top&#x27;, category: &#x27;top&#x27;, gender: &#x27;unisex&#x27;, price: 700, stock: 10,
             image_url: null, best_quality: true, rating: 4.6 },
-        { id: 6, code: '13802', name: 'Cashmere Blend Sweater', category: 'sweater', gender: 'men', price: 650, stock: 8,
+        { id: 6, code: &#x27;13802&#x27;, name: &#x27;Cashmere Blend Sweater&#x27;, category: &#x27;sweater&#x27;, gender: &#x27;men&#x27;, price: 650, stock: 8,
             image_url: null, best_quality: true, rating: 4.7 },
-        { id: 7, code: 'S001', name: 'Tailored Wool Suit', category: 'suit', gender: 'men', price: 1200, stock: 5,
+        { id: 7, code: &#x27;S001&#x27;, name: &#x27;Tailored Wool Suit&#x27;, category: &#x27;suit&#x27;, gender: &#x27;men&#x27;, price: 1200, stock: 5,
             image_url: null, best_quality: true, rating: 4.9 },
     ];
 }
@@ -89,47 +105,47 @@ function getDefaultProducts() {
 // ============================================================
 async function loadProducts() {
     try {
-        // ✅ Use 'sb' instead of 'supabase'
-        const { data, error } = await sb.from('products').select('*').order('id', { ascending: true });
+        // ✅ Use &#x27;sb&#x27; instead of &#x27;supabase&#x27;
+        const { data, error } = await sb.from(&#x27;products&#x27;).select(&#x27;*&#x27;).order(&#x27;id&#x27;, { ascending: true });
         if (error) throw error;
-        if (data && data.length) {
+        if (data &amp;&amp; data.length) {
             products = data;
         } else {
             products = getDefaultProducts();
             for (const p of products) {
-                await sb.from('products').insert([p]);
+                await sb.from(&#x27;products&#x27;).insert([p]);
             }
         }
-        localStorage.setItem('luciecloset_products', JSON.stringify(products));
+        localStorage.setItem(&#x27;luciecloset_products&#x27;, JSON.stringify(products));
     } catch (e) {
-        console.warn('Supabase fallback → localStorage', e);
-        const stored = localStorage.getItem('luciecloset_products');
+        console.warn(&#x27;Supabase fallback → localStorage&#x27;, e);
+        const stored = localStorage.getItem(&#x27;luciecloset_products&#x27;);
         products = stored ? JSON.parse(stored) : getDefaultProducts();
     }
 }
 
 async function loadOrders() {
     try {
-        const { data, error } = await sb.from('orders').select('*').order('created_at', { ascending: false });
+        const { data, error } = await sb.from(&#x27;orders&#x27;).select(&#x27;*&#x27;).order(&#x27;created_at&#x27;, { ascending: false });
         if (error) throw error;
         orders = data || [];
-        localStorage.setItem('luciecloset_orders', JSON.stringify(orders));
+        localStorage.setItem(&#x27;luciecloset_orders&#x27;, JSON.stringify(orders));
     } catch (e) {
-        const stored = localStorage.getItem('luciecloset_orders');
+        const stored = localStorage.getItem(&#x27;luciecloset_orders&#x27;);
         orders = stored ? JSON.parse(stored) : [];
     }
-    const badge = document.getElementById('orderBadge');
+    const badge = document.getElementById(&#x27;orderBadge&#x27;);
     if (badge) badge.textContent = orders.length;
 }
 
 async function loadCustomers() {
     try {
-        const { data, error } = await sb.from('customers').select('*').order('name', { ascending: true });
+        const { data, error } = await sb.from(&#x27;customers&#x27;).select(&#x27;*&#x27;).order(&#x27;name&#x27;, { ascending: true });
         if (error) throw error;
         customers = data || [];
-        localStorage.setItem('luciecloset_customers', JSON.stringify(customers));
+        localStorage.setItem(&#x27;luciecloset_customers&#x27;, JSON.stringify(customers));
     } catch (e) {
-        const stored = localStorage.getItem('luciecloset_customers');
+        const stored = localStorage.getItem(&#x27;luciecloset_customers&#x27;);
         customers = stored ? JSON.parse(stored) : [];
     }
 }
@@ -137,31 +153,31 @@ async function loadCustomers() {
 async function ensureAdminUser() {
     try {
         const { data: users, error } = await sb
-            .from('users')
-            .select('id')
+            .from(&#x27;users&#x27;)
+            .select(&#x27;id&#x27;)
             .limit(1);
             
         if (error) throw error;
         
         if (!users || users.length === 0) {
-            console.log('👤 No users found, creating admin...');
+            console.log(&#x27;👤 No users found, creating admin...&#x27;);
             const { error: insertError } = await sb
-                .from('users')
+                .from(&#x27;users&#x27;)
                 .insert([{
-                    email: 'admin@luciecloset.co.ke',
-                    full_name: 'System Administrator',
+                    email: &#x27;admin@luciecloset.co.ke&#x27;,
+                    full_name: &#x27;System Administrator&#x27;,
                     role_id: 1,
-                    status: 'active',
-                    pin: '1234',
+                    status: &#x27;active&#x27;,
+                    pin: &#x27;1234&#x27;,
                     pin_enabled: true,
-                    phone: '+254 700 000 000'
+                    phone: &#x27;+254 700 000 000&#x27;
                 }]);
             if (insertError) throw insertError;
-            console.log('✅ Admin user created! Email: admin@luciecloset.co.ke, PIN: 1234');
-            showToast('✅ Admin user created! Email: admin@luciecloset.co.ke, PIN: 1234', 'success');
+            console.log(&#x27;✅ Admin user created! Email: admin@luciecloset.co.ke, PIN: 1234&#x27;);
+            showToast(&#x27;✅ Admin user created! Email: admin@luciecloset.co.ke, PIN: 1234&#x27;, &#x27;success&#x27;);
         }
     } catch (error) {
-        console.warn('Could not ensure admin user:', error);
+        console.warn(&#x27;Could not ensure admin user:&#x27;, error);
     }
 }
 
@@ -181,18 +197,18 @@ async function loadData() {
 // ============================================================
 function updateStats() {
     const today = new Date().toDateString();
-    const todayOrders = orders.filter(o => new Date(o.created_at).toDateString() === today && o.status === 'completed');
-    const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const todayOrders = orders.filter(o =&gt; new Date(o.created_at).toDateString() === today &amp;&amp; o.status === &#x27;completed&#x27;);
+    const todayRevenue = todayOrders.reduce((sum, o) =&gt; sum + (o.total || 0), 0);
 
-    const todaySales = document.getElementById('todaySales');
-    const bestQualityCount = document.getElementById('bestQualityCount');
-    const totalOrders = document.getElementById('totalOrders');
-    const lowStock = document.getElementById('lowStock');
+    const todaySales = document.getElementById(&#x27;todaySales&#x27;);
+    const bestQualityCount = document.getElementById(&#x27;bestQualityCount&#x27;);
+    const totalOrders = document.getElementById(&#x27;totalOrders&#x27;);
+    const lowStock = document.getElementById(&#x27;lowStock&#x27;);
     
     if (todaySales) todaySales.textContent = `KES ${todayRevenue}`;
-    if (bestQualityCount) bestQualityCount.textContent = products.filter(p => p.best_quality).length;
+    if (bestQualityCount) bestQualityCount.textContent = products.filter(p =&gt; p.best_quality).length;
     if (totalOrders) totalOrders.textContent = orders.length;
-    if (lowStock) lowStock.textContent = products.filter(p => p.stock < 5).length;
+    if (lowStock) lowStock.textContent = products.filter(p =&gt; p.stock &lt; 5).length;
 }
 
 // ============================================================
@@ -201,8 +217,8 @@ function updateStats() {
 function resetSessionTimer() {
     if (sessionTimer) clearTimeout(sessionTimer);
     const timeout = (sessionTimeout || 30) * 60 * 1000;
-    sessionTimer = setTimeout(() => {
-        showToast('⚠️ Session expired. Please login again.', 'warning');
+    sessionTimer = setTimeout(() =&gt; {
+        showToast(&#x27;⚠️ Session expired. Please login again.&#x27;, &#x27;warning&#x27;);
         logout();
     }, timeout);
 }
@@ -210,12 +226,12 @@ function resetSessionTimer() {
 async function logout() {
     try {
         if (sb.auth) {
-            await sb.auth.signOut().catch(() => {});
+            await sb.auth.signOut().catch(() =&gt; {});
         }
     } catch (e) {}
     localStorage.removeItem(SESSION_KEY);
     showLogin();
-    showToast('Logged out successfully', 'info');
+    showToast(&#x27;Logged out successfully&#x27;, &#x27;info&#x27;);
 }
 window.logout = logout;
 
@@ -223,31 +239,31 @@ window.logout = logout;
 // LOGIN SCREEN FUNCTIONS
 // ============================================================
 function showLogin() {
-    const loginScreen = document.getElementById('loginScreen');
-    const dashboardScreen = document.getElementById('dashboardScreen');
-    if (loginScreen) loginScreen.style.display = 'flex';
-    if (dashboardScreen) dashboardScreen.style.display = 'none';
-    const alertEl = document.getElementById('loginAlert');
+    const loginScreen = document.getElementById(&#x27;loginScreen&#x27;);
+    const dashboardScreen = document.getElementById(&#x27;dashboardScreen&#x27;);
+    if (loginScreen) loginScreen.style.display = &#x27;flex&#x27;;
+    if (dashboardScreen) dashboardScreen.style.display = &#x27;none&#x27;;
+    const alertEl = document.getElementById(&#x27;loginAlert&#x27;);
     if (alertEl) {
-        alertEl.className = 'alert';
-        alertEl.textContent = '';
+        alertEl.className = &#x27;alert&#x27;;
+        alertEl.textContent = &#x27;&#x27;;
     }
 }
 
 function showDashboard() {
-    const loginScreen = document.getElementById('loginScreen');
-    const dashboardScreen = document.getElementById('dashboardScreen');
-    if (loginScreen) loginScreen.style.display = 'none';
-    if (dashboardScreen) dashboardScreen.style.display = 'block';
+    const loginScreen = document.getElementById(&#x27;loginScreen&#x27;);
+    const dashboardScreen = document.getElementById(&#x27;dashboardScreen&#x27;);
+    if (loginScreen) loginScreen.style.display = &#x27;none&#x27;;
+    if (dashboardScreen) dashboardScreen.style.display = &#x27;block&#x27;;
     
-    const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
-    const userName = document.getElementById('userName');
-    const userRole = document.getElementById('userRole');
-    const userAvatar = document.getElementById('userAvatar');
+    const session = JSON.parse(localStorage.getItem(SESSION_KEY) || &#x27;{}&#x27;);
+    const userName = document.getElementById(&#x27;userName&#x27;);
+    const userRole = document.getElementById(&#x27;userRole&#x27;);
+    const userAvatar = document.getElementById(&#x27;userAvatar&#x27;);
     
-    if (userName) userName.textContent = session.user?.full_name || 'Admin';
-    if (userRole) userRole.textContent = session.user?.role_name || 'Administrator';
-    if (userAvatar) userAvatar.textContent = (session.user?.full_name || 'A').charAt(0).toUpperCase();
+    if (userName) userName.textContent = session.user?.full_name || &#x27;Admin&#x27;;
+    if (userRole) userRole.textContent = session.user?.role_name || &#x27;Administrator&#x27;;
+    if (userAvatar) userAvatar.textContent = (session.user?.full_name || &#x27;A&#x27;).charAt(0).toUpperCase();
     
     loadData();
 }
@@ -256,7 +272,7 @@ async function checkAuth() {
     try {
         const stored = localStorage.getItem(SESSION_KEY);
         if (!stored) {
-            console.log('❌ No session found');
+            console.log(&#x27;❌ No session found&#x27;);
             showLogin();
             return null;
         }
@@ -279,13 +295,13 @@ async function checkAuth() {
         }
 
         const maxAge = 24 * 60 * 60 * 1000;
-        if (loginTime && Date.now() - loginTime > maxAge) {
+        if (loginTime &amp;&amp; Date.now() - loginTime &gt; maxAge) {
             localStorage.removeItem(SESSION_KEY);
             showLogin();
             return null;
         }
 
-        console.log('✅ User authenticated:', user.email);
+        console.log(&#x27;✅ User authenticated:&#x27;, user.email);
         currentUser = user;
         updateUI(user);
         resetSessionTimer();
@@ -293,7 +309,7 @@ async function checkAuth() {
         return currentUser;
 
     } catch (error) {
-        console.error('❌ Auth error:', error);
+        console.error(&#x27;❌ Auth error:&#x27;, error);
         localStorage.removeItem(SESSION_KEY);
         showLogin();
         return null;
@@ -301,13 +317,13 @@ async function checkAuth() {
 }
 
 function updateUI(user) {
-    const avatar = document.getElementById('userAvatar');
-    const userName = document.getElementById('userName');
-    const userRole = document.getElementById('userRole');
+    const avatar = document.getElementById(&#x27;userAvatar&#x27;);
+    const userName = document.getElementById(&#x27;userName&#x27;);
+    const userRole = document.getElementById(&#x27;userRole&#x27;);
     
-    if (avatar) avatar.textContent = user.full_name?.charAt(0).toUpperCase() || 'A';
-    if (userName) userName.textContent = user.full_name || 'User';
-    if (userRole) userRole.textContent = user.role_name || 'Administrator';
+    if (avatar) avatar.textContent = user.full_name?.charAt(0).toUpperCase() || &#x27;A&#x27;;
+    if (userName) userName.textContent = user.full_name || &#x27;User&#x27;;
+    if (userRole) userRole.textContent = user.role_name || &#x27;Administrator&#x27;;
 }
 
 // ============================================================
@@ -315,29 +331,29 @@ function updateUI(user) {
 // ============================================================
 function pinPress(n) {
     if (isSubmitting) return;
-    if (pinValue.length >= 4) return;
+    if (pinValue.length &gt;= 4) return;
 
-    const keys = document.querySelectorAll('.key:not(.action):not(.enter)');
-    const order = ['1','2','3','4','5','6','7','8','9','0'];
+    const keys = document.querySelectorAll(&#x27;.key:not(.action):not(.enter)&#x27;);
+    const order = [&#x27;1&#x27;,&#x27;2&#x27;,&#x27;3&#x27;,&#x27;4&#x27;,&#x27;5&#x27;,&#x27;6&#x27;,&#x27;7&#x27;,&#x27;8&#x27;,&#x27;9&#x27;,&#x27;0&#x27;];
     const idx = order.indexOf(n);
-    if (idx >= 0 && keys[idx]) {
-        keys[idx].style.transform = 'scale(0.85)';
-        keys[idx].style.background = 'rgba(255,255,255,0.2)';
-        setTimeout(() => {
-            keys[idx].style.transform = '';
-            keys[idx].style.background = '';
+    if (idx &gt;= 0 &amp;&amp; keys[idx]) {
+        keys[idx].style.transform = &#x27;scale(0.85)&#x27;;
+        keys[idx].style.background = &#x27;rgba(255,255,255,0.2)&#x27;;
+        setTimeout(() =&gt; {
+            keys[idx].style.transform = &#x27;&#x27;;
+            keys[idx].style.background = &#x27;&#x27;;
         }, 150);
     }
 
     if (navigator.vibrate) navigator.vibrate(8);
 
     pinValue += n;
-    const pinInput = document.getElementById('pinInput');
+    const pinInput = document.getElementById(&#x27;pinInput&#x27;);
     if (pinInput) pinInput.value = pinValue;
     renderDots();
 
     if (pinValue.length === 4) {
-        setTimeout(() => submitPin(), 80);
+        setTimeout(() =&gt; submitPin(), 80);
     }
 }
 window.pinPress = pinPress;
@@ -346,64 +362,64 @@ function pinBackspace() {
     if (isSubmitting) return;
     if (pinValue.length === 0) return;
 
-    const backspaceBtn = document.querySelector('.key.action');
+    const backspaceBtn = document.querySelector(&#x27;.key.action&#x27;);
     if (backspaceBtn) {
-        backspaceBtn.style.transform = 'scale(0.85)';
-        setTimeout(() => backspaceBtn.style.transform = '', 150);
+        backspaceBtn.style.transform = &#x27;scale(0.85)&#x27;;
+        setTimeout(() =&gt; backspaceBtn.style.transform = &#x27;&#x27;, 150);
     }
 
     if (navigator.vibrate) navigator.vibrate(5);
 
     pinValue = pinValue.slice(0, -1);
-    const pinInput = document.getElementById('pinInput');
+    const pinInput = document.getElementById(&#x27;pinInput&#x27;);
     if (pinInput) pinInput.value = pinValue;
     renderDots();
 }
 window.pinBackspace = pinBackspace;
 
 function renderDots() {
-    const dots = document.querySelectorAll('#pinDots .pin-dot');
-    dots.forEach((dot, i) => {
-        if (i < pinValue.length) {
-            dot.classList.add('filled');
+    const dots = document.querySelectorAll(&#x27;#pinDots .pin-dot&#x27;);
+    dots.forEach((dot, i) =&gt; {
+        if (i &lt; pinValue.length) {
+            dot.classList.add(&#x27;filled&#x27;);
             if (i === pinValue.length - 1) {
-                dot.style.animation = 'pulse 0.2s ease';
-                setTimeout(() => dot.style.animation = '', 300);
+                dot.style.animation = &#x27;pulse 0.2s ease&#x27;;
+                setTimeout(() =&gt; dot.style.animation = &#x27;&#x27;, 300);
             }
         } else {
-            dot.classList.remove('filled');
+            dot.classList.remove(&#x27;filled&#x27;);
         }
     });
 }
 
 function shakePinDots() {
-    const dots = document.querySelectorAll('#pinDots .pin-dot');
-    dots.forEach((dot, i) => {
+    const dots = document.querySelectorAll(&#x27;#pinDots .pin-dot&#x27;);
+    dots.forEach((dot, i) =&gt; {
         dot.style.animation = `shake 0.3s ease ${i * 0.05}s`;
-        dot.style.borderColor = '#EF4444';
-        setTimeout(() => {
-            dot.style.animation = '';
-            dot.style.borderColor = '';
+        dot.style.borderColor = &#x27;#EF4444&#x27;;
+        setTimeout(() =&gt; {
+            dot.style.animation = &#x27;&#x27;;
+            dot.style.borderColor = &#x27;&#x27;;
         }, 500);
     });
 }
 
 function submitPin() {
     if (isSubmitting) return;
-    if (pinValue.length < 4) {
-        showAlert('Please enter 4 digits.', 'error');
+    if (pinValue.length &lt; 4) {
+        showAlert(&#x27;Please enter 4 digits.&#x27;, &#x27;error&#x27;);
         shakePinDots();
         return;
     }
 
-    const enterBtn = document.getElementById('pinEnter');
+    const enterBtn = document.getElementById(&#x27;pinEnter&#x27;);
     if (enterBtn) {
-        enterBtn.style.transform = 'scale(0.85)';
-        setTimeout(() => enterBtn.style.transform = '', 200);
+        enterBtn.style.transform = &#x27;scale(0.85)&#x27;;
+        setTimeout(() =&gt; enterBtn.style.transform = &#x27;&#x27;, 200);
     }
 
-    const form = document.getElementById('loginForm');
-    if (form) form.dispatchEvent(new Event('submit'));
+    const form = document.getElementById(&#x27;loginForm&#x27;);
+    if (form) form.dispatchEvent(new Event(&#x27;submit&#x27;));
 }
 window.submitPin = submitPin;
 
@@ -414,44 +430,44 @@ function switchMethod(method) {
     if (isSubmitting) return;
     currentMethod = method;
 
-    if (method === 'pin') {
-        const pinPane = document.getElementById('pinPane');
-        const emailPane = document.getElementById('emailPane');
-        const pinTab = document.getElementById('pinTab');
-        const emailTab = document.getElementById('emailTab');
-        const authSub = document.getElementById('authSub');
+    if (method === &#x27;pin&#x27;) {
+        const pinPane = document.getElementById(&#x27;pinPane&#x27;);
+        const emailPane = document.getElementById(&#x27;emailPane&#x27;);
+        const pinTab = document.getElementById(&#x27;pinTab&#x27;);
+        const emailTab = document.getElementById(&#x27;emailTab&#x27;);
+        const authSub = document.getElementById(&#x27;authSub&#x27;);
         
-        if (pinPane) pinPane.classList.remove('hidden');
-        if (emailPane) emailPane.classList.add('hidden');
-        if (pinTab) pinTab.classList.add('active');
-        if (emailTab) emailTab.classList.remove('active');
-        if (authSub) authSub.textContent = 'Enter your email and PIN to sign in';
+        if (pinPane) pinPane.classList.remove(&#x27;hidden&#x27;);
+        if (emailPane) emailPane.classList.add(&#x27;hidden&#x27;);
+        if (pinTab) pinTab.classList.add(&#x27;active&#x27;);
+        if (emailTab) emailTab.classList.remove(&#x27;active&#x27;);
+        if (authSub) authSub.textContent = &#x27;Enter your email and PIN to sign in&#x27;;
         
         hideAlert();
-        pinValue = '';
-        const pinInput = document.getElementById('pinInput');
-        if (pinInput) pinInput.value = '';
+        pinValue = &#x27;&#x27;;
+        const pinInput = document.getElementById(&#x27;pinInput&#x27;);
+        if (pinInput) pinInput.value = &#x27;&#x27;;
         renderDots();
-        setTimeout(() => {
-            const pinEmail = document.getElementById('pinEmail');
+        setTimeout(() =&gt; {
+            const pinEmail = document.getElementById(&#x27;pinEmail&#x27;);
             if (pinEmail) pinEmail.focus();
         }, 100);
     } else {
-        const pinPane = document.getElementById('pinPane');
-        const emailPane = document.getElementById('emailPane');
-        const pinTab = document.getElementById('pinTab');
-        const emailTab = document.getElementById('emailTab');
-        const authSub = document.getElementById('authSub');
+        const pinPane = document.getElementById(&#x27;pinPane&#x27;);
+        const emailPane = document.getElementById(&#x27;emailPane&#x27;);
+        const pinTab = document.getElementById(&#x27;pinTab&#x27;);
+        const emailTab = document.getElementById(&#x27;emailTab&#x27;);
+        const authSub = document.getElementById(&#x27;authSub&#x27;);
         
-        if (emailPane) emailPane.classList.remove('hidden');
-        if (pinPane) pinPane.classList.add('hidden');
-        if (emailTab) emailTab.classList.add('active');
-        if (pinTab) pinTab.classList.remove('active');
-        if (authSub) authSub.textContent = 'Enter your credentials to continue';
+        if (emailPane) emailPane.classList.remove(&#x27;hidden&#x27;);
+        if (pinPane) pinPane.classList.add(&#x27;hidden&#x27;);
+        if (emailTab) emailTab.classList.add(&#x27;active&#x27;);
+        if (pinTab) pinTab.classList.remove(&#x27;active&#x27;);
+        if (authSub) authSub.textContent = &#x27;Enter your credentials to continue&#x27;;
         
         hideAlert();
-        setTimeout(() => {
-            const emailInput = document.getElementById('emailInput');
+        setTimeout(() =&gt; {
+            const emailInput = document.getElementById(&#x27;emailInput&#x27;);
             if (emailInput) emailInput.focus();
         }, 100);
     }
@@ -461,34 +477,34 @@ window.switchMethod = switchMethod;
 // ============================================================
 // ALERT SYSTEM
 // ============================================================
-function showAlert(message, type = 'error') {
-    const alertEl = document.getElementById('loginAlert');
+function showAlert(message, type = &#x27;error&#x27;) {
+    const alertEl = document.getElementById(&#x27;loginAlert&#x27;);
     if (!alertEl) return;
     alertEl.textContent = message;
-    alertEl.className = 'alert ' + type;
-    alertEl.setAttribute('role', 'alert');
+    alertEl.className = &#x27;alert &#x27; + type;
+    alertEl.setAttribute(&#x27;role&#x27;, &#x27;alert&#x27;);
 }
 
 function hideAlert() {
-    const alertEl = document.getElementById('loginAlert');
+    const alertEl = document.getElementById(&#x27;loginAlert&#x27;);
     if (!alertEl) return;
-    alertEl.className = 'alert';
-    alertEl.textContent = '';
-    alertEl.removeAttribute('role');
+    alertEl.className = &#x27;alert&#x27;;
+    alertEl.textContent = &#x27;&#x27;;
+    alertEl.removeAttribute(&#x27;role&#x27;);
 }
 
 // ============================================================
 // KEYBOARD SUPPORT
 // ============================================================
-document.addEventListener('keydown', function(e) {
-    if (currentMethod !== 'pin') return;
-    if (e.key >= '0' && e.key <= '9') {
+document.addEventListener(&#x27;keydown&#x27;, function(e) {
+    if (currentMethod !== &#x27;pin&#x27;) return;
+    if (e.key &gt;= &#x27;0&#x27; &amp;&amp; e.key &lt;= &#x27;9&#x27;) {
         e.preventDefault();
         pinPress(e.key);
-    } else if (e.key === 'Backspace') {
+    } else if (e.key === &#x27;Backspace&#x27;) {
         e.preventDefault();
         pinBackspace();
-    } else if (e.key === 'Enter') {
+    } else if (e.key === &#x27;Enter&#x27;) {
         e.preventDefault();
         submitPin();
     }
@@ -503,164 +519,164 @@ async function handleLogin(e) {
     hideAlert();
 
     isSubmitting = true;
-    const loginBtn = document.getElementById('loginBtn');
-    const btnText = document.getElementById('btnText');
-    const btnSpinner = document.getElementById('btnSpinner');
+    const loginBtn = document.getElementById(&#x27;loginBtn&#x27;);
+    const btnText = document.getElementById(&#x27;btnText&#x27;);
+    const btnSpinner = document.getElementById(&#x27;btnSpinner&#x27;);
     
     if (loginBtn) loginBtn.disabled = true;
-    if (btnText) btnText.style.display = 'none';
-    if (btnSpinner) btnSpinner.style.display = 'inline-block';
+    if (btnText) btnText.style.display = &#x27;none&#x27;;
+    if (btnSpinner) btnSpinner.style.display = &#x27;inline-block&#x27;;
 
     try {
-        let email = '';
+        let email = &#x27;&#x27;;
 
-        if (currentMethod === 'pin') {
-            const pinEmail = document.getElementById('pinEmail');
-            if (!pinEmail) throw new Error('Email field not found');
+        if (currentMethod === &#x27;pin&#x27;) {
+            const pinEmail = document.getElementById(&#x27;pinEmail&#x27;);
+            if (!pinEmail) throw new Error(&#x27;Email field not found&#x27;);
             email = pinEmail.value.trim();
             
-            if (!email) throw new Error('Please enter your email address.');
-            if (!email.includes('@')) throw new Error('Please enter a valid email address.');
-            if (pinValue.length < 4) throw new Error('PIN must be 4 digits.');
+            if (!email) throw new Error(&#x27;Please enter your email address.&#x27;);
+            if (!email.includes(&#x27;@&#x27;)) throw new Error(&#x27;Please enter a valid email address.&#x27;);
+            if (pinValue.length &lt; 4) throw new Error(&#x27;PIN must be 4 digits.&#x27;);
 
-            console.log('🔍 Looking for user:', email);
+            console.log(&#x27;🔍 Looking for user:&#x27;, email);
 
-            // ✅ Use 'sb' instead of 'supabase'
+            // ✅ Use &#x27;sb&#x27; instead of &#x27;supabase&#x27;
             const { data: user, error } = await sb
-                .from('users')
-                .select('id, email, full_name, role_id, status, pin, pin_enabled')
-                .eq('email', email)
+                .from(&#x27;users&#x27;)
+                .select(&#x27;id, email, full_name, role_id, status, pin, pin_enabled&#x27;)
+                .eq(&#x27;email&#x27;, email)
                 .maybeSingle();
 
             if (error) {
-                console.error('❌ Database error:', error);
-                throw new Error('Database error: ' + error.message);
+                console.error(&#x27;❌ Database error:&#x27;, error);
+                throw new Error(&#x27;Database error: &#x27; + error.message);
             }
 
             if (!user) {
-                console.log('❌ User not found:', email);
-                throw new Error('User not found. Please check your email.');
+                console.log(&#x27;❌ User not found:&#x27;, email);
+                throw new Error(&#x27;User not found. Please check your email.&#x27;);
             }
 
-            console.log('✅ User found:', user.email);
-            console.log('🔐 PIN in DB:', user.pin);
-            console.log('🔑 PIN entered:', pinValue);
+            console.log(&#x27;✅ User found:&#x27;, user.email);
+            console.log(&#x27;🔐 PIN in DB:&#x27;, user.pin);
+            console.log(&#x27;🔑 PIN entered:&#x27;, pinValue);
 
-            if (user.status !== 'active') {
-                throw new Error('Account is inactive. Please contact admin.');
+            if (user.status !== &#x27;active&#x27;) {
+                throw new Error(&#x27;Account is inactive. Please contact admin.&#x27;);
             }
 
             if (!user.pin_enabled) {
-                throw new Error('PIN is not enabled for this account. Please use email login.');
+                throw new Error(&#x27;PIN is not enabled for this account. Please use email login.&#x27;);
             }
 
             if (user.pin !== pinValue) {
-                console.log('❌ PIN mismatch');
-                throw new Error('Invalid PIN. Please try again.');
+                console.log(&#x27;❌ PIN mismatch&#x27;);
+                throw new Error(&#x27;Invalid PIN. Please try again.&#x27;);
             }
 
-            console.log('✅ PIN verified successfully!');
+            console.log(&#x27;✅ PIN verified successfully!&#x27;);
 
-            let userData = { ...user, role_name: 'Admin' };
+            let userData = { ...user, role_name: &#x27;Admin&#x27; };
             try {
                 const { data: roleData } = await sb
-                    .from('roles')
-                    .select('name')
-                    .eq('id', user.role_id)
+                    .from(&#x27;roles&#x27;)
+                    .select(&#x27;name&#x27;)
+                    .eq(&#x27;id&#x27;, user.role_id)
                     .maybeSingle();
                 
                 if (roleData) {
                     userData.role_name = roleData.name;
                 }
             } catch (e) {
-                console.log('⚠️ Could not fetch role, using default');
+                console.log(&#x27;⚠️ Could not fetch role, using default&#x27;);
             }
 
             const sessionData = {
                 user: {
                     ...userData,
-                    role_name: userData.role_name || 'Admin'
+                    role_name: userData.role_name || &#x27;Admin&#x27;
                 },
-                loginMethod: 'pin',
+                loginMethod: &#x27;pin&#x27;,
                 loginTime: Date.now()
             };
             localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
 
             try {
                 await sb
-                    .from('users')
+                    .from(&#x27;users&#x27;)
                     .update({ last_login: new Date().toISOString() })
-                    .eq('id', user.id);
+                    .eq(&#x27;id&#x27;, user.id);
             } catch (e) {
-                console.log('⚠️ Could not update last login');
+                console.log(&#x27;⚠️ Could not update last login&#x27;);
             }
 
             currentUser = sessionData.user;
-            showToast('Welcome back, ' + user.full_name + '!', 'success');
+            showToast(&#x27;Welcome back, &#x27; + user.full_name + &#x27;!&#x27;, &#x27;success&#x27;);
             showDashboard();
 
         } else {
             // Email login
-            const emailInput = document.getElementById('emailInput');
-            const passwordInput = document.getElementById('passwordInput');
+            const emailInput = document.getElementById(&#x27;emailInput&#x27;);
+            const passwordInput = document.getElementById(&#x27;passwordInput&#x27;);
             
-            if (!emailInput || !passwordInput) throw new Error('Form fields not found');
+            if (!emailInput || !passwordInput) throw new Error(&#x27;Form fields not found&#x27;);
             
             email = emailInput.value.trim();
             const password = passwordInput.value;
 
-            if (!email || !password) throw new Error('Please enter both email and password.');
-            if (!email.includes('@')) throw new Error('Please enter a valid email address.');
+            if (!email || !password) throw new Error(&#x27;Please enter both email and password.&#x27;);
+            if (!email.includes(&#x27;@&#x27;)) throw new Error(&#x27;Please enter a valid email address.&#x27;);
 
             const { data: authData, error: authError } = await sb.auth.signInWithPassword({
                 email, password
             });
 
-            if (authError) throw new Error(authError.message || 'Authentication failed.');
+            if (authError) throw new Error(authError.message || &#x27;Authentication failed.&#x27;);
 
             const { data: userData, error: userError } = await sb
-                .from('users')
-                .select('*')
-                .eq('email', email)
+                .from(&#x27;users&#x27;)
+                .select(&#x27;*&#x27;)
+                .eq(&#x27;email&#x27;, email)
                 .maybeSingle();
 
-            if (userError || !userData) throw new Error('User profile not found');
-            if (userData.status !== 'active') throw new Error('Account is inactive');
+            if (userError || !userData) throw new Error(&#x27;User profile not found&#x27;);
+            if (userData.status !== &#x27;active&#x27;) throw new Error(&#x27;Account is inactive&#x27;);
 
             const sessionData = {
                 user: {
                     ...userData,
-                    role_name: 'Admin'
+                    role_name: &#x27;Admin&#x27;
                 },
                 session: authData.session,
-                loginMethod: 'email',
+                loginMethod: &#x27;email&#x27;,
                 loginTime: Date.now()
             };
             localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
 
             currentUser = sessionData.user;
-            showToast('Welcome back, ' + userData.full_name + '!', 'success');
+            showToast(&#x27;Welcome back, &#x27; + userData.full_name + &#x27;!&#x27;, &#x27;success&#x27;);
             showDashboard();
         }
 
     } catch (error) {
-        showAlert(error.message, 'error');
-        console.error('Login error:', error);
+        showAlert(error.message, &#x27;error&#x27;);
+        console.error(&#x27;Login error:&#x27;, error);
         
-        if (currentMethod === 'pin') {
-            pinValue = '';
-            const pinInput = document.getElementById('pinInput');
-            if (pinInput) pinInput.value = '';
+        if (currentMethod === &#x27;pin&#x27;) {
+            pinValue = &#x27;&#x27;;
+            const pinInput = document.getElementById(&#x27;pinInput&#x27;);
+            if (pinInput) pinInput.value = &#x27;&#x27;;
             renderDots();
             shakePinDots();
         }
         
-        const loginBtn = document.getElementById('loginBtn');
-        const btnText = document.getElementById('btnText');
-        const btnSpinner = document.getElementById('btnSpinner');
+        const loginBtn = document.getElementById(&#x27;loginBtn&#x27;);
+        const btnText = document.getElementById(&#x27;btnText&#x27;);
+        const btnSpinner = document.getElementById(&#x27;btnSpinner&#x27;);
         if (loginBtn) loginBtn.disabled = false;
-        if (btnText) btnText.style.display = 'inline';
-        if (btnSpinner) btnSpinner.style.display = 'none';
+        if (btnText) btnText.style.display = &#x27;inline&#x27;;
+        if (btnSpinner) btnSpinner.style.display = &#x27;none&#x27;;
         isSubmitting = false;
     }
 }
@@ -670,7 +686,7 @@ window.handleLogin = handleLogin;
 // REFRESH ALL FUNCTION
 // ============================================================
 function refreshAll() {
-    showToast('🔄 Refreshing data...', 'info');
+    showToast(&#x27;🔄 Refreshing data...&#x27;, &#x27;info&#x27;);
     loadData();
 }
 window.refreshAll = refreshAll;
@@ -680,42 +696,42 @@ window.refreshAll = refreshAll;
 // ============================================================
 function navigateTo(section) {
     currentTab = section;
-    document.querySelectorAll('.section-page').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.sidebar-menu li').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll(&#x27;.section-page&#x27;).forEach(el =&gt; el.classList.remove(&#x27;active&#x27;));
+    document.querySelectorAll(&#x27;.sidebar-menu li&#x27;).forEach(el =&gt; el.classList.remove(&#x27;active&#x27;));
 
     const sectionMap = {
-        'dashboard': 'dashboardSection',
-        'pos': 'posSection',
-        'orders': 'ordersSection',
-        'products': 'productsSection',
-        'inventory': 'inventorySection',
-        'customers': 'customersSection',
-        'reports': 'reportsSection',
-        'profit': 'profitSection',
-        'audit': 'auditSection',
-        'settings': 'settingsSection'
+        &#x27;dashboard&#x27;: &#x27;dashboardSection&#x27;,
+        &#x27;pos&#x27;: &#x27;posSection&#x27;,
+        &#x27;orders&#x27;: &#x27;ordersSection&#x27;,
+        &#x27;products&#x27;: &#x27;productsSection&#x27;,
+        &#x27;inventory&#x27;: &#x27;inventorySection&#x27;,
+        &#x27;customers&#x27;: &#x27;customersSection&#x27;,
+        &#x27;reports&#x27;: &#x27;reportsSection&#x27;,
+        &#x27;profit&#x27;: &#x27;profitSection&#x27;,
+        &#x27;audit&#x27;: &#x27;auditSection&#x27;,
+        &#x27;settings&#x27;: &#x27;settingsSection&#x27;
     };
 
     const target = document.getElementById(sectionMap[section]);
-    if (target) target.classList.add('active');
+    if (target) target.classList.add(&#x27;active&#x27;);
     
-    const navItem = document.querySelector(`.sidebar-menu li[data-section="${section}"]`);
-    if (navItem) navItem.classList.add('active');
+    const navItem = document.querySelector(`.sidebar-menu li[data-section=&quot;${section}&quot;]`);
+    if (navItem) navItem.classList.add(&#x27;active&#x27;);
 
     const titles = {
-        'dashboard': '📊 Dashboard',
-        'pos': '🛒 Point of Sale',
-        'orders': '📋 Orders',
-        'products': '📦 Products',
-        'inventory': '🏪 Inventory',
-        'customers': '👤 Customers',
-        'reports': '📊 Reports',
-        'profit': '💰 Profit/Loss',
-        'audit': '📜 Audit Trail',
-        'settings': '⚙️ Settings'
+        &#x27;dashboard&#x27;: &#x27;📊 Dashboard&#x27;,
+        &#x27;pos&#x27;: &#x27;🛒 Point of Sale&#x27;,
+        &#x27;orders&#x27;: &#x27;📋 Orders&#x27;,
+        &#x27;products&#x27;: &#x27;📦 Products&#x27;,
+        &#x27;inventory&#x27;: &#x27;🏪 Inventory&#x27;,
+        &#x27;customers&#x27;: &#x27;👤 Customers&#x27;,
+        &#x27;reports&#x27;: &#x27;📊 Reports&#x27;,
+        &#x27;profit&#x27;: &#x27;💰 Profit/Loss&#x27;,
+        &#x27;audit&#x27;: &#x27;📜 Audit Trail&#x27;,
+        &#x27;settings&#x27;: &#x27;⚙️ Settings&#x27;
     };
 
-    const pageTitle = document.getElementById('pageTitle');
+    const pageTitle = document.getElementById(&#x27;pageTitle&#x27;);
     if (pageTitle) pageTitle.textContent = titles[section] || section;
     
     renderCurrentTab();
@@ -724,25 +740,25 @@ function navigateTo(section) {
 window.navigateTo = navigateTo;
 
 function renderCurrentTab() {
-    if (currentTab === 'dashboard') {
+    if (currentTab === &#x27;dashboard&#x27;) {
         updateGreeting();
         renderDashboard();
-    } else if (currentTab === 'pos') {
+    } else if (currentTab === &#x27;pos&#x27;) {
         renderPOSProducts();
         updateCartUI();
-    } else if (currentTab === 'orders') {
+    } else if (currentTab === &#x27;orders&#x27;) {
         renderOrders();
-    } else if (currentTab === 'products') {
+    } else if (currentTab === &#x27;products&#x27;) {
         renderProductsTable();
-    } else if (currentTab === 'inventory') {
+    } else if (currentTab === &#x27;inventory&#x27;) {
         renderInventory();
-    } else if (currentTab === 'customers') {
+    } else if (currentTab === &#x27;customers&#x27;) {
         renderCustomersTable();
-    } else if (currentTab === 'reports') {
+    } else if (currentTab === &#x27;reports&#x27;) {
         // handled by button
-    } else if (currentTab === 'profit') {
+    } else if (currentTab === &#x27;profit&#x27;) {
         refreshProfitData();
-    } else if (currentTab === 'audit') {
+    } else if (currentTab === &#x27;audit&#x27;) {
         loadAuditLogs();
     }
 }
@@ -752,19 +768,19 @@ function renderCurrentTab() {
 // ============================================================
 function updateGreeting() {
     const hour = new Date().getHours();
-    let greeting = 'Good Morning';
-    if (hour >= 12 && hour < 17) greeting = 'Good Afternoon';
-    else if (hour >= 17) greeting = 'Good Evening';
+    let greeting = &#x27;Good Morning&#x27;;
+    if (hour &gt;= 12 &amp;&amp; hour &lt; 17) greeting = &#x27;Good Afternoon&#x27;;
+    else if (hour &gt;= 17) greeting = &#x27;Good Evening&#x27;;
 
-    const name = currentUser?.full_name || 'Admin';
-    const container = document.getElementById('greetingContainer');
+    const name = currentUser?.full_name || &#x27;Admin&#x27;;
+    const container = document.getElementById(&#x27;greetingContainer&#x27;);
     if (container) {
         container.innerHTML = `
-            <div class="greeting-banner">
-                <h2>👋 ${greeting}, ${name}!
-                    <span class="greeting-sub">Welcome to Lucie Closet POS System</span>
-                </h2>
-            </div>
+            &lt;div class=&quot;greeting-banner&quot;&gt;
+                &lt;h2&gt;👋 ${greeting}, ${name}!
+                    &lt;span class=&quot;greeting-sub&quot;&gt;Welcome to Lucie Closet POS System&lt;/span&gt;
+                &lt;/h2&gt;
+            &lt;/div&gt;
         `;
     }
 }
@@ -780,49 +796,49 @@ function renderDashboard() {
 
 function renderRecentOrders() {
     const recent = orders.slice(0, 10);
-    const container = document.getElementById('recentOrdersTable');
+    const container = document.getElementById(&#x27;recentOrdersTable&#x27;);
     if (!container) return;
 
     if (!recent.length) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No recent orders</p></div>';
+        container.innerHTML = &#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-inbox&quot;&gt;&lt;/i&gt;&lt;p&gt;No recent orders&lt;/p&gt;&lt;/div&gt;&#x27;;
         return;
     }
 
     container.innerHTML = `
-        <div class="table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Order #</th>
-                        <th>Customer</th>
-                        <th>Items</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${recent.map(o => `
-                        <tr>
-                            <td><strong>${o.order_number}</strong></td>
-                            <td>${o.customer_name || 'Guest'}</td>
-                            <td>${o.items ? o.items.reduce((s,i) => s + i.qty, 0) : 0} items</td>
-                            <td><strong>KES ${o.total}</strong></td>
-                            <td><span class="status-badge ${o.status || 'pending'}">${o.status || 'pending'}</span></td>
-                            <td style="font-size:12px;color:var(--text-muted);">${new Date(o.created_at).toLocaleDateString()}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
+        &lt;div class=&quot;table-wrapper&quot;&gt;
+            &lt;table class=&quot;data-table&quot;&gt;
+                &lt;thead&gt;
+                    &lt;tr&gt;
+                        &lt;th&gt;Order #&lt;/th&gt;
+                        &lt;th&gt;Customer&lt;/th&gt;
+                        &lt;th&gt;Items&lt;/th&gt;
+                        &lt;th&gt;Total&lt;/th&gt;
+                        &lt;th&gt;Status&lt;/th&gt;
+                        &lt;th&gt;Date&lt;/th&gt;
+                    &lt;/tr&gt;
+                &lt;/thead&gt;
+                &lt;tbody&gt;
+                    ${recent.map(o =&gt; `
+                        &lt;tr&gt;
+                            &lt;td&gt;&lt;strong&gt;${o.order_number}&lt;/strong&gt;&lt;/td&gt;
+                            &lt;td&gt;${o.customer_name || &#x27;Guest&#x27;}&lt;/td&gt;
+                            &lt;td&gt;${o.items ? o.items.reduce((s,i) =&gt; s + i.qty, 0) : 0} items&lt;/td&gt;
+                            &lt;td&gt;&lt;strong&gt;KES ${o.total}&lt;/strong&gt;&lt;/td&gt;
+                            &lt;td&gt;&lt;span class=&quot;status-badge ${o.status || &#x27;pending&#x27;}&quot;&gt;${o.status || &#x27;pending&#x27;}&lt;/span&gt;&lt;/td&gt;
+                            &lt;td style=&quot;font-size:12px;color:var(--text-muted);&quot;&gt;${new Date(o.created_at).toLocaleDateString()}&lt;/td&gt;
+                        &lt;/tr&gt;
+                    `).join(&#x27;&#x27;)}
+                &lt;/tbody&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;
     `;
 }
 
 function renderTopProducts() {
     const productSales = {};
-    orders.forEach(o => {
+    orders.forEach(o =&gt; {
         if (o.items) {
-            o.items.forEach(i => {
+            o.items.forEach(i =&gt; {
                 if (!productSales[i.id]) productSales[i.id] = { name: i.name, qty: 0, revenue: 0 };
                 productSales[i.id].qty += i.qty;
                 productSales[i.id].revenue += i.price * i.qty;
@@ -830,49 +846,49 @@ function renderTopProducts() {
         }
     });
 
-    const sorted = Object.values(productSales).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
-    const container = document.getElementById('topProductsList');
+    const sorted = Object.values(productSales).sort((a, b) =&gt; b.revenue - a.revenue).slice(0, 5);
+    const container = document.getElementById(&#x27;topProductsList&#x27;);
     if (!container) return;
 
     if (!sorted.length) {
-        container.innerHTML = '<div class="empty-state"><p>No sales data</p></div>';
+        container.innerHTML = &#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;p&gt;No sales data&lt;/p&gt;&lt;/div&gt;&#x27;;
         return;
     }
 
-    container.innerHTML = sorted.map((p, i) => `
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
-            <span>${i+1}. ${p.name}</span>
-            <span style="font-weight:600;color:var(--primary);">KES ${p.revenue}</span>
-        </div>
-    `).join('');
+    container.innerHTML = sorted.map((p, i) =&gt; `
+        &lt;div style=&quot;display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);&quot;&gt;
+            &lt;span&gt;${i+1}. ${p.name}&lt;/span&gt;
+            &lt;span style=&quot;font-weight:600;color:var(--primary);&quot;&gt;KES ${p.revenue}&lt;/span&gt;
+        &lt;/div&gt;
+    `).join(&#x27;&#x27;);
 }
 
 function renderSalesChart() {
-    const ctx = document.getElementById('salesChart');
+    const ctx = document.getElementById(&#x27;salesChart&#x27;);
     if (!ctx) return;
-    const context = ctx.getContext('2d');
+    const context = ctx.getContext(&#x27;2d&#x27;);
     if (salesChartInstance) salesChartInstance.destroy();
 
     const last7Days = [];
     const salesData = [];
-    for (let i = 6; i >= 0; i--) {
+    for (let i = 6; i &gt;= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
         const dateStr = date.toDateString();
-        last7Days.push(date.toLocaleDateString('en', { weekday: 'short' }));
-        const dayOrders = orders.filter(o => new Date(o.created_at).toDateString() === dateStr && o.status === 'completed');
-        salesData.push(dayOrders.reduce((sum, o) => sum + (o.total || 0), 0));
+        last7Days.push(date.toLocaleDateString(&#x27;en&#x27;, { weekday: &#x27;short&#x27; }));
+        const dayOrders = orders.filter(o =&gt; new Date(o.created_at).toDateString() === dateStr &amp;&amp; o.status === &#x27;completed&#x27;);
+        salesData.push(dayOrders.reduce((sum, o) =&gt; sum + (o.total || 0), 0));
     }
 
     salesChartInstance = new Chart(context, {
-        type: 'line',
+        type: &#x27;line&#x27;,
         data: {
             labels: last7Days,
             datasets: [{
-                label: 'Sales (KES)',
+                label: &#x27;Sales (KES)&#x27;,
                 data: salesData,
-                borderColor: '#C62828',
-                backgroundColor: 'rgba(198,40,40,0.1)',
+                borderColor: &#x27;#C62828&#x27;,
+                backgroundColor: &#x27;rgba(198,40,40,0.1)&#x27;,
                 tension: 0.4,
                 fill: true
             }]
@@ -889,7 +905,7 @@ function renderSalesChart() {
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        callback: function(value) { return 'KES ' + value; }
+                        callback: function(value) { return &#x27;KES &#x27; + value; }
                     }
                 }
             }
@@ -901,31 +917,31 @@ function renderSalesChart() {
 // POS FUNCTIONS
 // ============================================================
 function renderPOSProducts() {
-    const grid = document.getElementById('posProductGrid');
+    const grid = document.getElementById(&#x27;posProductGrid&#x27;);
     if (!grid) return;
     
-    const search = document.getElementById('posSearch');
-    const searchValue = search ? search.value.toLowerCase() : '';
-    let filtered = products.filter(p => {
-        const matchSearch = p.name.toLowerCase().includes(searchValue) || (p.code && p.code.toLowerCase().includes(searchValue));
-        const matchCategory = currentCategory === 'all' || p.category === currentCategory;
-        return matchSearch && matchCategory && p.stock > 0;
+    const search = document.getElementById(&#x27;posSearch&#x27;);
+    const searchValue = search ? search.value.toLowerCase() : &#x27;&#x27;;
+    let filtered = products.filter(p =&gt; {
+        const matchSearch = p.name.toLowerCase().includes(searchValue) || (p.code &amp;&amp; p.code.toLowerCase().includes(searchValue));
+        const matchCategory = currentCategory === &#x27;all&#x27; || p.category === currentCategory;
+        return matchSearch &amp;&amp; matchCategory &amp;&amp; p.stock &gt; 0;
     });
 
     if (!filtered.length) {
-        grid.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products available</p></div>';
+        grid.innerHTML = &#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-box-open&quot;&gt;&lt;/i&gt;&lt;p&gt;No products available&lt;/p&gt;&lt;/div&gt;&#x27;;
         return;
     }
 
-    grid.innerHTML = filtered.map(p => `
-        <div class="pos-product-item" onclick="addToCart(${p.id})">
-            <span class="emoji">${p.category === 'dress' ? '👗' : p.category === 'top' ? '👕' : p.category === 'sweater' ? '🧥' : '👔'}</span>
-            <div class="name">${p.name}</div>
-            <div class="price">KES ${p.price}</div>
-            <div class="stock">${p.stock} in stock</div>
-            ${p.best_quality ? '<div class="best-tag"><i class="fas fa-star"></i> Best</div>' : ''}
-        </div>
-    `).join('');
+    grid.innerHTML = filtered.map(p =&gt; `
+        &lt;div class=&quot;pos-product-item&quot; onclick=&quot;addToCart(${p.id})&quot;&gt;
+            &lt;span class=&quot;emoji&quot;&gt;${p.category === &#x27;dress&#x27; ? &#x27;👗&#x27; : p.category === &#x27;top&#x27; ? &#x27;👕&#x27; : p.category === &#x27;sweater&#x27; ? &#x27;🧥&#x27; : &#x27;👔&#x27;}&lt;/span&gt;
+            &lt;div class=&quot;name&quot;&gt;${p.name}&lt;/div&gt;
+            &lt;div class=&quot;price&quot;&gt;KES ${p.price}&lt;/div&gt;
+            &lt;div class=&quot;stock&quot;&gt;${p.stock} in stock&lt;/div&gt;
+            ${p.best_quality ? &#x27;&lt;div class=&quot;best-tag&quot;&gt;&lt;i class=&quot;fas fa-star&quot;&gt;&lt;/i&gt; Best&lt;/div&gt;&#x27; : &#x27;&#x27;}
+        &lt;/div&gt;
+    `).join(&#x27;&#x27;);
 }
 window.renderPOSProducts = renderPOSProducts;
 
@@ -941,17 +957,17 @@ function switchCategory(category) {
 window.switchCategory = switchCategory;
 
 function addToCart(productId) {
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p =&gt; p.id === productId);
     if (!product) return;
-    if (product.stock < 1) {
-        showToast('Out of stock!', 'error');
+    if (product.stock &lt; 1) {
+        showToast(&#x27;Out of stock!&#x27;, &#x27;error&#x27;);
         return;
     }
 
-    const existing = cart.find(item => item.id === productId);
+    const existing = cart.find(item =&gt; item.id === productId);
     if (existing) {
-        if (existing.qty >= product.stock) {
-            showToast('Stock limit reached', 'error');
+        if (existing.qty &gt;= product.stock) {
+            showToast(&#x27;Stock limit reached&#x27;, &#x27;error&#x27;);
             return;
         }
         existing.qty++;
@@ -959,24 +975,24 @@ function addToCart(productId) {
         cart.push({ ...product, qty: 1 });
     }
     updateCartUI();
-    showToast(`${product.name} added to cart`, 'success');
+    showToast(`${product.name} added to cart`, &#x27;success&#x27;);
 }
 window.addToCart = addToCart;
 
 function removeFromCart(productId) {
-    cart = cart.filter(item => item.id !== productId);
+    cart = cart.filter(item =&gt; item.id !== productId);
     updateCartUI();
 }
 window.removeFromCart = removeFromCart;
 
 function updateQty(productId, delta) {
-    const item = cart.find(i => i.id === productId);
+    const item = cart.find(i =&gt; i.id === productId);
     if (!item) return;
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p =&gt; p.id === productId);
     const newQty = item.qty + delta;
 
-    if (newQty < 1) { removeFromCart(productId); return; }
-    if (product && newQty > product.stock) { showToast('Stock limit reached', 'error'); return; }
+    if (newQty &lt; 1) { removeFromCart(productId); return; }
+    if (product &amp;&amp; newQty &gt; product.stock) { showToast(&#x27;Stock limit reached&#x27;, &#x27;error&#x27;); return; }
 
     item.qty = newQty;
     updateCartUI();
@@ -984,36 +1000,36 @@ function updateQty(productId, delta) {
 window.updateQty = updateQty;
 
 function updateCartUI() {
-    const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
-    const totalPrice = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+    const totalItems = cart.reduce((sum, i) =&gt; sum + i.qty, 0);
+    const totalPrice = cart.reduce((sum, i) =&gt; sum + i.price * i.qty, 0);
 
-    const cartCount = document.getElementById('posCartCount');
-    const cartItems = document.getElementById('posCartItems');
-    const cartTotal = document.getElementById('posCartTotal');
+    const cartCount = document.getElementById(&#x27;posCartCount&#x27;);
+    const cartItems = document.getElementById(&#x27;posCartItems&#x27;);
+    const cartTotal = document.getElementById(&#x27;posCartTotal&#x27;);
     
     if (cartCount) cartCount.textContent = `${totalItems} items`;
 
     if (!cart.length) {
         if (cartItems) {
-            cartItems.innerHTML = '<div class="empty-state"><i class="fas fa-plus-circle"></i><p>Add items from the left</p></div>';
+            cartItems.innerHTML = &#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-plus-circle&quot;&gt;&lt;/i&gt;&lt;p&gt;Add items from the left&lt;/p&gt;&lt;/div&gt;&#x27;;
         }
     } else {
         if (cartItems) {
-            cartItems.innerHTML = cart.map(item => `
-                <div class="cart-item">
-                    <div class="item-info">
-                        <div class="name">${item.name}</div>
-                        <div class="code">${item.code || 'N/A'}</div>
-                    </div>
-                    <div class="item-qty">
-                        <button onclick="updateQty(${item.id},-1)">−</button>
-                        <span>${item.qty}</span>
-                        <button onclick="updateQty(${item.id},1)">+</button>
-                    </div>
-                    <div class="item-total">KES ${item.price * item.qty}</div>
-                    <button class="remove-btn" onclick="removeFromCart(${item.id})"><i class="fas fa-times"></i></button>
-                </div>
-            `).join('');
+            cartItems.innerHTML = cart.map(item =&gt; `
+                &lt;div class=&quot;cart-item&quot;&gt;
+                    &lt;div class=&quot;item-info&quot;&gt;
+                        &lt;div class=&quot;name&quot;&gt;${item.name}&lt;/div&gt;
+                        &lt;div class=&quot;code&quot;&gt;${item.code || &#x27;N/A&#x27;}&lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;div class=&quot;item-qty&quot;&gt;
+                        &lt;button onclick=&quot;updateQty(${item.id},-1)&quot;&gt;−&lt;/button&gt;
+                        &lt;span&gt;${item.qty}&lt;/span&gt;
+                        &lt;button onclick=&quot;updateQty(${item.id},1)&quot;&gt;+&lt;/button&gt;
+                    &lt;/div&gt;
+                    &lt;div class=&quot;item-total&quot;&gt;KES ${item.price * item.qty}&lt;/div&gt;
+                    &lt;button class=&quot;remove-btn&quot; onclick=&quot;removeFromCart(${item.id})&quot;&gt;&lt;i class=&quot;fas fa-times&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                &lt;/div&gt;
+            `).join(&#x27;&#x27;);
         }
     }
 
@@ -1023,10 +1039,10 @@ window.updateCartUI = updateCartUI;
 
 function clearCart() {
     if (!cart.length) return;
-    if (confirm('Clear all items from cart?')) {
+    if (confirm(&#x27;Clear all items from cart?&#x27;)) {
         cart = [];
         updateCartUI();
-        showToast('Cart cleared', 'info');
+        showToast(&#x27;Cart cleared&#x27;, &#x27;info&#x27;);
     }
 }
 window.clearCart = clearCart;
@@ -1036,126 +1052,126 @@ window.clearCart = clearCart;
 // ============================================================
 function openCheckout() {
     if (!cart.length) {
-        showToast('Cart is empty', 'error');
+        showToast(&#x27;Cart is empty&#x27;, &#x27;error&#x27;);
         return;
     }
 
-    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    const checkoutTotal = document.getElementById('checkoutTotal');
-    const checkoutItems = document.getElementById('checkoutItems');
+    const total = cart.reduce((sum, i) =&gt; sum + i.price * i.qty, 0);
+    const checkoutTotal = document.getElementById(&#x27;checkoutTotal&#x27;);
+    const checkoutItems = document.getElementById(&#x27;checkoutItems&#x27;);
     
     if (checkoutTotal) checkoutTotal.textContent = `KES ${total}`;
     
     if (checkoutItems) {
-        checkoutItems.innerHTML = cart.map(i => `
-            <div class="checkout-item">
-                <span>${i.name} × ${i.qty}</span>
-                <span>KES ${i.price * i.qty}</span>
-            </div>
-        `).join('');
+        checkoutItems.innerHTML = cart.map(i =&gt; `
+            &lt;div class=&quot;checkout-item&quot;&gt;
+                &lt;span&gt;${i.name} × ${i.qty}&lt;/span&gt;
+                &lt;span&gt;KES ${i.price * i.qty}&lt;/span&gt;
+            &lt;/div&gt;
+        `).join(&#x27;&#x27;);
     }
 
-    const checkoutName = document.getElementById('checkoutName');
-    const checkoutPhone = document.getElementById('checkoutPhone');
-    const mpesaCode = document.getElementById('mpesaCode');
-    const cashPaid = document.getElementById('cashPaid');
-    const changeDisplay = document.getElementById('changeDisplay');
-    const mpesaForm = document.getElementById('mpesaForm');
-    const cashForm = document.getElementById('cashForm');
+    const checkoutName = document.getElementById(&#x27;checkoutName&#x27;);
+    const checkoutPhone = document.getElementById(&#x27;checkoutPhone&#x27;);
+    const mpesaCode = document.getElementById(&#x27;mpesaCode&#x27;);
+    const cashPaid = document.getElementById(&#x27;cashPaid&#x27;);
+    const changeDisplay = document.getElementById(&#x27;changeDisplay&#x27;);
+    const mpesaForm = document.getElementById(&#x27;mpesaForm&#x27;);
+    const cashForm = document.getElementById(&#x27;cashForm&#x27;);
     
-    if (checkoutName) checkoutName.value = '';
-    if (checkoutPhone) checkoutPhone.value = '';
-    if (mpesaCode) mpesaCode.value = '';
-    if (cashPaid) cashPaid.value = '';
-    if (changeDisplay) changeDisplay.textContent = '';
-    if (mpesaForm) mpesaForm.style.display = 'none';
-    if (cashForm) cashForm.style.display = 'none';
+    if (checkoutName) checkoutName.value = &#x27;&#x27;;
+    if (checkoutPhone) checkoutPhone.value = &#x27;&#x27;;
+    if (mpesaCode) mpesaCode.value = &#x27;&#x27;;
+    if (cashPaid) cashPaid.value = &#x27;&#x27;;
+    if (changeDisplay) changeDisplay.textContent = &#x27;&#x27;;
+    if (mpesaForm) mpesaForm.style.display = &#x27;none&#x27;;
+    if (cashForm) cashForm.style.display = &#x27;none&#x27;;
 
-    openModal('checkoutModal');
+    openModal(&#x27;checkoutModal&#x27;);
 }
 window.openCheckout = openCheckout;
 
 function selectPayment(method) {
     selectedPayment = method;
-    document.querySelectorAll('.payment-methods .method').forEach(el => el.classList.remove('active'));
-    const activeMethod = document.querySelector(`.payment-methods .method[data-method="${method}"]`);
-    if (activeMethod) activeMethod.classList.add('active');
+    document.querySelectorAll(&#x27;.payment-methods .method&#x27;).forEach(el =&gt; el.classList.remove(&#x27;active&#x27;));
+    const activeMethod = document.querySelector(`.payment-methods .method[data-method=&quot;${method}&quot;]`);
+    if (activeMethod) activeMethod.classList.add(&#x27;active&#x27;);
 
-    const mpesaForm = document.getElementById('mpesaForm');
-    const cashForm = document.getElementById('cashForm');
-    if (mpesaForm) mpesaForm.style.display = method === 'mpesa' ? 'block' : 'none';
-    if (cashForm) cashForm.style.display = method === 'cash' ? 'block' : 'none';
+    const mpesaForm = document.getElementById(&#x27;mpesaForm&#x27;);
+    const cashForm = document.getElementById(&#x27;cashForm&#x27;);
+    if (mpesaForm) mpesaForm.style.display = method === &#x27;mpesa&#x27; ? &#x27;block&#x27; : &#x27;none&#x27;;
+    if (cashForm) cashForm.style.display = method === &#x27;cash&#x27; ? &#x27;block&#x27; : &#x27;none&#x27;;
 }
 window.selectPayment = selectPayment;
 
 function calculateChange() {
-    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    const cashPaid = document.getElementById('cashPaid');
-    const changeDisplay = document.getElementById('changeDisplay');
+    const total = cart.reduce((sum, i) =&gt; sum + i.price * i.qty, 0);
+    const cashPaid = document.getElementById(&#x27;cashPaid&#x27;);
+    const changeDisplay = document.getElementById(&#x27;changeDisplay&#x27;);
     
     if (!cashPaid || !changeDisplay) return;
     const paid = parseFloat(cashPaid.value) || 0;
     const change = paid - total;
-    changeDisplay.textContent = change >= 0 ? `Change: KES ${change}` : `Balance: KES ${Math.abs(change)}`;
+    changeDisplay.textContent = change &gt;= 0 ? `Change: KES ${change}` : `Balance: KES ${Math.abs(change)}`;
 }
 window.calculateChange = calculateChange;
 
 async function completeOrder() {
     if (!cart.length) return;
 
-    const checkoutName = document.getElementById('checkoutName');
-    const checkoutPhone = document.getElementById('checkoutPhone');
-    const mpesaCode = document.getElementById('mpesaCode');
+    const checkoutName = document.getElementById(&#x27;checkoutName&#x27;);
+    const checkoutPhone = document.getElementById(&#x27;checkoutPhone&#x27;);
+    const mpesaCode = document.getElementById(&#x27;mpesaCode&#x27;);
     
-    const name = checkoutName ? checkoutName.value.trim() || 'Walk-in Customer' : 'Walk-in Customer';
-    const phone = checkoutPhone ? checkoutPhone.value.trim() || 'N/A' : 'N/A';
-    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+    const name = checkoutName ? checkoutName.value.trim() || &#x27;Walk-in Customer&#x27; : &#x27;Walk-in Customer&#x27;;
+    const phone = checkoutPhone ? checkoutPhone.value.trim() || &#x27;N/A&#x27; : &#x27;N/A&#x27;;
+    const total = cart.reduce((sum, i) =&gt; sum + i.price * i.qty, 0);
 
     let paymentDetails = selectedPayment;
-    if (selectedPayment === 'mpesa') {
-        const code = mpesaCode ? mpesaCode.value.trim() : '';
-        if (!code) { showToast('Please enter M-Pesa transaction code', 'error'); return; }
+    if (selectedPayment === &#x27;mpesa&#x27;) {
+        const code = mpesaCode ? mpesaCode.value.trim() : &#x27;&#x27;;
+        if (!code) { showToast(&#x27;Please enter M-Pesa transaction code&#x27;, &#x27;error&#x27;); return; }
         paymentDetails = `M-Pesa: ${code}`;
     }
 
     const orderData = {
-        order_number: 'POS-' + Date.now().toString().slice(-6),
+        order_number: &#x27;POS-&#x27; + Date.now().toString().slice(-6),
         customer_name: name,
         customer_phone: phone,
-        customer_email: '',
-        items: cart.map(i => ({ id: i.id, name: i.name, code: i.code, qty: i.qty, price: i.price })),
+        customer_email: &#x27;&#x27;,
+        items: cart.map(i =&gt; ({ id: i.id, name: i.name, code: i.code, qty: i.qty, price: i.price })),
         total: total,
         payment_method: paymentDetails,
-        status: 'completed',
+        status: &#x27;completed&#x27;,
         created_at: new Date().toISOString()
     };
 
     try {
-        const { error } = await sb.from('orders').insert([orderData]);
+        const { error } = await sb.from(&#x27;orders&#x27;).insert([orderData]);
         if (error) throw error;
 
         for (const item of cart) {
-            const product = products.find(p => p.id === item.id);
+            const product = products.find(p =&gt; p.id === item.id);
             if (product) {
                 const newStock = product.stock - item.qty;
-                await sb.from('products').update({ stock: newStock }).eq('id', item.id);
+                await sb.from(&#x27;products&#x27;).update({ stock: newStock }).eq(&#x27;id&#x27;, item.id);
                 product.stock = newStock;
             }
         }
 
-        showToast(`✅ Order ${orderData.order_number} completed!`, 'success');
+        showToast(`✅ Order ${orderData.order_number} completed!`, &#x27;success&#x27;);
         generateReceipt(orderData);
 
         cart = [];
         updateCartUI();
-        closeModal('checkoutModal');
+        closeModal(&#x27;checkoutModal&#x27;);
         await loadProducts();
         updateStats();
         renderPOSProducts();
 
     } catch (e) {
-        console.error('Order error:', e);
-        showToast('Error processing order', 'error');
+        console.error(&#x27;Order error:&#x27;, e);
+        showToast(&#x27;Error processing order&#x27;, &#x27;error&#x27;);
     }
 }
 window.completeOrder = completeOrder;
@@ -1170,7 +1186,7 @@ function generateReceipt(order) {
         Customer: ${order.customer_name}
         Phone: ${order.customer_phone}
         ---------------------------------
-        ${order.items.map(i => `${i.name} × ${i.qty} = KES ${i.price * i.qty}`).join('\n        ')}
+        ${order.items.map(i =&gt; `${i.name} × ${i.qty} = KES ${i.price * i.qty}`).join(&#x27;\n        &#x27;)}
         ---------------------------------
         Total: KES ${order.total}
         Payment: ${order.payment_method}
@@ -1180,24 +1196,24 @@ function generateReceipt(order) {
         ================================
     `;
 
-    const receiptContent = document.getElementById('receiptContent');
+    const receiptContent = document.getElementById(&#x27;receiptContent&#x27;);
     if (receiptContent) receiptContent.textContent = receipt;
-    openModal('receiptModal');
+    openModal(&#x27;receiptModal&#x27;);
 
-    setTimeout(() => printReceipt(), 500);
+    setTimeout(() =&gt; printReceipt(), 500);
 }
 
 function printReceipt() {
-    const receiptContent = document.getElementById('receiptContent');
+    const receiptContent = document.getElementById(&#x27;receiptContent&#x27;);
     if (!receiptContent) return;
     
     const content = receiptContent.textContent;
-    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    const printWindow = window.open(&#x27;&#x27;, &#x27;_blank&#x27;, &#x27;width=400,height=600&#x27;);
     if (printWindow) {
         printWindow.document.write(`
-            <html><head><title>Receipt</title>
-            <style>body{font-family:monospace;padding:20px;white-space:pre-wrap;font-size:14px;}</style>
-            </head><body>${content}</body></html>
+            &lt;html&gt;&lt;head&gt;&lt;title&gt;Receipt&lt;/title&gt;
+            &lt;style&gt;body{font-family:monospace;padding:20px;white-space:pre-wrap;font-size:14px;}&lt;/style&gt;
+            &lt;/head&gt;&lt;body&gt;${content}&lt;/body&gt;&lt;/html&gt;
         `);
         printWindow.document.close();
         printWindow.print();
@@ -1208,102 +1224,102 @@ window.printReceipt = printReceipt;
 // ============================================================
 // ORDERS
 // ============================================================
-function renderOrders(filter = 'all') {
+function renderOrders(filter = &#x27;all&#x27;) {
     let filtered = [...orders];
 
-    if (filter !== 'all') {
-        filtered = filtered.filter(o => o.status === filter);
+    if (filter !== &#x27;all&#x27;) {
+        filtered = filtered.filter(o =&gt; o.status === filter);
     }
 
-    const countAll = document.getElementById('countAll');
-    const countPending = document.getElementById('countPending');
-    const countCompleted = document.getElementById('countCompleted');
-    const countCancelled = document.getElementById('countCancelled');
-    const orderCount = document.getElementById('orderCount');
-    const ordersContainer = document.getElementById('ordersContainer');
+    const countAll = document.getElementById(&#x27;countAll&#x27;);
+    const countPending = document.getElementById(&#x27;countPending&#x27;);
+    const countCompleted = document.getElementById(&#x27;countCompleted&#x27;);
+    const countCancelled = document.getElementById(&#x27;countCancelled&#x27;);
+    const orderCount = document.getElementById(&#x27;orderCount&#x27;);
+    const ordersContainer = document.getElementById(&#x27;ordersContainer&#x27;);
     
     if (countAll) countAll.textContent = orders.length;
-    if (countPending) countPending.textContent = orders.filter(o => o.status === 'pending').length;
-    if (countCompleted) countCompleted.textContent = orders.filter(o => o.status === 'completed').length;
-    if (countCancelled) countCancelled.textContent = orders.filter(o => o.status === 'cancelled').length;
+    if (countPending) countPending.textContent = orders.filter(o =&gt; o.status === &#x27;pending&#x27;).length;
+    if (countCompleted) countCompleted.textContent = orders.filter(o =&gt; o.status === &#x27;completed&#x27;).length;
+    if (countCancelled) countCancelled.textContent = orders.filter(o =&gt; o.status === &#x27;cancelled&#x27;).length;
     if (orderCount) orderCount.textContent = filtered.length;
 
     if (!ordersContainer) return;
 
     if (!filtered.length) {
-        ordersContainer.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No orders found</p></div>';
+        ordersContainer.innerHTML = &#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-inbox&quot;&gt;&lt;/i&gt;&lt;p&gt;No orders found&lt;/p&gt;&lt;/div&gt;&#x27;;
         return;
     }
 
     ordersContainer.innerHTML = `
-        <div class="table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Order #</th>
-                        <th>Customer</th>
-                        <th>Items</th>
-                        <th>Total</th>
-                        <th>Payment</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${filtered.map(o => `
-                        <tr>
-                            <td><strong>${o.order_number}</strong></td>
-                            <td>${o.customer_name || 'Guest'}</td>
-                            <td>${o.items ? o.items.reduce((s,i) => s + i.qty, 0) : 0} items</td>
-                            <td><strong>KES ${o.total}</strong></td>
-                            <td>${o.payment_method || 'N/A'}</td>
-                            <td><span class="status-badge ${o.status || 'pending'}">${o.status || 'pending'}</span></td>
-                            <td style="font-size:12px;color:var(--text-muted);">${new Date(o.created_at).toLocaleDateString()}</td>
-                            <td>
-                                <button class="btn btn-sm btn-primary" onclick="viewOrder(${o.id})"><i class="fas fa-eye"></i></button>
-                                ${o.status !== 'completed' ? `<button class="btn btn-sm btn-success" onclick="updateOrderStatus(${o.id},'completed')"><i class="fas fa-check"></i></button>` : ''}
-                                ${o.status !== 'cancelled' && o.status !== 'completed' ? `<button class="btn btn-sm btn-danger" onclick="updateOrderStatus(${o.id},'cancelled')"><i class="fas fa-times"></i></button>` : ''}
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
+        &lt;div class=&quot;table-wrapper&quot;&gt;
+            &lt;table class=&quot;data-table&quot;&gt;
+                &lt;thead&gt;
+                    &lt;tr&gt;
+                        &lt;th&gt;Order #&lt;/th&gt;
+                        &lt;th&gt;Customer&lt;/th&gt;
+                        &lt;th&gt;Items&lt;/th&gt;
+                        &lt;th&gt;Total&lt;/th&gt;
+                        &lt;th&gt;Payment&lt;/th&gt;
+                        &lt;th&gt;Status&lt;/th&gt;
+                        &lt;th&gt;Date&lt;/th&gt;
+                        &lt;th&gt;Actions&lt;/th&gt;
+                    &lt;/tr&gt;
+                &lt;/thead&gt;
+                &lt;tbody&gt;
+                    ${filtered.map(o =&gt; `
+                        &lt;tr&gt;
+                            &lt;td&gt;&lt;strong&gt;${o.order_number}&lt;/strong&gt;&lt;/td&gt;
+                            &lt;td&gt;${o.customer_name || &#x27;Guest&#x27;}&lt;/td&gt;
+                            &lt;td&gt;${o.items ? o.items.reduce((s,i) =&gt; s + i.qty, 0) : 0} items&lt;/td&gt;
+                            &lt;td&gt;&lt;strong&gt;KES ${o.total}&lt;/strong&gt;&lt;/td&gt;
+                            &lt;td&gt;${o.payment_method || &#x27;N/A&#x27;}&lt;/td&gt;
+                            &lt;td&gt;&lt;span class=&quot;status-badge ${o.status || &#x27;pending&#x27;}&quot;&gt;${o.status || &#x27;pending&#x27;}&lt;/span&gt;&lt;/td&gt;
+                            &lt;td style=&quot;font-size:12px;color:var(--text-muted);&quot;&gt;${new Date(o.created_at).toLocaleDateString()}&lt;/td&gt;
+                            &lt;td&gt;
+                                &lt;button class=&quot;btn btn-sm btn-primary&quot; onclick=&quot;viewOrder(${o.id})&quot;&gt;&lt;i class=&quot;fas fa-eye&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                                ${o.status !== &#x27;completed&#x27; ? `&lt;button class=&quot;btn btn-sm btn-success&quot; onclick=&quot;updateOrderStatus(${o.id},&#x27;completed&#x27;)&quot;&gt;&lt;i class=&quot;fas fa-check&quot;&gt;&lt;/i&gt;&lt;/button&gt;` : &#x27;&#x27;}
+                                ${o.status !== &#x27;cancelled&#x27; &amp;&amp; o.status !== &#x27;completed&#x27; ? `&lt;button class=&quot;btn btn-sm btn-danger&quot; onclick=&quot;updateOrderStatus(${o.id},&#x27;cancelled&#x27;)&quot;&gt;&lt;i class=&quot;fas fa-times&quot;&gt;&lt;/i&gt;&lt;/button&gt;` : &#x27;&#x27;}
+                            &lt;/td&gt;
+                        &lt;/tr&gt;
+                    `).join(&#x27;&#x27;)}
+                &lt;/tbody&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;
     `;
 }
 window.renderOrders = renderOrders;
 
 function viewOrder(id) {
-    const order = orders.find(o => o.id === id);
+    const order = orders.find(o =&gt; o.id === id);
     if (!order) return;
 
     alert(`
         Order: ${order.order_number}
-        Customer: ${order.customer_name || 'Guest'}
-        Phone: ${order.customer_phone || 'N/A'}
-        Payment: ${order.payment_method || 'N/A'}
-        Status: ${order.status || 'pending'}
+        Customer: ${order.customer_name || &#x27;Guest&#x27;}
+        Phone: ${order.customer_phone || &#x27;N/A&#x27;}
+        Payment: ${order.payment_method || &#x27;N/A&#x27;}
+        Status: ${order.status || &#x27;pending&#x27;}
         Total: KES ${order.total}
         Date: ${new Date(order.created_at).toLocaleString()}
         --------------------
         Items:
-        ${order.items ? order.items.map(i => `${i.name} × ${i.qty} = KES ${i.price * i.qty}`).join('\n') : ''}
+        ${order.items ? order.items.map(i =&gt; `${i.name} × ${i.qty} = KES ${i.price * i.qty}`).join(&#x27;\n&#x27;) : &#x27;&#x27;}
     `);
 }
 window.viewOrder = viewOrder;
 
 async function updateOrderStatus(id, status) {
     try {
-        const { error } = await sb.from('orders').update({ status }).eq('id', id);
+        const { error } = await sb.from(&#x27;orders&#x27;).update({ status }).eq(&#x27;id&#x27;, id);
         if (error) throw error;
-        showToast(`Order ${status}`, 'success');
+        showToast(`Order ${status}`, &#x27;success&#x27;);
         await loadOrders();
-        const activeFilter = document.querySelector('.filter-btn.active');
-        renderOrders(activeFilter ? activeFilter.dataset.filter : 'all');
+        const activeFilter = document.querySelector(&#x27;.filter-btn.active&#x27;);
+        renderOrders(activeFilter ? activeFilter.dataset.filter : &#x27;all&#x27;);
         updateStats();
     } catch (e) {
-        showToast('Error updating order', 'error');
+        showToast(&#x27;Error updating order&#x27;, &#x27;error&#x27;);
     }
 }
 window.updateOrderStatus = updateOrderStatus;
@@ -1312,152 +1328,152 @@ window.updateOrderStatus = updateOrderStatus;
 // PRODUCTS TABLE
 // ============================================================
 function renderProductsTable() {
-    const container = document.getElementById('productsTable');
+    const container = document.getElementById(&#x27;productsTable&#x27;);
     if (!container) return;
 
     if (!products.length) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products found</p></div>';
+        container.innerHTML = &#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-box-open&quot;&gt;&lt;/i&gt;&lt;p&gt;No products found&lt;/p&gt;&lt;/div&gt;&#x27;;
         return;
     }
 
     container.innerHTML = `
-        <div class="table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Code</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Stock</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${products.map(p => `
-                        <tr>
-                            <td>
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    <span style="font-size:24px;">${p.category === 'dress' ? '👗' : p.category === 'top' ? '👕' : '👔'}</span>
-                                    <div>
-                                        <div style="font-weight:600;">${p.name}</div>
-                                        <div style="font-size:12px;color:var(--text-muted);">${p.code || 'N/A'}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>${p.code || 'N/A'}</td>
-                            <td>${p.category}</td>
-                            <td>KES ${p.price}</td>
-                            <td>${p.stock}</td>
-                            <td>${p.best_quality ? '<span class="badge primary"><i class="fas fa-star"></i> Best</span>' : 'Standard'}</td>
-                            <td>
-                                <button class="btn btn-sm btn-primary" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i></button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
+        &lt;div class=&quot;table-wrapper&quot;&gt;
+            &lt;table class=&quot;data-table&quot;&gt;
+                &lt;thead&gt;
+                    &lt;tr&gt;
+                        &lt;th&gt;Product&lt;/th&gt;
+                        &lt;th&gt;Code&lt;/th&gt;
+                        &lt;th&gt;Category&lt;/th&gt;
+                        &lt;th&gt;Price&lt;/th&gt;
+                        &lt;th&gt;Stock&lt;/th&gt;
+                        &lt;th&gt;Status&lt;/th&gt;
+                        &lt;th&gt;Actions&lt;/th&gt;
+                    &lt;/tr&gt;
+                &lt;/thead&gt;
+                &lt;tbody&gt;
+                    ${products.map(p =&gt; `
+                        &lt;tr&gt;
+                            &lt;td&gt;
+                                &lt;div style=&quot;display:flex;align-items:center;gap:10px;&quot;&gt;
+                                    &lt;span style=&quot;font-size:24px;&quot;&gt;${p.category === &#x27;dress&#x27; ? &#x27;👗&#x27; : p.category === &#x27;top&#x27; ? &#x27;👕&#x27; : &#x27;👔&#x27;}&lt;/span&gt;
+                                    &lt;div&gt;
+                                        &lt;div style=&quot;font-weight:600;&quot;&gt;${p.name}&lt;/div&gt;
+                                        &lt;div style=&quot;font-size:12px;color:var(--text-muted);&quot;&gt;${p.code || &#x27;N/A&#x27;}&lt;/div&gt;
+                                    &lt;/div&gt;
+                                &lt;/div&gt;
+                            &lt;/td&gt;
+                            &lt;td&gt;${p.code || &#x27;N/A&#x27;}&lt;/td&gt;
+                            &lt;td&gt;${p.category}&lt;/td&gt;
+                            &lt;td&gt;KES ${p.price}&lt;/td&gt;
+                            &lt;td&gt;${p.stock}&lt;/td&gt;
+                            &lt;td&gt;${p.best_quality ? &#x27;&lt;span class=&quot;badge primary&quot;&gt;&lt;i class=&quot;fas fa-star&quot;&gt;&lt;/i&gt; Best&lt;/span&gt;&#x27; : &#x27;Standard&#x27;}&lt;/td&gt;
+                            &lt;td&gt;
+                                &lt;button class=&quot;btn btn-sm btn-primary&quot; onclick=&quot;editProduct(${p.id})&quot;&gt;&lt;i class=&quot;fas fa-edit&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                                &lt;button class=&quot;btn btn-sm btn-danger&quot; onclick=&quot;deleteProduct(${p.id})&quot;&gt;&lt;i class=&quot;fas fa-trash&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                            &lt;/td&gt;
+                        &lt;/tr&gt;
+                    `).join(&#x27;&#x27;)}
+                &lt;/tbody&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;
     `;
 }
 window.renderProductsTable = renderProductsTable;
 
 function openProductModal(product = null) {
-    const editId = document.getElementById('editProductId');
-    const modalTitle = document.getElementById('productModalTitle');
-    const saveBtn = document.getElementById('saveProductBtn');
-    const productName = document.getElementById('productName');
-    const productCode = document.getElementById('productCode');
-    const productCategory = document.getElementById('productCategory');
-    const productGender = document.getElementById('productGender');
-    const productPrice = document.getElementById('productPrice');
-    const productStock = document.getElementById('productStock');
-    const productBestQuality = document.getElementById('productBestQuality');
-    const imagePreview = document.getElementById('imagePreview');
+    const editId = document.getElementById(&#x27;editProductId&#x27;);
+    const modalTitle = document.getElementById(&#x27;productModalTitle&#x27;);
+    const saveBtn = document.getElementById(&#x27;saveProductBtn&#x27;);
+    const productName = document.getElementById(&#x27;productName&#x27;);
+    const productCode = document.getElementById(&#x27;productCode&#x27;);
+    const productCategory = document.getElementById(&#x27;productCategory&#x27;);
+    const productGender = document.getElementById(&#x27;productGender&#x27;);
+    const productPrice = document.getElementById(&#x27;productPrice&#x27;);
+    const productStock = document.getElementById(&#x27;productStock&#x27;);
+    const productBestQuality = document.getElementById(&#x27;productBestQuality&#x27;);
+    const imagePreview = document.getElementById(&#x27;imagePreview&#x27;);
     
-    if (editId) editId.value = product ? product.id : '';
-    if (modalTitle) modalTitle.textContent = product ? '✏️ Edit Product' : '📦 Add Product';
-    if (saveBtn) saveBtn.innerHTML = product ? '<i class="fas fa-save"></i> Update' : '<i class="fas fa-save"></i> Save';
-    if (productName) productName.value = product ? product.name : '';
-    if (productCode) productCode.value = product ? product.code : '';
-    if (productCategory) productCategory.value = product ? product.category : '';
-    if (productGender) productGender.value = product ? product.gender : 'unisex';
-    if (productPrice) productPrice.value = product ? product.price : '';
-    if (productStock) productStock.value = product ? product.stock : '';
+    if (editId) editId.value = product ? product.id : &#x27;&#x27;;
+    if (modalTitle) modalTitle.textContent = product ? &#x27;✏️ Edit Product&#x27; : &#x27;📦 Add Product&#x27;;
+    if (saveBtn) saveBtn.innerHTML = product ? &#x27;&lt;i class=&quot;fas fa-save&quot;&gt;&lt;/i&gt; Update&#x27; : &#x27;&lt;i class=&quot;fas fa-save&quot;&gt;&lt;/i&gt; Save&#x27;;
+    if (productName) productName.value = product ? product.name : &#x27;&#x27;;
+    if (productCode) productCode.value = product ? product.code : &#x27;&#x27;;
+    if (productCategory) productCategory.value = product ? product.category : &#x27;&#x27;;
+    if (productGender) productGender.value = product ? product.gender : &#x27;unisex&#x27;;
+    if (productPrice) productPrice.value = product ? product.price : &#x27;&#x27;;
+    if (productStock) productStock.value = product ? product.stock : &#x27;&#x27;;
     if (productBestQuality) productBestQuality.checked = product ? product.best_quality : false;
-    if (imagePreview) imagePreview.innerHTML = product && product.image_url ? `<img src="${product.image_url}">` : '';
+    if (imagePreview) imagePreview.innerHTML = product &amp;&amp; product.image_url ? `&lt;img src=&quot;${product.image_url}&quot;&gt;` : &#x27;&#x27;;
 
-    openModal('productModal');
+    openModal(&#x27;productModal&#x27;);
 }
 window.openProductModal = openProductModal;
 
 async function saveProduct(e) {
     e.preventDefault();
-    const id = document.getElementById('editProductId');
-    const productName = document.getElementById('productName');
-    const productCode = document.getElementById('productCode');
-    const productCategory = document.getElementById('productCategory');
-    const productGender = document.getElementById('productGender');
-    const productPrice = document.getElementById('productPrice');
-    const productStock = document.getElementById('productStock');
-    const productBestQuality = document.getElementById('productBestQuality');
+    const id = document.getElementById(&#x27;editProductId&#x27;);
+    const productName = document.getElementById(&#x27;productName&#x27;);
+    const productCode = document.getElementById(&#x27;productCode&#x27;);
+    const productCategory = document.getElementById(&#x27;productCategory&#x27;);
+    const productGender = document.getElementById(&#x27;productGender&#x27;);
+    const productPrice = document.getElementById(&#x27;productPrice&#x27;);
+    const productStock = document.getElementById(&#x27;productStock&#x27;);
+    const productBestQuality = document.getElementById(&#x27;productBestQuality&#x27;);
 
     if (!productName || !productCode || !productCategory || !productPrice || !productStock) return;
 
     const name = productName.value.trim();
     const code = productCode.value.trim();
     const category = productCategory.value;
-    const gender = productGender ? productGender.value : 'unisex';
+    const gender = productGender ? productGender.value : &#x27;unisex&#x27;;
     const price = parseInt(productPrice.value);
     const stock = parseInt(productStock.value);
     const best_quality = productBestQuality ? productBestQuality.checked : false;
 
     if (!name || !code || !category || !price || isNaN(stock)) {
-        showToast('Please fill in all required fields', 'error');
+        showToast(&#x27;Please fill in all required fields&#x27;, &#x27;error&#x27;);
         return;
     }
 
     const productData = { name, code, category, gender, price, stock, best_quality };
 
     try {
-        if (id && id.value) {
-            const { error } = await sb.from('products').update(productData).eq('id', parseInt(id.value));
+        if (id &amp;&amp; id.value) {
+            const { error } = await sb.from(&#x27;products&#x27;).update(productData).eq(&#x27;id&#x27;, parseInt(id.value));
             if (error) throw error;
-            showToast('Product updated!', 'success');
+            showToast(&#x27;Product updated!&#x27;, &#x27;success&#x27;);
         } else {
-            const { error } = await sb.from('products').insert([productData]);
+            const { error } = await sb.from(&#x27;products&#x27;).insert([productData]);
             if (error) throw error;
-            showToast('Product added!', 'success');
+            showToast(&#x27;Product added!&#x27;, &#x27;success&#x27;);
         }
         await loadProducts();
         updateStats();
         renderCurrentTab();
-        closeModal('productModal');
+        closeModal(&#x27;productModal&#x27;);
     } catch (e) {
-        showToast('Error saving product', 'error');
+        showToast(&#x27;Error saving product&#x27;, &#x27;error&#x27;);
     }
 }
 window.saveProduct = saveProduct;
 
 function editProduct(id) {
-    const product = products.find(p => p.id === id);
+    const product = products.find(p =&gt; p.id === id);
     if (product) openProductModal(product);
 }
 window.editProduct = editProduct;
 
 async function deleteProduct(id) {
-    if (!confirm('Delete this product?')) return;
+    if (!confirm(&#x27;Delete this product?&#x27;)) return;
     try {
-        const { error } = await sb.from('products').delete().eq('id', id);
+        const { error } = await sb.from(&#x27;products&#x27;).delete().eq(&#x27;id&#x27;, id);
         if (error) throw error;
-        showToast('Product deleted', 'success');
+        showToast(&#x27;Product deleted&#x27;, &#x27;success&#x27;);
         await loadProducts();
         updateStats();
         renderCurrentTab();
     } catch (e) {
-        showToast('Error deleting product', 'error');
+        showToast(&#x27;Error deleting product&#x27;, &#x27;error&#x27;);
     }
 }
 window.deleteProduct = deleteProduct;
@@ -1466,112 +1482,112 @@ window.deleteProduct = deleteProduct;
 // INVENTORY
 // ============================================================
 function renderInventory() {
-    const stockProduct = document.getElementById('stockProduct');
+    const stockProduct = document.getElementById(&#x27;stockProduct&#x27;);
     if (stockProduct) {
-        stockProduct.innerHTML = products.map(p =>
-            `<option value="${p.id}">${p.name} (${p.stock} in stock)</option>`
-        ).join('');
+        stockProduct.innerHTML = products.map(p =&gt;
+            `&lt;option value=&quot;${p.id}&quot;&gt;${p.name} (${p.stock} in stock)&lt;/option&gt;`
+        ).join(&#x27;&#x27;);
     }
 
-    const inventoryTable = document.getElementById('inventoryTable');
+    const inventoryTable = document.getElementById(&#x27;inventoryTable&#x27;);
     if (inventoryTable) {
         if (!products.length) {
-            inventoryTable.innerHTML = '<div class="empty-state"><p>No products</p></div>';
+            inventoryTable.innerHTML = &#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;p&gt;No products&lt;/p&gt;&lt;/div&gt;&#x27;;
         } else {
             inventoryTable.innerHTML = `
-                <div class="table-wrapper">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Stock</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${products.map(p => `
-                                <tr>
-                                    <td>${p.name}</td>
-                                    <td>${p.stock}</td>
-                                    <td>${p.stock < 5 ? '<span class="badge danger">⚠️ Low Stock</span>' : '<span class="badge success">✅ In Stock</span>'}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
+                &lt;div class=&quot;table-wrapper&quot;&gt;
+                    &lt;table class=&quot;data-table&quot;&gt;
+                        &lt;thead&gt;
+                            &lt;tr&gt;
+                                &lt;th&gt;Product&lt;/th&gt;
+                                &lt;th&gt;Stock&lt;/th&gt;
+                                &lt;th&gt;Status&lt;/th&gt;
+                            &lt;/tr&gt;
+                        &lt;/thead&gt;
+                        &lt;tbody&gt;
+                            ${products.map(p =&gt; `
+                                &lt;tr&gt;
+                                    &lt;td&gt;${p.name}&lt;/td&gt;
+                                    &lt;td&gt;${p.stock}&lt;/td&gt;
+                                    &lt;td&gt;${p.stock &lt; 5 ? &#x27;&lt;span class=&quot;badge danger&quot;&gt;⚠️ Low Stock&lt;/span&gt;&#x27; : &#x27;&lt;span class=&quot;badge success&quot;&gt;✅ In Stock&lt;/span&gt;&#x27;}&lt;/td&gt;
+                                &lt;/tr&gt;
+                            `).join(&#x27;&#x27;)}
+                        &lt;/tbody&gt;
+                    &lt;/table&gt;
+                &lt;/div&gt;
             `;
         }
     }
 
-    const categoryStockList = document.getElementById('categoryStockList');
+    const categoryStockList = document.getElementById(&#x27;categoryStockList&#x27;);
     if (categoryStockList) {
         const categoryStock = {};
-        products.forEach(p => {
+        products.forEach(p =&gt; {
             if (!categoryStock[p.category]) categoryStock[p.category] = 0;
             categoryStock[p.category] += p.stock;
         });
 
         categoryStockList.innerHTML = Object.entries(categoryStock)
-            .sort((a, b) => b[1] - a[1])
-            .map(([cat, stock]) => `
-                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
-                    <span>${cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
-                    <span>${stock} units</span>
-                </div>
-            `).join('') || '<div class="empty-state"><p>No categories</p></div>';
+            .sort((a, b) =&gt; b[1] - a[1])
+            .map(([cat, stock]) =&gt; `
+                &lt;div style=&quot;display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);&quot;&gt;
+                    &lt;span&gt;${cat.charAt(0).toUpperCase() + cat.slice(1)}&lt;/span&gt;
+                    &lt;span&gt;${stock} units&lt;/span&gt;
+                &lt;/div&gt;
+            `).join(&#x27;&#x27;) || &#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;p&gt;No categories&lt;/p&gt;&lt;/div&gt;&#x27;;
     }
 }
 window.renderInventory = renderInventory;
 
 function openStockModal() {
-    const stockProduct = document.getElementById('stockProduct');
+    const stockProduct = document.getElementById(&#x27;stockProduct&#x27;);
     if (stockProduct) {
-        stockProduct.innerHTML = products.map(p =>
-            `<option value="${p.id}">${p.name} (${p.stock} in stock)</option>`
-        ).join('');
+        stockProduct.innerHTML = products.map(p =&gt;
+            `&lt;option value=&quot;${p.id}&quot;&gt;${p.name} (${p.stock} in stock)&lt;/option&gt;`
+        ).join(&#x27;&#x27;);
     }
-    const adjustmentQty = document.getElementById('adjustmentQty');
-    const adjustmentReason = document.getElementById('adjustmentReason');
-    if (adjustmentQty) adjustmentQty.value = '';
-    if (adjustmentReason) adjustmentReason.value = '';
-    openModal('stockModal');
+    const adjustmentQty = document.getElementById(&#x27;adjustmentQty&#x27;);
+    const adjustmentReason = document.getElementById(&#x27;adjustmentReason&#x27;);
+    if (adjustmentQty) adjustmentQty.value = &#x27;&#x27;;
+    if (adjustmentReason) adjustmentReason.value = &#x27;&#x27;;
+    openModal(&#x27;stockModal&#x27;);
 }
 window.openStockModal = openStockModal;
 
 async function adjustStock(e) {
     e.preventDefault();
-    const stockProduct = document.getElementById('stockProduct');
-    const adjustmentType = document.getElementById('adjustmentType');
-    const adjustmentQty = document.getElementById('adjustmentQty');
-    const adjustmentReason = document.getElementById('adjustmentReason');
+    const stockProduct = document.getElementById(&#x27;stockProduct&#x27;);
+    const adjustmentType = document.getElementById(&#x27;adjustmentType&#x27;);
+    const adjustmentQty = document.getElementById(&#x27;adjustmentQty&#x27;);
+    const adjustmentReason = document.getElementById(&#x27;adjustmentReason&#x27;);
 
     if (!stockProduct || !adjustmentType || !adjustmentQty) return;
 
     const productId = parseInt(stockProduct.value);
     const type = adjustmentType.value;
     const qty = parseFloat(adjustmentQty.value);
-    const reason = adjustmentReason ? adjustmentReason.value || 'Manual adjustment' : 'Manual adjustment';
+    const reason = adjustmentReason ? adjustmentReason.value || &#x27;Manual adjustment&#x27; : &#x27;Manual adjustment&#x27;;
 
-    if (!productId || !qty || qty <= 0) {
-        showToast('Please enter valid quantity', 'error');
+    if (!productId || !qty || qty &lt;= 0) {
+        showToast(&#x27;Please enter valid quantity&#x27;, &#x27;error&#x27;);
         return;
     }
 
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p =&gt; p.id === productId);
     if (!product) return;
 
-    const newStock = type === 'add' ? product.stock + qty : Math.max(0, product.stock - qty);
+    const newStock = type === &#x27;add&#x27; ? product.stock + qty : Math.max(0, product.stock - qty);
 
     try {
-        const { error } = await sb.from('products').update({ stock: newStock }).eq('id', productId);
+        const { error } = await sb.from(&#x27;products&#x27;).update({ stock: newStock }).eq(&#x27;id&#x27;, productId);
         if (error) throw error;
 
-        showToast(`Stock updated: ${product.name} → ${newStock}`, 'success');
+        showToast(`Stock updated: ${product.name} → ${newStock}`, &#x27;success&#x27;);
         await loadProducts();
         renderCurrentTab();
-        closeModal('stockModal');
+        closeModal(&#x27;stockModal&#x27;);
     } catch (e) {
-        showToast('Error adjusting stock', 'error');
+        showToast(&#x27;Error adjusting stock&#x27;, &#x27;error&#x27;);
     }
 }
 window.adjustStock = adjustStock;
@@ -1580,111 +1596,111 @@ window.adjustStock = adjustStock;
 // CUSTOMERS
 // ============================================================
 function renderCustomersTable() {
-    const container = document.getElementById('customersTable');
+    const container = document.getElementById(&#x27;customersTable&#x27;);
     if (!container) return;
 
     if (!customers.length) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No customers found</p></div>';
+        container.innerHTML = &#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-users&quot;&gt;&lt;/i&gt;&lt;p&gt;No customers found&lt;/p&gt;&lt;/div&gt;&#x27;;
         return;
     }
 
     container.innerHTML = `
-        <div class="table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Phone</th>
-                        <th>Email</th>
-                        <th>Orders</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${customers.map(c => `
-                        <tr>
-                            <td><strong>${c.name}</strong></td>
-                            <td>${c.phone}</td>
-                            <td>${c.email || '-'}</td>
-                            <td>${orders.filter(o => o.customer_phone === c.phone).length}</td>
-                            <td>
-                                <button class="btn btn-sm btn-danger" onclick="deleteCustomer(${c.id})"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
+        &lt;div class=&quot;table-wrapper&quot;&gt;
+            &lt;table class=&quot;data-table&quot;&gt;
+                &lt;thead&gt;
+                    &lt;tr&gt;
+                        &lt;th&gt;Name&lt;/th&gt;
+                        &lt;th&gt;Phone&lt;/th&gt;
+                        &lt;th&gt;Email&lt;/th&gt;
+                        &lt;th&gt;Orders&lt;/th&gt;
+                        &lt;th&gt;Actions&lt;/th&gt;
+                    &lt;/tr&gt;
+                &lt;/thead&gt;
+                &lt;tbody&gt;
+                    ${customers.map(c =&gt; `
+                        &lt;tr&gt;
+                            &lt;td&gt;&lt;strong&gt;${c.name}&lt;/strong&gt;&lt;/td&gt;
+                            &lt;td&gt;${c.phone}&lt;/td&gt;
+                            &lt;td&gt;${c.email || &#x27;-&#x27;}&lt;/td&gt;
+                            &lt;td&gt;${orders.filter(o =&gt; o.customer_phone === c.phone).length}&lt;/td&gt;
+                            &lt;td&gt;
+                                &lt;button class=&quot;btn btn-sm btn-danger&quot; onclick=&quot;deleteCustomer(${c.id})&quot;&gt;&lt;i class=&quot;fas fa-trash&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+                            &lt;/td&gt;
+                        &lt;/tr&gt;
+                    `).join(&#x27;&#x27;)}
+                &lt;/tbody&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;
     `;
 }
 window.renderCustomersTable = renderCustomersTable;
 
 function openCustomerModal(customer = null) {
-    const editId = document.getElementById('editCustomerId');
-    const modalTitle = document.getElementById('customerModalTitle');
-    const customerName = document.getElementById('customerName');
-    const customerPhone = document.getElementById('customerPhone');
-    const customerEmail = document.getElementById('customerEmail');
+    const editId = document.getElementById(&#x27;editCustomerId&#x27;);
+    const modalTitle = document.getElementById(&#x27;customerModalTitle&#x27;);
+    const customerName = document.getElementById(&#x27;customerName&#x27;);
+    const customerPhone = document.getElementById(&#x27;customerPhone&#x27;);
+    const customerEmail = document.getElementById(&#x27;customerEmail&#x27;);
     
-    if (editId) editId.value = customer ? customer.id : '';
-    if (modalTitle) modalTitle.textContent = customer ? '✏️ Edit Customer' : '👤 Add Customer';
-    if (customerName) customerName.value = customer ? customer.name : '';
-    if (customerPhone) customerPhone.value = customer ? customer.phone : '';
-    if (customerEmail) customerEmail.value = customer ? customer.email : '';
+    if (editId) editId.value = customer ? customer.id : &#x27;&#x27;;
+    if (modalTitle) modalTitle.textContent = customer ? &#x27;✏️ Edit Customer&#x27; : &#x27;👤 Add Customer&#x27;;
+    if (customerName) customerName.value = customer ? customer.name : &#x27;&#x27;;
+    if (customerPhone) customerPhone.value = customer ? customer.phone : &#x27;&#x27;;
+    if (customerEmail) customerEmail.value = customer ? customer.email : &#x27;&#x27;;
     
-    openModal('customerModal');
+    openModal(&#x27;customerModal&#x27;);
 }
 window.openCustomerModal = openCustomerModal;
 
 async function saveCustomer(e) {
     e.preventDefault();
-    const editId = document.getElementById('editCustomerId');
-    const customerName = document.getElementById('customerName');
-    const customerPhone = document.getElementById('customerPhone');
-    const customerEmail = document.getElementById('customerEmail');
+    const editId = document.getElementById(&#x27;editCustomerId&#x27;);
+    const customerName = document.getElementById(&#x27;customerName&#x27;);
+    const customerPhone = document.getElementById(&#x27;customerPhone&#x27;);
+    const customerEmail = document.getElementById(&#x27;customerEmail&#x27;);
 
     if (!customerName || !customerPhone) return;
 
     const name = customerName.value.trim();
     const phone = customerPhone.value.trim();
-    const email = customerEmail ? customerEmail.value.trim() : '';
+    const email = customerEmail ? customerEmail.value.trim() : &#x27;&#x27;;
 
     if (!name || !phone) {
-        showToast('Please fill in name and phone', 'error');
+        showToast(&#x27;Please fill in name and phone&#x27;, &#x27;error&#x27;);
         return;
     }
 
     const data = { name, phone, email };
 
     try {
-        if (editId && editId.value) {
-            const { error } = await sb.from('customers').update(data).eq('id', parseInt(editId.value));
+        if (editId &amp;&amp; editId.value) {
+            const { error } = await sb.from(&#x27;customers&#x27;).update(data).eq(&#x27;id&#x27;, parseInt(editId.value));
             if (error) throw error;
-            showToast('Customer updated!', 'success');
+            showToast(&#x27;Customer updated!&#x27;, &#x27;success&#x27;);
         } else {
-            const { error } = await sb.from('customers').insert([data]);
+            const { error } = await sb.from(&#x27;customers&#x27;).insert([data]);
             if (error) throw error;
-            showToast('Customer added!', 'success');
+            showToast(&#x27;Customer added!&#x27;, &#x27;success&#x27;);
         }
         await loadCustomers();
         renderCurrentTab();
-        closeModal('customerModal');
+        closeModal(&#x27;customerModal&#x27;);
     } catch (e) {
-        showToast('Error saving customer', 'error');
+        showToast(&#x27;Error saving customer&#x27;, &#x27;error&#x27;);
     }
 }
 window.saveCustomer = saveCustomer;
 
 async function deleteCustomer(id) {
-    if (!confirm('Delete this customer?')) return;
+    if (!confirm(&#x27;Delete this customer?&#x27;)) return;
     try {
-        const { error } = await sb.from('customers').delete().eq('id', id);
+        const { error } = await sb.from(&#x27;customers&#x27;).delete().eq(&#x27;id&#x27;, id);
         if (error) throw error;
-        showToast('Customer deleted', 'success');
+        showToast(&#x27;Customer deleted&#x27;, &#x27;success&#x27;);
         await loadCustomers();
         renderCurrentTab();
     } catch (e) {
-        showToast('Error deleting customer', 'error');
+        showToast(&#x27;Error deleting customer&#x27;, &#x27;error&#x27;);
     }
 }
 window.deleteCustomer = deleteCustomer;
@@ -1693,9 +1709,9 @@ window.deleteCustomer = deleteCustomer;
 // REPORTS
 // ============================================================
 function generateReport() {
-    const reportStart = document.getElementById('reportStart');
-    const reportEnd = document.getElementById('reportEnd');
-    const reportContent = document.getElementById('reportContent');
+    const reportStart = document.getElementById(&#x27;reportStart&#x27;);
+    const reportEnd = document.getElementById(&#x27;reportEnd&#x27;);
+    const reportContent = document.getElementById(&#x27;reportContent&#x27;);
 
     if (!reportStart || !reportEnd || !reportContent) return;
 
@@ -1703,7 +1719,7 @@ function generateReport() {
     const end = reportEnd.value;
 
     if (!start || !end) {
-        showToast('Please select both dates', 'warning');
+        showToast(&#x27;Please select both dates&#x27;, &#x27;warning&#x27;);
         return;
     }
 
@@ -1711,42 +1727,42 @@ function generateReport() {
     const endDate = new Date(end);
     endDate.setHours(23, 59, 59);
 
-    const filtered = orders.filter(o => {
+    const filtered = orders.filter(o =&gt; {
         const date = new Date(o.created_at);
-        return date >= startDate && date <= endDate && o.status === 'completed';
+        return date &gt;= startDate &amp;&amp; date &lt;= endDate &amp;&amp; o.status === &#x27;completed&#x27;;
     });
 
-    const total = filtered.reduce((sum, o) => sum + (o.total || 0), 0);
+    const total = filtered.reduce((sum, o) =&gt; sum + (o.total || 0), 0);
     const count = filtered.length;
 
     reportContent.innerHTML = `
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-            <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;">
-                <div style="font-size:12px;color:var(--text-muted);">Total Sales</div>
-                <div style="font-size:24px;font-weight:700;color:var(--primary);">KES ${total}</div>
-            </div>
-            <div style="background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;">
-                <div style="font-size:12px;color:var(--text-muted);">Orders</div>
-                <div style="font-size:24px;font-weight:700;color:var(--success);">${count}</div>
-            </div>
-        </div>
-        <div style="max-height:300px;overflow-y:auto;">
-            ${filtered.length ? filtered.map(o => `
-                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
-                    <span>${o.order_number}</span>
-                    <span>${o.customer_name || 'Guest'}</span>
-                    <span><strong>KES ${o.total}</strong></span>
-                    <span style="color:var(--text-muted);font-size:12px;">${new Date(o.created_at).toLocaleDateString()}</span>
-                </div>
-            `).join('') : '<div class="empty-state"><p>No orders in this period</p></div>'}
-        </div>
+        &lt;div style=&quot;display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;&quot;&gt;
+            &lt;div style=&quot;background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;&quot;&gt;
+                &lt;div style=&quot;font-size:12px;color:var(--text-muted);&quot;&gt;Total Sales&lt;/div&gt;
+                &lt;div style=&quot;font-size:24px;font-weight:700;color:var(--primary);&quot;&gt;KES ${total}&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div style=&quot;background:var(--bg);padding:16px;border-radius:var(--radius-sm);text-align:center;&quot;&gt;
+                &lt;div style=&quot;font-size:12px;color:var(--text-muted);&quot;&gt;Orders&lt;/div&gt;
+                &lt;div style=&quot;font-size:24px;font-weight:700;color:var(--success);&quot;&gt;${count}&lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div style=&quot;max-height:300px;overflow-y:auto;&quot;&gt;
+            ${filtered.length ? filtered.map(o =&gt; `
+                &lt;div style=&quot;display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;&quot;&gt;
+                    &lt;span&gt;${o.order_number}&lt;/span&gt;
+                    &lt;span&gt;${o.customer_name || &#x27;Guest&#x27;}&lt;/span&gt;
+                    &lt;span&gt;&lt;strong&gt;KES ${o.total}&lt;/strong&gt;&lt;/span&gt;
+                    &lt;span style=&quot;color:var(--text-muted);font-size:12px;&quot;&gt;${new Date(o.created_at).toLocaleDateString()}&lt;/span&gt;
+                &lt;/div&gt;
+            `).join(&#x27;&#x27;) : &#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;p&gt;No orders in this period&lt;/p&gt;&lt;/div&gt;&#x27;}
+        &lt;/div&gt;
     `;
 }
 window.generateReport = generateReport;
 
 function exportReport(format) {
-    showToast(`Exporting ${format.toUpperCase()}...`, 'info');
-    setTimeout(() => showToast(`✅ ${format.toUpperCase()} exported!`, 'success'), 1500);
+    showToast(`Exporting ${format.toUpperCase()}...`, &#x27;info&#x27;);
+    setTimeout(() =&gt; showToast(`✅ ${format.toUpperCase()} exported!`, &#x27;success&#x27;), 1500);
 }
 window.exportReport = exportReport;
 
@@ -1754,15 +1770,15 @@ window.exportReport = exportReport;
 // PROFIT/LOSS
 // ============================================================
 function refreshProfitData() {
-    const completedOrders = orders.filter(o => o.status === 'completed');
-    const totalRevenue = completedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const completedOrders = orders.filter(o =&gt; o.status === &#x27;completed&#x27;);
+    const totalRevenue = completedOrders.reduce((sum, o) =&gt; sum + (o.total || 0), 0);
     const costPercentage = 0.6;
     const totalCost = totalRevenue * costPercentage;
     const netProfit = totalRevenue - totalCost;
 
-    const totalRevenueEl = document.getElementById('totalRevenue');
-    const totalCostEl = document.getElementById('totalCost');
-    const netProfitEl = document.getElementById('netProfit');
+    const totalRevenueEl = document.getElementById(&#x27;totalRevenue&#x27;);
+    const totalCostEl = document.getElementById(&#x27;totalCost&#x27;);
+    const netProfitEl = document.getElementById(&#x27;netProfit&#x27;);
     
     if (totalRevenueEl) totalRevenueEl.textContent = `KES ${totalRevenue.toFixed(2)}`;
     if (totalCostEl) totalCostEl.textContent = `KES ${totalCost.toFixed(2)}`;
@@ -1773,20 +1789,20 @@ function refreshProfitData() {
 window.refreshProfitData = refreshProfitData;
 
 function renderProfitChart(revenue, cost, profit) {
-    const ctx = document.getElementById('profitChart');
+    const ctx = document.getElementById(&#x27;profitChart&#x27;);
     if (!ctx) return;
-    const context = ctx.getContext('2d');
+    const context = ctx.getContext(&#x27;2d&#x27;);
     if (profitChartInstance) profitChartInstance.destroy();
 
     profitChartInstance = new Chart(context, {
-        type: 'doughnut',
+        type: &#x27;doughnut&#x27;,
         data: {
-            labels: ['Revenue', 'Cost', 'Profit'],
+            labels: [&#x27;Revenue&#x27;, &#x27;Cost&#x27;, &#x27;Profit&#x27;],
             datasets: [{
                 data: [revenue, cost, profit],
-                backgroundColor: ['#10B981', '#EF4444', '#C62828'],
+                backgroundColor: [&#x27;#10B981&#x27;, &#x27;#EF4444&#x27;, &#x27;#C62828&#x27;],
                 borderWidth: 2,
-                borderColor: '#fff'
+                borderColor: &#x27;#fff&#x27;
             }]
         },
         options: {
@@ -1794,11 +1810,11 @@ function renderProfitChart(revenue, cost, profit) {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom',
+                    position: &#x27;bottom&#x27;,
                     labels: {
                         padding: 20,
                         usePointStyle: true,
-                        pointStyle: 'circle'
+                        pointStyle: &#x27;circle&#x27;
                     }
                 }
             }
@@ -1810,38 +1826,38 @@ function renderProfitChart(revenue, cost, profit) {
 // AUDIT TRAIL
 // ============================================================
 function loadAuditLogs() {
-    const logs = JSON.parse(localStorage.getItem('luciecloset_audit') || '[]');
-    const auditTable = document.getElementById('auditTable');
+    const logs = JSON.parse(localStorage.getItem(&#x27;luciecloset_audit&#x27;) || &#x27;[]&#x27;);
+    const auditTable = document.getElementById(&#x27;auditTable&#x27;);
     if (!auditTable) return;
 
     if (!logs.length) {
-        auditTable.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>No audit logs found</p></div>';
+        auditTable.innerHTML = &#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-history&quot;&gt;&lt;/i&gt;&lt;p&gt;No audit logs found&lt;/p&gt;&lt;/div&gt;&#x27;;
         return;
     }
 
     auditTable.innerHTML = `
-        <div class="table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Time</th>
-                        <th>User</th>
-                        <th>Action</th>
-                        <th>Details</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${logs.slice(0, 50).map(log => `
-                        <tr>
-                            <td style="font-size:12px;color:var(--text-muted);">${new Date(log.timestamp).toLocaleString()}</td>
-                            <td>${log.user || 'System'}</td>
-                            <td><span class="badge primary">${log.action}</span></td>
-                            <td>${log.details || '-'}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
+        &lt;div class=&quot;table-wrapper&quot;&gt;
+            &lt;table class=&quot;data-table&quot;&gt;
+                &lt;thead&gt;
+                    &lt;tr&gt;
+                        &lt;th&gt;Time&lt;/th&gt;
+                        &lt;th&gt;User&lt;/th&gt;
+                        &lt;th&gt;Action&lt;/th&gt;
+                        &lt;th&gt;Details&lt;/th&gt;
+                    &lt;/tr&gt;
+                &lt;/thead&gt;
+                &lt;tbody&gt;
+                    ${logs.slice(0, 50).map(log =&gt; `
+                        &lt;tr&gt;
+                            &lt;td style=&quot;font-size:12px;color:var(--text-muted);&quot;&gt;${new Date(log.timestamp).toLocaleString()}&lt;/td&gt;
+                            &lt;td&gt;${log.user || &#x27;System&#x27;}&lt;/td&gt;
+                            &lt;td&gt;&lt;span class=&quot;badge primary&quot;&gt;${log.action}&lt;/span&gt;&lt;/td&gt;
+                            &lt;td&gt;${log.details || &#x27;-&#x27;}&lt;/td&gt;
+                        &lt;/tr&gt;
+                    `).join(&#x27;&#x27;)}
+                &lt;/tbody&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;
     `;
 }
 window.loadAuditLogs = loadAuditLogs;
@@ -1851,35 +1867,35 @@ window.loadAuditLogs = loadAuditLogs;
 // ============================================================
 function saveSettings(e) {
     e.preventDefault();
-    const businessName = document.getElementById('businessName');
-    const businessPhone = document.getElementById('businessPhone');
-    const businessEmail = document.getElementById('businessEmail');
-    const businessLocation = document.getElementById('businessLocation');
-    const receiptFooter = document.getElementById('receiptFooter');
+    const businessName = document.getElementById(&#x27;businessName&#x27;);
+    const businessPhone = document.getElementById(&#x27;businessPhone&#x27;);
+    const businessEmail = document.getElementById(&#x27;businessEmail&#x27;);
+    const businessLocation = document.getElementById(&#x27;businessLocation&#x27;);
+    const receiptFooter = document.getElementById(&#x27;receiptFooter&#x27;);
     
     const settings = {
-        businessName: businessName ? businessName.value : 'Lucie Closet',
-        phone: businessPhone ? businessPhone.value : '+254 794 789 345',
-        email: businessEmail ? businessEmail.value : 'info@luciecloset.co.ke',
-        location: businessLocation ? businessLocation.value : 'Eastleigh 5th St, Micki Mall, Rm S12',
-        receiptFooter: receiptFooter ? receiptFooter.value : 'Thank you for shopping at Lucie Closet! 👗'
+        businessName: businessName ? businessName.value : &#x27;Lucie Closet&#x27;,
+        phone: businessPhone ? businessPhone.value : &#x27;+254 794 789 345&#x27;,
+        email: businessEmail ? businessEmail.value : &#x27;info@luciecloset.co.ke&#x27;,
+        location: businessLocation ? businessLocation.value : &#x27;Eastleigh 5th St, Micki Mall, Rm S12&#x27;,
+        receiptFooter: receiptFooter ? receiptFooter.value : &#x27;Thank you for shopping at Lucie Closet! 👗&#x27;
     };
-    localStorage.setItem('luciecloset_settings', JSON.stringify(settings));
-    showToast('Settings saved!', 'success');
+    localStorage.setItem(&#x27;luciecloset_settings&#x27;, JSON.stringify(settings));
+    showToast(&#x27;Settings saved!&#x27;, &#x27;success&#x27;);
 }
 window.saveSettings = saveSettings;
 
 function savePaymentSettings(e) {
     e.preventDefault();
-    const defaultPayment = document.getElementById('defaultPayment');
-    const mpesaShortcode = document.getElementById('mpesaShortcode');
+    const defaultPayment = document.getElementById(&#x27;defaultPayment&#x27;);
+    const mpesaShortcode = document.getElementById(&#x27;mpesaShortcode&#x27;);
     
     const settings = {
-        defaultPayment: defaultPayment ? defaultPayment.value : 'mpesa',
-        mpesaShortcode: mpesaShortcode ? mpesaShortcode.value : ''
+        defaultPayment: defaultPayment ? defaultPayment.value : &#x27;mpesa&#x27;,
+        mpesaShortcode: mpesaShortcode ? mpesaShortcode.value : &#x27;&#x27;
     };
-    localStorage.setItem('luciecloset_payment_settings', JSON.stringify(settings));
-    showToast('Payment settings saved!', 'success');
+    localStorage.setItem(&#x27;luciecloset_payment_settings&#x27;, JSON.stringify(settings));
+    showToast(&#x27;Payment settings saved!&#x27;, &#x27;success&#x27;);
 }
 window.savePaymentSettings = savePaymentSettings;
 
@@ -1888,34 +1904,34 @@ window.savePaymentSettings = savePaymentSettings;
 // ============================================================
 function openModal(id) {
     const modal = document.getElementById(id);
-    if (modal) modal.classList.add('active');
+    if (modal) modal.classList.add(&#x27;active&#x27;);
 }
 window.openModal = openModal;
 
 function closeModal(id) {
     const modal = document.getElementById(id);
-    if (modal) modal.classList.remove('active');
+    if (modal) modal.classList.remove(&#x27;active&#x27;);
 }
 window.closeModal = closeModal;
 
 // ============================================================
 // THEME TOGGLE
 // ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    const themeToggle = document.getElementById('themeToggle');
+document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
+    const themeToggle = document.getElementById(&#x27;themeToggle&#x27;);
     if (themeToggle) {
-        themeToggle.addEventListener('click', function() {
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
-            this.innerHTML = isDark ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
-            localStorage.setItem('luciecloset_theme', isDark ? 'light' : 'dark');
+        themeToggle.addEventListener(&#x27;click&#x27;, function() {
+            const isDark = document.documentElement.getAttribute(&#x27;data-theme&#x27;) === &#x27;dark&#x27;;
+            document.documentElement.setAttribute(&#x27;data-theme&#x27;, isDark ? &#x27;light&#x27; : &#x27;dark&#x27;);
+            this.innerHTML = isDark ? &#x27;&lt;i class=&quot;fas fa-moon&quot;&gt;&lt;/i&gt;&#x27; : &#x27;&lt;i class=&quot;fas fa-sun&quot;&gt;&lt;/i&gt;&#x27;;
+            localStorage.setItem(&#x27;luciecloset_theme&#x27;, isDark ? &#x27;light&#x27; : &#x27;dark&#x27;);
         });
     }
 
-    const savedTheme = localStorage.getItem('luciecloset_theme');
-    if (savedTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        if (themeToggle) themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    const savedTheme = localStorage.getItem(&#x27;luciecloset_theme&#x27;);
+    if (savedTheme === &#x27;dark&#x27;) {
+        document.documentElement.setAttribute(&#x27;data-theme&#x27;, &#x27;dark&#x27;);
+        if (themeToggle) themeToggle.innerHTML = &#x27;&lt;i class=&quot;fas fa-sun&quot;&gt;&lt;/i&gt;&#x27;;
     }
 });
 
@@ -1924,9 +1940,9 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 function updateClock() {
     const now = new Date();
-    const timeDisplay = document.getElementById('currentTime');
+    const timeDisplay = document.getElementById(&#x27;currentTime&#x27;);
     if (timeDisplay) {
-        timeDisplay.textContent = now.toLocaleTimeString('en-KE', { hour12: false });
+        timeDisplay.textContent = now.toLocaleTimeString(&#x27;en-KE&#x27;, { hour12: false });
     }
 }
 setInterval(updateClock, 1000);
@@ -1935,11 +1951,11 @@ updateClock();
 // ============================================================
 // SIDEBAR TOGGLE (Mobile)
 // ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebarToggle = document.getElementById('sidebarToggle');
+document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
+    const sidebarToggle = document.getElementById(&#x27;sidebarToggle&#x27;);
     if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('open');
+        sidebarToggle.addEventListener(&#x27;click&#x27;, function() {
+            document.getElementById(&#x27;sidebar&#x27;).classList.toggle(&#x27;open&#x27;);
         });
     }
 });
@@ -1947,13 +1963,13 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 // NAVIGATION CLICK HANDLERS
 // ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.sidebar-menu li[data-section]').forEach(item => {
-        item.addEventListener('click', function() {
+document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
+    document.querySelectorAll(&#x27;.sidebar-menu li[data-section]&#x27;).forEach(item =&gt; {
+        item.addEventListener(&#x27;click&#x27;, function() {
             const section = this.dataset.section;
             navigateTo(section);
-            if (window.innerWidth <= 768) {
-                document.getElementById('sidebar').classList.remove('open');
+            if (window.innerWidth &lt;= 768) {
+                document.getElementById(&#x27;sidebar&#x27;).classList.remove(&#x27;open&#x27;);
             }
         });
     });
@@ -1962,11 +1978,11 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 // ORDER FILTERS
 // ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('#orderFilters .filter-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('#orderFilters .filter-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
+document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
+    document.querySelectorAll(&#x27;#orderFilters .filter-btn&#x27;).forEach(btn =&gt; {
+        btn.addEventListener(&#x27;click&#x27;, function() {
+            document.querySelectorAll(&#x27;#orderFilters .filter-btn&#x27;).forEach(b =&gt; b.classList.remove(&#x27;active&#x27;));
+            this.classList.add(&#x27;active&#x27;);
             renderOrders(this.dataset.filter);
         });
     });
@@ -1975,11 +1991,11 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 // LOGOUT
 // ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    const logoutBtn = document.getElementById('logoutBtn');
+document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
+    const logoutBtn = document.getElementById(&#x27;logoutBtn&#x27;);
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-            if (confirm('Are you sure you want to logout?')) {
+        logoutBtn.addEventListener(&#x27;click&#x27;, function() {
+            if (confirm(&#x27;Are you sure you want to logout?&#x27;)) {
                 logout();
             }
         });
@@ -1989,13 +2005,13 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 // KEYBOARD SHORTCUTS
 // ============================================================
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        document.querySelectorAll('.modal-overlay.active').forEach(el => el.classList.remove('active'));
+document.addEventListener(&#x27;keydown&#x27;, (e) =&gt; {
+    if (e.key === &#x27;Escape&#x27;) {
+        document.querySelectorAll(&#x27;.modal-overlay.active&#x27;).forEach(el =&gt; el.classList.remove(&#x27;active&#x27;));
     }
-    if (e.ctrlKey && e.key === 'k') {
+    if (e.ctrlKey &amp;&amp; e.key === &#x27;k&#x27;) {
         e.preventDefault();
-        const search = document.getElementById('posSearch');
+        const search = document.getElementById(&#x27;posSearch&#x27;);
         if (search) search.focus();
     }
 });
@@ -2003,21 +2019,21 @@ document.addEventListener('keydown', (e) => {
 // ============================================================
 // LOGIN FORM SUBMIT
 // ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('loginForm');
+document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
+    const loginForm = document.getElementById(&#x27;loginForm&#x27;);
     if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
+        loginForm.addEventListener(&#x27;submit&#x27;, handleLogin);
     }
 });
 
 // ============================================================
 // INIT
 // ============================================================
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
     checkAuth();
 });
 // ============================================================
-// LUCIE CLOSET · PRODUCTION HARDENING & BUSINESS UPGRADES
+// LUCIE CLOSET · PRODUCTION HARDENING &amp; BUSINESS UPGRADES
 // These overrides preserve the existing HTML/DOM contract while
 // strengthening stock control, roles, audit logging, costing,
 // reporting, validation and operational safeguards.
@@ -2027,40 +2043,40 @@ const LC = window.LC || {};
 window.LC = LC;
 
 LC.roles = {
-    Owner: ['dashboard','pos','orders','products','inventory','customers','reports','profit','audit','settings'],
-    Administrator: ['dashboard','pos','orders','products','inventory','customers','reports','profit','audit','settings'],
-    Manager: ['dashboard','pos','orders','products','inventory','customers','reports','profit'],
-    Accountant: ['dashboard','orders','customers','reports','profit'],
-    'Stock Manager': ['dashboard','products','inventory'],
-    Cashier: ['dashboard','pos','orders','customers']
+    Owner: [&#x27;dashboard&#x27;,&#x27;pos&#x27;,&#x27;orders&#x27;,&#x27;products&#x27;,&#x27;inventory&#x27;,&#x27;customers&#x27;,&#x27;reports&#x27;,&#x27;profit&#x27;,&#x27;audit&#x27;,&#x27;settings&#x27;],
+    Administrator: [&#x27;dashboard&#x27;,&#x27;pos&#x27;,&#x27;orders&#x27;,&#x27;products&#x27;,&#x27;inventory&#x27;,&#x27;customers&#x27;,&#x27;reports&#x27;,&#x27;profit&#x27;,&#x27;audit&#x27;,&#x27;settings&#x27;],
+    Manager: [&#x27;dashboard&#x27;,&#x27;pos&#x27;,&#x27;orders&#x27;,&#x27;products&#x27;,&#x27;inventory&#x27;,&#x27;customers&#x27;,&#x27;reports&#x27;,&#x27;profit&#x27;],
+    Accountant: [&#x27;dashboard&#x27;,&#x27;orders&#x27;,&#x27;customers&#x27;,&#x27;reports&#x27;,&#x27;profit&#x27;],
+    &#x27;Stock Manager&#x27;: [&#x27;dashboard&#x27;,&#x27;products&#x27;,&#x27;inventory&#x27;],
+    Cashier: [&#x27;dashboard&#x27;,&#x27;pos&#x27;,&#x27;orders&#x27;,&#x27;customers&#x27;]
 };
 
 LC.can = function(action) {
-    const role = currentUser?.role_name || 'Cashier';
+    const role = currentUser?.role_name || &#x27;Cashier&#x27;;
     const rules = {
-        manageUsers: ['Owner','Administrator'],
-        manageSettings: ['Owner','Administrator'],
-        manageProducts: ['Owner','Administrator','Manager','Stock Manager'],
-        adjustStock: ['Owner','Administrator','Manager','Stock Manager'],
-        cancelOrders: ['Owner','Administrator','Manager'],
-        viewProfit: ['Owner','Administrator','Manager','Accountant'],
-        audit: ['Owner','Administrator','Manager']
+        manageUsers: [&#x27;Owner&#x27;,&#x27;Administrator&#x27;],
+        manageSettings: [&#x27;Owner&#x27;,&#x27;Administrator&#x27;],
+        manageProducts: [&#x27;Owner&#x27;,&#x27;Administrator&#x27;,&#x27;Manager&#x27;,&#x27;Stock Manager&#x27;],
+        adjustStock: [&#x27;Owner&#x27;,&#x27;Administrator&#x27;,&#x27;Manager&#x27;,&#x27;Stock Manager&#x27;],
+        cancelOrders: [&#x27;Owner&#x27;,&#x27;Administrator&#x27;,&#x27;Manager&#x27;],
+        viewProfit: [&#x27;Owner&#x27;,&#x27;Administrator&#x27;,&#x27;Manager&#x27;,&#x27;Accountant&#x27;],
+        audit: [&#x27;Owner&#x27;,&#x27;Administrator&#x27;,&#x27;Manager&#x27;]
     };
     return (rules[action] || []).includes(role);
 };
 
 LC.escape = function(value) {
-    return String(value ?? '').replace(/[&<>'"]/g, c => ({
-        '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;'
+    return String(value ?? &#x27;&#x27;).replace(/[&amp;&lt;&gt;&#x27;&quot;]/g, c =&gt; ({
+        &#x27;&amp;&#x27;:&#x27;&amp;amp;&#x27;, &#x27;&lt;&#x27;:&#x27;&amp;lt;&#x27;, &#x27;&gt;&#x27;:&#x27;&amp;gt;&#x27;, &quot;&#x27;&quot;:&#x27;&amp;#39;&#x27;, &#x27;&quot;&#x27;:&#x27;&amp;quot;&#x27;
     }[c]));
 };
 
 LC.money = function(value) {
-    return `KES ${Number(value || 0).toLocaleString('en-KE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    return `KES ${Number(value || 0).toLocaleString(&#x27;en-KE&#x27;, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 };
 
 LC.number = function(value) {
-    return Number(value || 0).toLocaleString('en-KE', {maximumFractionDigits: 2});
+    return Number(value || 0).toLocaleString(&#x27;en-KE&#x27;, {maximumFractionDigits: 2});
 };
 
 LC.costOf = function(productOrItem) {
@@ -2070,42 +2086,42 @@ LC.costOf = function(productOrItem) {
         productOrItem?.unit_cost ??
         0
     );
-    return Number.isFinite(value) && value >= 0 ? value : 0;
+    return Number.isFinite(value) &amp;&amp; value &gt;= 0 ? value : 0;
 };
 
 LC.reorderLevel = function(product) {
     const value = Number(product?.reorder_level ?? product?.minimum_stock ?? 5);
-    return Number.isFinite(value) && value >= 0 ? value : 5;
+    return Number.isFinite(value) &amp;&amp; value &gt;= 0 ? value : 5;
 };
 
 LC.isLowStock = function(product) {
-    return Number(product?.stock || 0) <= LC.reorderLevel(product);
+    return Number(product?.stock || 0) &lt;= LC.reorderLevel(product);
 };
 
 LC.audit = async function(action, details = {}) {
     const entry = {
         timestamp: new Date().toISOString(),
-        user: currentUser?.full_name || currentUser?.email || 'System',
+        user: currentUser?.full_name || currentUser?.email || &#x27;System&#x27;,
         user_id: currentUser?.id || null,
         action,
-        details: typeof details === 'string' ? details : JSON.stringify(details)
+        details: typeof details === &#x27;string&#x27; ? details : JSON.stringify(details)
     };
 
     try {
-        const { error } = await sb.from('audit_logs').insert([entry]);
+        const { error } = await sb.from(&#x27;audit_logs&#x27;).insert([entry]);
         if (!error) return;
     } catch (_) {}
 
     try {
-        const logs = JSON.parse(localStorage.getItem('luciecloset_audit') || '[]');
+        const logs = JSON.parse(localStorage.getItem(&#x27;luciecloset_audit&#x27;) || &#x27;[]&#x27;);
         logs.unshift(entry);
-        localStorage.setItem('luciecloset_audit', JSON.stringify(logs.slice(0, 500)));
+        localStorage.setItem(&#x27;luciecloset_audit&#x27;, JSON.stringify(logs.slice(0, 500)));
     } catch (_) {}
 };
 
 LC.permissionToast = function(action) {
     if (!LC.can(action)) {
-        showToast('You do not have permission to perform this action.', 'error');
+        showToast(&#x27;You do not have permission to perform this action.&#x27;, &#x27;error&#x27;);
         return false;
     }
     return true;
@@ -2116,15 +2132,15 @@ LC.permissionToast = function(action) {
 // ------------------------------------------------------------
 updateStats = function() {
     const today = new Date().toDateString();
-    const completed = orders.filter(o => o.status === 'completed');
-    const todayOrders = completed.filter(o => new Date(o.created_at).toDateString() === today);
-    const todayRevenue = todayOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+    const completed = orders.filter(o =&gt; o.status === &#x27;completed&#x27;);
+    const todayOrders = completed.filter(o =&gt; new Date(o.created_at).toDateString() === today);
+    const todayRevenue = todayOrders.reduce((sum, o) =&gt; sum + Number(o.total || 0), 0);
 
     let todayCost = 0;
-    todayOrders.forEach(o => (o.items || []).forEach(i => {
+    todayOrders.forEach(o =&gt; (o.items || []).forEach(i =&gt; {
         const qty = Number(i.qty || 0);
         const unitCost = LC.costOf(i);
-        const product = products.find(p => String(p.id) === String(i.id));
+        const product = products.find(p =&gt; String(p.id) === String(i.id));
         todayCost += qty * (unitCost || LC.costOf(product));
     }));
     const todayProfit = Math.max(0, todayRevenue - todayCost);
@@ -2133,20 +2149,20 @@ updateStats = function() {
         todaySales: LC.money(todayRevenue),
         todayRevenue: LC.money(todayRevenue),
         todayProfit: LC.money(todayProfit),
-        bestQualityCount: products.filter(p => !!p.best_quality).length,
+        bestQualityCount: products.filter(p =&gt; !!p.best_quality).length,
         totalOrders: orders.length,
         lowStock: products.filter(LC.isLowStock).length,
         totalProducts: products.length,
         totalCustomers: customers.length
     };
 
-    Object.entries(values).forEach(([id, value]) => {
+    Object.entries(values).forEach(([id, value]) =&gt; {
         const el = document.getElementById(id);
         if (el) el.textContent = value;
     });
 
-    const badge = document.getElementById('orderBadge');
-    if (badge) badge.textContent = orders.filter(o => o.status === 'pending').length || orders.length;
+    const badge = document.getElementById(&#x27;orderBadge&#x27;);
+    if (badge) badge.textContent = orders.filter(o =&gt; o.status === &#x27;pending&#x27;).length || orders.length;
 };
 window.updateStats = updateStats;
 
@@ -2155,16 +2171,16 @@ window.updateStats = updateStats;
 // ------------------------------------------------------------
 const originalNavigateTo = navigateTo;
 navigateTo = function(section) {
-    const role = currentUser?.role_name || 'Cashier';
+    const role = currentUser?.role_name || &#x27;Cashier&#x27;;
     const allowed = LC.roles[role] || LC.roles.Cashier;
     if (!allowed.includes(section)) {
-        showToast(`Access denied for ${role}.`, 'error');
+        showToast(`Access denied for ${role}.`, &#x27;error&#x27;);
         return;
     }
     originalNavigateTo(section);
-    document.querySelectorAll('.sidebar-menu li[data-section]').forEach(item => {
+    document.querySelectorAll(&#x27;.sidebar-menu li[data-section]&#x27;).forEach(item =&gt; {
         const target = item.dataset.section;
-        item.style.display = allowed.includes(target) ? '' : 'none';
+        item.style.display = allowed.includes(target) ? &#x27;&#x27; : &#x27;none&#x27;;
     });
 };
 window.navigateTo = navigateTo;
@@ -2173,16 +2189,16 @@ window.navigateTo = navigateTo;
 // Session/login screen cleanup.
 // ------------------------------------------------------------
 showLogin = function() {
-    const loginScreen = document.getElementById('loginScreen');
-    const dashboardScreen = document.getElementById('dashboardScreen');
-    if (loginScreen) loginScreen.style.display = 'flex';
-    if (dashboardScreen) dashboardScreen.style.display = 'none';
-    const alertEl = document.getElementById('loginAlert');
-    if (alertEl) alertEl.textContent = '';
-    pinValue = '';
-    const pinInput = document.getElementById('pinInput');
-    if (pinInput) pinInput.value = '';
-    if (typeof renderDots === 'function') renderDots();
+    const loginScreen = document.getElementById(&#x27;loginScreen&#x27;);
+    const dashboardScreen = document.getElementById(&#x27;dashboardScreen&#x27;);
+    if (loginScreen) loginScreen.style.display = &#x27;flex&#x27;;
+    if (dashboardScreen) dashboardScreen.style.display = &#x27;none&#x27;;
+    const alertEl = document.getElementById(&#x27;loginAlert&#x27;);
+    if (alertEl) alertEl.textContent = &#x27;&#x27;;
+    pinValue = &#x27;&#x27;;
+    const pinInput = document.getElementById(&#x27;pinInput&#x27;);
+    if (pinInput) pinInput.value = &#x27;&#x27;;
+    if (typeof renderDots === &#x27;function&#x27;) renderDots();
 };
 window.showLogin = showLogin;
 
@@ -2191,70 +2207,70 @@ window.showLogin = showLogin;
 // while falling back safely if the existing DB schema is older.
 // ------------------------------------------------------------
 openProductModal = function(product = null) {
-    const set = (id, value) => {
+    const set = (id, value) =&gt; {
         const el = document.getElementById(id);
-        if (el) el.value = value ?? '';
+        if (el) el.value = value ?? &#x27;&#x27;;
     };
-    const check = (id, value) => {
+    const check = (id, value) =&gt; {
         const el = document.getElementById(id);
         if (el) el.checked = !!value;
     };
 
-    set('editProductId', product?.id || '');
-    set('productName', product?.name || '');
-    set('productCode', product?.code || '');
-    set('productCategory', product?.category || '');
-    set('productGender', product?.gender || 'unisex');
-    set('productPrice', product?.price ?? '');
-    set('productStock', product?.stock ?? '');
-    set('productCostPrice', product?.cost_price ?? product?.cost ?? '');
-    set('productSize', product?.size ?? product?.variant ?? '');
-    set('productColour', product?.colour ?? product?.color ?? '');
-    set('productReorderLevel', product?.reorder_level ?? product?.minimum_stock ?? 5);
-    set('productSupplier', product?.supplier ?? '');
-    set('productImageUrl', product?.image_url ?? '');
-    check('productBestQuality', product?.best_quality);
+    set(&#x27;editProductId&#x27;, product?.id || &#x27;&#x27;);
+    set(&#x27;productName&#x27;, product?.name || &#x27;&#x27;);
+    set(&#x27;productCode&#x27;, product?.code || &#x27;&#x27;);
+    set(&#x27;productCategory&#x27;, product?.category || &#x27;&#x27;);
+    set(&#x27;productGender&#x27;, product?.gender || &#x27;unisex&#x27;);
+    set(&#x27;productPrice&#x27;, product?.price ?? &#x27;&#x27;);
+    set(&#x27;productStock&#x27;, product?.stock ?? &#x27;&#x27;);
+    set(&#x27;productCostPrice&#x27;, product?.cost_price ?? product?.cost ?? &#x27;&#x27;);
+    set(&#x27;productSize&#x27;, product?.size ?? product?.variant ?? &#x27;&#x27;);
+    set(&#x27;productColour&#x27;, product?.colour ?? product?.color ?? &#x27;&#x27;);
+    set(&#x27;productReorderLevel&#x27;, product?.reorder_level ?? product?.minimum_stock ?? 5);
+    set(&#x27;productSupplier&#x27;, product?.supplier ?? &#x27;&#x27;);
+    set(&#x27;productImageUrl&#x27;, product?.image_url ?? &#x27;&#x27;);
+    check(&#x27;productBestQuality&#x27;, product?.best_quality);
 
-    const title = document.getElementById('productModalTitle');
-    const saveBtn = document.getElementById('saveProductBtn');
-    if (title) title.textContent = product ? '✏️ Edit Product' : '📦 Add Product';
-    if (saveBtn) saveBtn.innerHTML = product ? '<i class="fas fa-save"></i> Update Product' : '<i class="fas fa-save"></i> Save Product';
+    const title = document.getElementById(&#x27;productModalTitle&#x27;);
+    const saveBtn = document.getElementById(&#x27;saveProductBtn&#x27;);
+    if (title) title.textContent = product ? &#x27;✏️ Edit Product&#x27; : &#x27;📦 Add Product&#x27;;
+    if (saveBtn) saveBtn.innerHTML = product ? &#x27;&lt;i class=&quot;fas fa-save&quot;&gt;&lt;/i&gt; Update Product&#x27; : &#x27;&lt;i class=&quot;fas fa-save&quot;&gt;&lt;/i&gt; Save Product&#x27;;
 
-    const preview = document.getElementById('imagePreview');
+    const preview = document.getElementById(&#x27;imagePreview&#x27;);
     if (preview) preview.innerHTML = product?.image_url
-        ? `<img src="${LC.escape(product.image_url)}" alt="Product image" style="max-width:100%;max-height:180px;object-fit:contain;border-radius:12px;">`
-        : '';
+        ? `&lt;img src=&quot;${LC.escape(product.image_url)}&quot; alt=&quot;Product image&quot; style=&quot;max-width:100%;max-height:180px;object-fit:contain;border-radius:12px;&quot;&gt;`
+        : &#x27;&#x27;;
 
-    openModal('productModal');
+    openModal(&#x27;productModal&#x27;);
 };
 window.openProductModal = openProductModal;
 
 saveProduct = async function(e) {
     e.preventDefault();
-    if (!LC.permissionToast('manageProducts')) return;
+    if (!LC.permissionToast(&#x27;manageProducts&#x27;)) return;
 
-    const get = id => document.getElementById(id);
-    const name = get('productName')?.value.trim();
-    const code = get('productCode')?.value.trim();
-    const category = get('productCategory')?.value;
-    const gender = get('productGender')?.value || 'unisex';
-    const price = Number(get('productPrice')?.value);
-    const stock = Number(get('productStock')?.value);
-    const editId = get('editProductId')?.value;
-    const best_quality = !!get('productBestQuality')?.checked;
+    const get = id =&gt; document.getElementById(id);
+    const name = get(&#x27;productName&#x27;)?.value.trim();
+    const code = get(&#x27;productCode&#x27;)?.value.trim();
+    const category = get(&#x27;productCategory&#x27;)?.value;
+    const gender = get(&#x27;productGender&#x27;)?.value || &#x27;unisex&#x27;;
+    const price = Number(get(&#x27;productPrice&#x27;)?.value);
+    const stock = Number(get(&#x27;productStock&#x27;)?.value);
+    const editId = get(&#x27;editProductId&#x27;)?.value;
+    const best_quality = !!get(&#x27;productBestQuality&#x27;)?.checked;
 
-    if (!name || !code || !category || !Number.isFinite(price) || price <= 0 || !Number.isInteger(stock) || stock < 0) {
-        showToast('Enter a valid product name, code, selling price and non-negative whole-number stock.', 'error');
+    if (!name || !code || !category || !Number.isFinite(price) || price &lt;= 0 || !Number.isInteger(stock) || stock &lt; 0) {
+        showToast(&#x27;Enter a valid product name, code, selling price and non-negative whole-number stock.&#x27;, &#x27;error&#x27;);
         return;
     }
 
     const optional = {
-        cost_price: Number(get('productCostPrice')?.value || 0),
-        size: get('productSize')?.value.trim() || null,
-        colour: get('productColour')?.value.trim() || null,
-        reorder_level: Number(get('productReorderLevel')?.value || 5),
-        supplier: get('productSupplier')?.value.trim() || null,
-        image_url: get('productImageUrl')?.value.trim() || null
+        cost_price: Number(get(&#x27;productCostPrice&#x27;)?.value || 0),
+        size: get(&#x27;productSize&#x27;)?.value.trim() || null,
+        colour: get(&#x27;productColour&#x27;)?.value.trim() || null,
+        reorder_level: Number(get(&#x27;productReorderLevel&#x27;)?.value || 5),
+        supplier: get(&#x27;productSupplier&#x27;)?.value.trim() || null,
+        image_url: get(&#x27;productImageUrl&#x27;)?.value.trim() || null
     };
 
     const fullData = { name, code, category, gender, price, stock, best_quality, ...optional };
@@ -2263,29 +2279,29 @@ saveProduct = async function(e) {
     try {
         let error;
         if (editId) {
-            ({ error } = await sb.from('products').update(fullData).eq('id', Number(editId)));
+            ({ error } = await sb.from(&#x27;products&#x27;).update(fullData).eq(&#x27;id&#x27;, Number(editId)));
             if (error) {
-                ({ error } = await sb.from('products').update(baseData).eq('id', Number(editId)));
+                ({ error } = await sb.from(&#x27;products&#x27;).update(baseData).eq(&#x27;id&#x27;, Number(editId)));
             }
             if (error) throw error;
-            await LC.audit('PRODUCT_UPDATED', { id: Number(editId), name, code });
-            showToast('Product updated successfully.', 'success');
+            await LC.audit(&#x27;PRODUCT_UPDATED&#x27;, { id: Number(editId), name, code });
+            showToast(&#x27;Product updated successfully.&#x27;, &#x27;success&#x27;);
         } else {
-            ({ error } = await sb.from('products').insert([fullData]));
+            ({ error } = await sb.from(&#x27;products&#x27;).insert([fullData]));
             if (error) {
-                ({ error } = await sb.from('products').insert([baseData]));
+                ({ error } = await sb.from(&#x27;products&#x27;).insert([baseData]));
             }
             if (error) throw error;
-            await LC.audit('PRODUCT_CREATED', { name, code });
-            showToast('Product added successfully.', 'success');
+            await LC.audit(&#x27;PRODUCT_CREATED&#x27;, { name, code });
+            showToast(&#x27;Product added successfully.&#x27;, &#x27;success&#x27;);
         }
         await loadProducts();
         updateStats();
         renderCurrentTab();
-        closeModal('productModal');
+        closeModal(&#x27;productModal&#x27;);
     } catch (err) {
-        console.error('Product save error:', err);
-        showToast(`Could not save product: ${err.message || 'Unknown error'}`, 'error');
+        console.error(&#x27;Product save error:&#x27;, err);
+        showToast(`Could not save product: ${err.message || &#x27;Unknown error&#x27;}`, &#x27;error&#x27;);
     }
 };
 window.saveProduct = saveProduct;
@@ -2294,21 +2310,21 @@ window.saveProduct = saveProduct;
 // Product deletion guard + audit.
 // ------------------------------------------------------------
 deleteProduct = async function(id) {
-    if (!LC.permissionToast('manageProducts')) return;
-    const product = products.find(p => String(p.id) === String(id));
+    if (!LC.permissionToast(&#x27;manageProducts&#x27;)) return;
+    const product = products.find(p =&gt; String(p.id) === String(id));
     if (!product) return;
     if (!confirm(`Delete “${product.name}”? This should only be done when the item has no historical dependency.`)) return;
 
     try {
-        const { error } = await sb.from('products').delete().eq('id', id);
+        const { error } = await sb.from(&#x27;products&#x27;).delete().eq(&#x27;id&#x27;, id);
         if (error) throw error;
-        await LC.audit('PRODUCT_DELETED', { id, name: product.name, code: product.code });
-        showToast('Product deleted.', 'success');
+        await LC.audit(&#x27;PRODUCT_DELETED&#x27;, { id, name: product.name, code: product.code });
+        showToast(&#x27;Product deleted.&#x27;, &#x27;success&#x27;);
         await loadProducts();
         updateStats();
         renderCurrentTab();
     } catch (err) {
-        showToast(`Could not delete product: ${err.message || 'Unknown error'}`, 'error');
+        showToast(`Could not delete product: ${err.message || &#x27;Unknown error&#x27;}`, &#x27;error&#x27;);
     }
 };
 window.deleteProduct = deleteProduct;
@@ -2322,29 +2338,29 @@ completeOrder = async function() {
     isSubmitting = true;
 
     try {
-        const name = document.getElementById('checkoutName')?.value.trim() || 'Walk-in Customer';
-        const phone = document.getElementById('checkoutPhone')?.value.trim() || 'N/A';
-        const mpesaCode = document.getElementById('mpesaCode')?.value.trim() || '';
-        const cashPaid = Number(document.getElementById('cashPaid')?.value || 0);
-        const total = cart.reduce((sum, i) => sum + Number(i.price || 0) * Number(i.qty || 0), 0);
+        const name = document.getElementById(&#x27;checkoutName&#x27;)?.value.trim() || &#x27;Walk-in Customer&#x27;;
+        const phone = document.getElementById(&#x27;checkoutPhone&#x27;)?.value.trim() || &#x27;N/A&#x27;;
+        const mpesaCode = document.getElementById(&#x27;mpesaCode&#x27;)?.value.trim() || &#x27;&#x27;;
+        const cashPaid = Number(document.getElementById(&#x27;cashPaid&#x27;)?.value || 0);
+        const total = cart.reduce((sum, i) =&gt; sum + Number(i.price || 0) * Number(i.qty || 0), 0);
 
-        if (!total || total <= 0) throw new Error('Cart total must be greater than zero.');
+        if (!total || total &lt;= 0) throw new Error(&#x27;Cart total must be greater than zero.&#x27;);
 
-        if (selectedPayment === 'mpesa' && !mpesaCode) throw new Error('Please enter the M-Pesa transaction code.');
-        if (selectedPayment === 'cash' && cashPaid < total) throw new Error(`Insufficient cash. Balance: ${LC.money(total - cashPaid)}`);
+        if (selectedPayment === &#x27;mpesa&#x27; &amp;&amp; !mpesaCode) throw new Error(&#x27;Please enter the M-Pesa transaction code.&#x27;);
+        if (selectedPayment === &#x27;cash&#x27; &amp;&amp; cashPaid &lt; total) throw new Error(`Insufficient cash. Balance: ${LC.money(total - cashPaid)}`);
 
         for (const item of cart) {
-            const product = products.find(p => String(p.id) === String(item.id));
+            const product = products.find(p =&gt; String(p.id) === String(item.id));
             if (!product) throw new Error(`Product ${item.name} is no longer available.`);
-            if (Number(product.stock || 0) < Number(item.qty || 0)) {
+            if (Number(product.stock || 0) &lt; Number(item.qty || 0)) {
                 throw new Error(`Insufficient stock for ${item.name}. Available: ${product.stock}.`);
             }
         }
 
-        const paymentDetails = selectedPayment === 'mpesa' ? `M-Pesa: ${mpesaCode}` : selectedPayment;
-        const orderNumber = 'POS-' + Date.now().toString().slice(-8);
-        const items = cart.map(i => {
-            const product = products.find(p => String(p.id) === String(i.id));
+        const paymentDetails = selectedPayment === &#x27;mpesa&#x27; ? `M-Pesa: ${mpesaCode}` : selectedPayment;
+        const orderNumber = &#x27;POS-&#x27; + Date.now().toString().slice(-8);
+        const items = cart.map(i =&gt; {
+            const product = products.find(p =&gt; String(p.id) === String(i.id));
             return {
                 id: i.id,
                 name: i.name,
@@ -2361,30 +2377,30 @@ completeOrder = async function() {
             order_number: orderNumber,
             customer_name: name,
             customer_phone: phone,
-            customer_email: '',
+            customer_email: &#x27;&#x27;,
             items,
             total: Number(total.toFixed(2)),
             payment_method: paymentDetails,
-            status: 'completed',
+            status: &#x27;completed&#x27;,
             created_at: new Date().toISOString()
         };
 
-        const { data: inserted, error: orderError } = await sb.from('orders').insert([orderData]).select().maybeSingle();
+        const { data: inserted, error: orderError } = await sb.from(&#x27;orders&#x27;).insert([orderData]).select().maybeSingle();
         if (orderError) throw orderError;
 
         const changed = [];
         try {
             for (const item of cart) {
-                const product = products.find(p => String(p.id) === String(item.id));
+                const product = products.find(p =&gt; String(p.id) === String(item.id));
                 const oldStock = Number(product.stock || 0);
                 const newStock = oldStock - Number(item.qty || 0);
 
                 const { data: updatedRows, error: stockError } = await sb
-                    .from('products')
+                    .from(&#x27;products&#x27;)
                     .update({ stock: newStock })
-                    .eq('id', item.id)
-                    .eq('stock', oldStock)
-                    .select('id, stock');
+                    .eq(&#x27;id&#x27;, item.id)
+                    .eq(&#x27;stock&#x27;, oldStock)
+                    .select(&#x27;id, stock&#x27;);
 
                 if (stockError) throw stockError;
                 if (!updatedRows || updatedRows.length !== 1) {
@@ -2394,37 +2410,37 @@ completeOrder = async function() {
             }
         } catch (stockError) {
             for (const c of changed.reverse()) {
-                await sb.from('products').update({ stock: c.oldStock }).eq('id', c.id).eq('stock', c.newStock);
+                await sb.from(&#x27;products&#x27;).update({ stock: c.oldStock }).eq(&#x27;id&#x27;, c.id).eq(&#x27;stock&#x27;, c.newStock);
             }
-            if (inserted?.id) await sb.from('orders').delete().eq('id', inserted.id);
+            if (inserted?.id) await sb.from(&#x27;orders&#x27;).delete().eq(&#x27;id&#x27;, inserted.id);
             throw stockError;
         }
 
-        await LC.audit('SALE_COMPLETED', {
+        await LC.audit(&#x27;SALE_COMPLETED&#x27;, {
             order_number: orderNumber,
             total,
             payment_method: selectedPayment,
             customer: name,
-            items: items.map(i => ({id:i.id, qty:i.qty, total:i.price*i.qty}))
+            items: items.map(i =&gt; ({id:i.id, qty:i.qty, total:i.price*i.qty}))
         });
 
-        if (selectedPayment === 'cash') {
+        if (selectedPayment === &#x27;cash&#x27;) {
             const change = cashPaid - total;
-            showToast(`Sale completed. Change: ${LC.money(change)}`, 'success');
+            showToast(`Sale completed. Change: ${LC.money(change)}`, &#x27;success&#x27;);
         } else {
-            showToast(`Sale ${orderNumber} completed successfully.`, 'success');
+            showToast(`Sale ${orderNumber} completed successfully.`, &#x27;success&#x27;);
         }
 
         generateReceipt(orderData);
         cart = [];
         updateCartUI();
-        closeModal('checkoutModal');
+        closeModal(&#x27;checkoutModal&#x27;);
         await Promise.all([loadProducts(), loadOrders(), loadCustomers()]);
         updateStats();
         renderCurrentTab();
     } catch (err) {
-        console.error('Checkout error:', err);
-        showToast(err.message || 'Could not complete the sale.', 'error');
+        console.error(&#x27;Checkout error:&#x27;, err);
+        showToast(err.message || &#x27;Could not complete the sale.&#x27;, &#x27;error&#x27;);
     } finally {
         isSubmitting = false;
     }
@@ -2437,35 +2453,35 @@ window.completeOrder = completeOrder;
 // result as exact when no cost data exists.
 // ------------------------------------------------------------
 refreshProfitData = function() {
-    const completedOrders = orders.filter(o => o.status === 'completed');
+    const completedOrders = orders.filter(o =&gt; o.status === &#x27;completed&#x27;);
     let totalRevenue = 0;
     let totalCost = 0;
     let costCoverage = 0;
 
-    completedOrders.forEach(order => {
+    completedOrders.forEach(order =&gt; {
         totalRevenue += Number(order.total || 0);
-        (order.items || []).forEach(item => {
+        (order.items || []).forEach(item =&gt; {
             const qty = Number(item.qty || 0);
-            const cost = LC.costOf(item) || LC.costOf(products.find(p => String(p.id) === String(item.id)));
-            if (cost > 0) costCoverage += qty;
+            const cost = LC.costOf(item) || LC.costOf(products.find(p =&gt; String(p.id) === String(item.id)));
+            if (cost &gt; 0) costCoverage += qty;
             totalCost += qty * cost;
         });
     });
 
     const netProfit = totalRevenue - totalCost;
-    const margin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+    const margin = totalRevenue &gt; 0 ? (netProfit / totalRevenue) * 100 : 0;
 
-    const set = (id, value) => {
+    const set = (id, value) =&gt; {
         const el = document.getElementById(id);
         if (el) el.textContent = value;
     };
-    set('totalRevenue', LC.money(totalRevenue));
-    set('totalCost', LC.money(totalCost));
-    set('netProfit', LC.money(netProfit));
-    set('profitMargin', `${margin.toFixed(1)}%`);
+    set(&#x27;totalRevenue&#x27;, LC.money(totalRevenue));
+    set(&#x27;totalCost&#x27;, LC.money(totalCost));
+    set(&#x27;netProfit&#x27;, LC.money(netProfit));
+    set(&#x27;profitMargin&#x27;, `${margin.toFixed(1)}%`);
 
-    const coverage = document.getElementById('costCoverage');
-    if (coverage) coverage.textContent = costCoverage ? 'Cost data available' : 'Add product cost prices for exact profit';
+    const coverage = document.getElementById(&#x27;costCoverage&#x27;);
+    if (coverage) coverage.textContent = costCoverage ? &#x27;Cost data available&#x27; : &#x27;Add product cost prices for exact profit&#x27;;
 
     renderProfitChart(totalRevenue, totalCost, Math.max(0, netProfit));
 };
@@ -2476,36 +2492,36 @@ window.refreshProfitData = refreshProfitData;
 // ------------------------------------------------------------
 adjustStock = async function(e) {
     e.preventDefault();
-    if (!LC.permissionToast('adjustStock')) return;
+    if (!LC.permissionToast(&#x27;adjustStock&#x27;)) return;
 
-    const productId = document.getElementById('stockProduct')?.value;
-    const type = document.getElementById('adjustmentType')?.value;
-    const qty = Number(document.getElementById('adjustmentQty')?.value);
-    const reason = document.getElementById('adjustmentReason')?.value.trim() || 'Manual adjustment';
-    const product = products.find(p => String(p.id) === String(productId));
+    const productId = document.getElementById(&#x27;stockProduct&#x27;)?.value;
+    const type = document.getElementById(&#x27;adjustmentType&#x27;)?.value;
+    const qty = Number(document.getElementById(&#x27;adjustmentQty&#x27;)?.value);
+    const reason = document.getElementById(&#x27;adjustmentReason&#x27;)?.value.trim() || &#x27;Manual adjustment&#x27;;
+    const product = products.find(p =&gt; String(p.id) === String(productId));
 
-    if (!product || !Number.isInteger(qty) || qty <= 0) {
-        showToast('Select a product and enter a positive whole-number quantity.', 'error');
+    if (!product || !Number.isInteger(qty) || qty &lt;= 0) {
+        showToast(&#x27;Select a product and enter a positive whole-number quantity.&#x27;, &#x27;error&#x27;);
         return;
     }
 
     const oldStock = Number(product.stock || 0);
-    const newStock = type === 'remove' ? oldStock - qty : oldStock + qty;
-    if (newStock < 0) {
-        showToast(`Cannot remove ${qty}. Only ${oldStock} units are available.`, 'error');
+    const newStock = type === &#x27;remove&#x27; ? oldStock - qty : oldStock + qty;
+    if (newStock &lt; 0) {
+        showToast(`Cannot remove ${qty}. Only ${oldStock} units are available.`, &#x27;error&#x27;);
         return;
     }
 
     try {
-        const { data, error } = await sb.from('products')
+        const { data, error } = await sb.from(&#x27;products&#x27;)
             .update({ stock: newStock })
-            .eq('id', product.id)
-            .eq('stock', oldStock)
-            .select('id, stock');
+            .eq(&#x27;id&#x27;, product.id)
+            .eq(&#x27;stock&#x27;, oldStock)
+            .select(&#x27;id, stock&#x27;);
         if (error) throw error;
-        if (!data || data.length !== 1) throw new Error('Stock changed before the adjustment was saved. Please retry.');
+        if (!data || data.length !== 1) throw new Error(&#x27;Stock changed before the adjustment was saved. Please retry.&#x27;);
 
-        await LC.audit('STOCK_ADJUSTED', {
+        await LC.audit(&#x27;STOCK_ADJUSTED&#x27;, {
             product_id: product.id,
             product: product.name,
             type,
@@ -2515,13 +2531,13 @@ adjustStock = async function(e) {
             reason
         });
 
-        showToast(`Stock updated: ${product.name} → ${newStock}`, 'success');
-        closeModal('stockModal');
+        showToast(`Stock updated: ${product.name} → ${newStock}`, &#x27;success&#x27;);
+        closeModal(&#x27;stockModal&#x27;);
         await loadProducts();
         updateStats();
         renderCurrentTab();
     } catch (err) {
-        showToast(`Could not adjust stock: ${err.message || 'Unknown error'}`, 'error');
+        showToast(`Could not adjust stock: ${err.message || &#x27;Unknown error&#x27;}`, &#x27;error&#x27;);
     }
 };
 window.adjustStock = adjustStock;
@@ -2531,12 +2547,12 @@ window.adjustStock = adjustStock;
 // ------------------------------------------------------------
 const _updateOrderStatus = updateOrderStatus;
 updateOrderStatus = async function(id, status) {
-    if (status === 'cancelled' && !LC.permissionToast('cancelOrders')) return;
+    if (status === &#x27;cancelled&#x27; &amp;&amp; !LC.permissionToast(&#x27;cancelOrders&#x27;)) return;
     try {
-        const order = orders.find(o => String(o.id) === String(id));
+        const order = orders.find(o =&gt; String(o.id) === String(id));
         const previous = order?.status;
         await _updateOrderStatus(id, status);
-        await LC.audit('ORDER_STATUS_CHANGED', {
+        await LC.audit(&#x27;ORDER_STATUS_CHANGED&#x27;, {
             order_id: id,
             order_number: order?.order_number,
             from: previous,
@@ -2553,47 +2569,47 @@ window.updateOrderStatus = updateOrderStatus;
 // the optional KPI elements.
 // ------------------------------------------------------------
 renderInventory = function() {
-    const stockProduct = document.getElementById('stockProduct');
+    const stockProduct = document.getElementById(&#x27;stockProduct&#x27;);
     if (stockProduct) {
-        stockProduct.innerHTML = products.map(p =>
-            `<option value="${LC.escape(p.id)}">${LC.escape(p.name)} (${LC.number(p.stock)} in stock)</option>`
-        ).join('');
+        stockProduct.innerHTML = products.map(p =&gt;
+            `&lt;option value=&quot;${LC.escape(p.id)}&quot;&gt;${LC.escape(p.name)} (${LC.number(p.stock)} in stock)&lt;/option&gt;`
+        ).join(&#x27;&#x27;);
     }
 
     const low = products.filter(LC.isLowStock);
-    const inventoryValue = products.reduce((sum, p) => sum + LC.costOf(p) * Number(p.stock || 0), 0);
-    const set = (id, value) => { const el=document.getElementById(id); if(el) el.textContent=value; };
-    set('inventoryUnits', LC.number(products.reduce((s,p)=>s+Number(p.stock||0),0)));
-    set('inventoryLowStock', LC.number(low.length));
-    set('inventoryValue', LC.money(inventoryValue));
+    const inventoryValue = products.reduce((sum, p) =&gt; sum + LC.costOf(p) * Number(p.stock || 0), 0);
+    const set = (id, value) =&gt; { const el=document.getElementById(id); if(el) el.textContent=value; };
+    set(&#x27;inventoryUnits&#x27;, LC.number(products.reduce((s,p)=&gt;s+Number(p.stock||0),0)));
+    set(&#x27;inventoryLowStock&#x27;, LC.number(low.length));
+    set(&#x27;inventoryValue&#x27;, LC.money(inventoryValue));
 
-    const table = document.getElementById('inventoryTable');
+    const table = document.getElementById(&#x27;inventoryTable&#x27;);
     if (!table) return;
     if (!products.length) {
-        table.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>No products in inventory.</p></div>';
+        table.innerHTML = &#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-box-open&quot;&gt;&lt;/i&gt;&lt;p&gt;No products in inventory.&lt;/p&gt;&lt;/div&gt;&#x27;;
         return;
     }
-    table.innerHTML = `<div class="table-wrapper"><table class="data-table"><thead><tr>
-        <th>Product</th><th>SKU</th><th>Stock</th><th>Reorder Level</th><th>Status</th><th>Value</th>
-    </tr></thead><tbody>${products.map(p => {
+    table.innerHTML = `&lt;div class=&quot;table-wrapper&quot;&gt;&lt;table class=&quot;data-table&quot;&gt;&lt;thead&gt;&lt;tr&gt;
+        &lt;th&gt;Product&lt;/th&gt;&lt;th&gt;SKU&lt;/th&gt;&lt;th&gt;Stock&lt;/th&gt;&lt;th&gt;Reorder Level&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;th&gt;Value&lt;/th&gt;
+    &lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;${products.map(p =&gt; {
         const status = LC.isLowStock(p);
-        return `<tr>
-            <td><strong>${LC.escape(p.name)}</strong></td>
-            <td>${LC.escape(p.code || 'N/A')}</td>
-            <td>${LC.number(p.stock)}</td>
-            <td>${LC.number(LC.reorderLevel(p))}</td>
-            <td>${status ? '<span class="badge danger">⚠️ Reorder</span>' : '<span class="badge success">✓ Healthy</span>'}</td>
-            <td>${LC.money(LC.costOf(p) * Number(p.stock || 0))}</td>
-        </tr>`;
-    }).join('')}</tbody></table></div>`;
+        return `&lt;tr&gt;
+            &lt;td&gt;&lt;strong&gt;${LC.escape(p.name)}&lt;/strong&gt;&lt;/td&gt;
+            &lt;td&gt;${LC.escape(p.code || &#x27;N/A&#x27;)}&lt;/td&gt;
+            &lt;td&gt;${LC.number(p.stock)}&lt;/td&gt;
+            &lt;td&gt;${LC.number(LC.reorderLevel(p))}&lt;/td&gt;
+            &lt;td&gt;${status ? &#x27;&lt;span class=&quot;badge danger&quot;&gt;⚠️ Reorder&lt;/span&gt;&#x27; : &#x27;&lt;span class=&quot;badge success&quot;&gt;✓ Healthy&lt;/span&gt;&#x27;}&lt;/td&gt;
+            &lt;td&gt;${LC.money(LC.costOf(p) * Number(p.stock || 0))}&lt;/td&gt;
+        &lt;/tr&gt;`;
+    }).join(&#x27;&#x27;)}&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;`;
 
-    const list = document.getElementById('categoryStockList');
+    const list = document.getElementById(&#x27;categoryStockList&#x27;);
     if (list) {
         const categoryStock = {};
-        products.forEach(p => categoryStock[p.category || 'uncategorized'] = (categoryStock[p.category || 'uncategorized'] || 0) + Number(p.stock || 0));
-        list.innerHTML = Object.entries(categoryStock).sort((a,b)=>b[1]-a[1]).map(([cat,stock]) =>
-            `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span>${LC.escape(cat)}</span><strong>${LC.number(stock)}</strong></div>`
-        ).join('') || '<div class="empty-state"><p>No categories.</p></div>';
+        products.forEach(p =&gt; categoryStock[p.category || &#x27;uncategorized&#x27;] = (categoryStock[p.category || &#x27;uncategorized&#x27;] || 0) + Number(p.stock || 0));
+        list.innerHTML = Object.entries(categoryStock).sort((a,b)=&gt;b[1]-a[1]).map(([cat,stock]) =&gt;
+            `&lt;div style=&quot;display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)&quot;&gt;&lt;span&gt;${LC.escape(cat)}&lt;/span&gt;&lt;strong&gt;${LC.number(stock)}&lt;/strong&gt;&lt;/div&gt;`
+        ).join(&#x27;&#x27;) || &#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;p&gt;No categories.&lt;/p&gt;&lt;/div&gt;&#x27;;
     }
 };
 window.renderInventory = renderInventory;
@@ -2602,23 +2618,23 @@ window.renderInventory = renderInventory;
 // Audit trail: database first, local fallback.
 // ------------------------------------------------------------
 loadAuditLogs = async function() {
-    const table = document.getElementById('auditTable');
+    const table = document.getElementById(&#x27;auditTable&#x27;);
     if (!table) return;
     let logs = [];
     try {
-        const { data, error } = await sb.from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(100);
-        if (!error && data) logs = data;
+        const { data, error } = await sb.from(&#x27;audit_logs&#x27;).select(&#x27;*&#x27;).order(&#x27;timestamp&#x27;, { ascending: false }).limit(100);
+        if (!error &amp;&amp; data) logs = data;
     } catch (_) {}
     if (!logs.length) {
-        try { logs = JSON.parse(localStorage.getItem('luciecloset_audit') || '[]'); } catch (_) { logs = []; }
+        try { logs = JSON.parse(localStorage.getItem(&#x27;luciecloset_audit&#x27;) || &#x27;[]&#x27;); } catch (_) { logs = []; }
     }
     if (!logs.length) {
-        table.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>No audit logs found.</p></div>';
+        table.innerHTML = &#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-history&quot;&gt;&lt;/i&gt;&lt;p&gt;No audit logs found.&lt;/p&gt;&lt;/div&gt;&#x27;;
         return;
     }
-    table.innerHTML = `<div class="table-wrapper"><table class="data-table"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead><tbody>
-        ${logs.map(log => `<tr><td>${new Date(log.timestamp || log.created_at).toLocaleString('en-KE')}</td><td>${LC.escape(log.user || log.user_name || 'System')}</td><td><span class="badge primary">${LC.escape(log.action || 'EVENT')}</span></td><td>${LC.escape(log.details || '-')}</td></tr>`).join('')}
-    </tbody></table></div>`;
+    table.innerHTML = `&lt;div class=&quot;table-wrapper&quot;&gt;&lt;table class=&quot;data-table&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Time&lt;/th&gt;&lt;th&gt;User&lt;/th&gt;&lt;th&gt;Action&lt;/th&gt;&lt;th&gt;Details&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;
+        ${logs.map(log =&gt; `&lt;tr&gt;&lt;td&gt;${new Date(log.timestamp || log.created_at).toLocaleString(&#x27;en-KE&#x27;)}&lt;/td&gt;&lt;td&gt;${LC.escape(log.user || log.user_name || &#x27;System&#x27;)}&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge primary&quot;&gt;${LC.escape(log.action || &#x27;EVENT&#x27;)}&lt;/span&gt;&lt;/td&gt;&lt;td&gt;${LC.escape(log.details || &#x27;-&#x27;)}&lt;/td&gt;&lt;/tr&gt;`).join(&#x27;&#x27;)}
+    &lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;`;
 };
 window.loadAuditLogs = loadAuditLogs;
 
@@ -2626,61 +2642,61 @@ window.loadAuditLogs = loadAuditLogs;
 // Real CSV export; PDF/print gets a professional print view.
 // ------------------------------------------------------------
 exportReport = function(format) {
-    const start = document.getElementById('reportStart')?.value;
-    const end = document.getElementById('reportEnd')?.value;
+    const start = document.getElementById(&#x27;reportStart&#x27;)?.value;
+    const end = document.getElementById(&#x27;reportEnd&#x27;)?.value;
     if (!start || !end) {
-        showToast('Generate a report date range first.', 'warning');
+        showToast(&#x27;Generate a report date range first.&#x27;, &#x27;warning&#x27;);
         return;
     }
 
-    const filtered = orders.filter(o => {
+    const filtered = orders.filter(o =&gt; {
         const d = new Date(o.created_at);
-        const s = new Date(start + 'T00:00:00');
-        const e = new Date(end + 'T23:59:59');
-        return d >= s && d <= e && o.status === 'completed';
+        const s = new Date(start + &#x27;T00:00:00&#x27;);
+        const e = new Date(end + &#x27;T23:59:59&#x27;);
+        return d &gt;= s &amp;&amp; d &lt;= e &amp;&amp; o.status === &#x27;completed&#x27;;
     });
 
-    if (format === 'csv' || format === 'excel') {
-        const rows = [['Order Number','Date','Customer','Phone','Payment','Total']];
-        filtered.forEach(o => rows.push([o.order_number, new Date(o.created_at).toLocaleString('en-KE'), o.customer_name || 'Guest', o.customer_phone || '', o.payment_method || '', Number(o.total || 0).toFixed(2)]));
-        const csv = rows.map(row => row.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',')).join('\n');
-        const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    if (format === &#x27;csv&#x27; || format === &#x27;excel&#x27;) {
+        const rows = [[&#x27;Order Number&#x27;,&#x27;Date&#x27;,&#x27;Customer&#x27;,&#x27;Phone&#x27;,&#x27;Payment&#x27;,&#x27;Total&#x27;]];
+        filtered.forEach(o =&gt; rows.push([o.order_number, new Date(o.created_at).toLocaleString(&#x27;en-KE&#x27;), o.customer_name || &#x27;Guest&#x27;, o.customer_phone || &#x27;&#x27;, o.payment_method || &#x27;&#x27;, Number(o.total || 0).toFixed(2)]));
+        const csv = rows.map(row =&gt; row.map(v =&gt; `&quot;${String(v ?? &#x27;&#x27;).replace(/&quot;/g,&#x27;&quot;&quot;&#x27;)}&quot;`).join(&#x27;,&#x27;)).join(&#x27;\n&#x27;);
+        const blob = new Blob([csv], {type:&#x27;text/csv;charset=utf-8;&#x27;});
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement(&#x27;a&#x27;);
         a.href = url;
         a.download = `lucie-closet-sales-${start}-to-${end}.csv`;
         document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-        showToast('Report exported as CSV.', 'success');
+        showToast(&#x27;Report exported as CSV.&#x27;, &#x27;success&#x27;);
         return;
     }
 
-    const print = window.open('', '_blank', 'width=1000,height=800');
-    if (!print) { showToast('Please allow pop-ups to print the report.', 'warning'); return; }
-    const total = filtered.reduce((s,o)=>s+Number(o.total||0),0);
-    print.document.write(`<html><head><title>Lucie Closet Sales Report</title><style>body{font-family:Arial,sans-serif;padding:32px;color:#222}h1{margin-bottom:4px}.muted{color:#666}.summary{margin:20px 0;padding:16px;border:1px solid #ddd;border-radius:10px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:9px;border-bottom:1px solid #ddd;text-align:left}th{background:#f5f5f5}</style></head><body><h1>Lucie Closet</h1><div class="muted">Sales Report · ${start} to ${end}</div><div class="summary"><strong>Total Sales:</strong> KES ${total.toLocaleString('en-KE',{minimumFractionDigits:2})} &nbsp; <strong>Orders:</strong> ${filtered.length}</div><table><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Payment</th><th>Total</th></tr></thead><tbody>${filtered.map(o=>`<tr><td>${LC.escape(o.order_number)}</td><td>${new Date(o.created_at).toLocaleString('en-KE')}</td><td>${LC.escape(o.customer_name||'Guest')}</td><td>${LC.escape(o.payment_method||'')}</td><td>KES ${Number(o.total||0).toLocaleString('en-KE',{minimumFractionDigits:2})}</td></tr>`).join('')}</tbody></table></body></html>`);
+    const print = window.open(&#x27;&#x27;, &#x27;_blank&#x27;, &#x27;width=1000,height=800&#x27;);
+    if (!print) { showToast(&#x27;Please allow pop-ups to print the report.&#x27;, &#x27;warning&#x27;); return; }
+    const total = filtered.reduce((s,o)=&gt;s+Number(o.total||0),0);
+    print.document.write(`&lt;html&gt;&lt;head&gt;&lt;title&gt;Lucie Closet Sales Report&lt;/title&gt;&lt;style&gt;body{font-family:Arial,sans-serif;padding:32px;color:#222}h1{margin-bottom:4px}.muted{color:#666}.summary{margin:20px 0;padding:16px;border:1px solid #ddd;border-radius:10px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:9px;border-bottom:1px solid #ddd;text-align:left}th{background:#f5f5f5}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;h1&gt;Lucie Closet&lt;/h1&gt;&lt;div class=&quot;muted&quot;&gt;Sales Report · ${start} to ${end}&lt;/div&gt;&lt;div class=&quot;summary&quot;&gt;&lt;strong&gt;Total Sales:&lt;/strong&gt; KES ${total.toLocaleString(&#x27;en-KE&#x27;,{minimumFractionDigits:2})} &amp;nbsp; &lt;strong&gt;Orders:&lt;/strong&gt; ${filtered.length}&lt;/div&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Order&lt;/th&gt;&lt;th&gt;Date&lt;/th&gt;&lt;th&gt;Customer&lt;/th&gt;&lt;th&gt;Payment&lt;/th&gt;&lt;th&gt;Total&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;${filtered.map(o=&gt;`&lt;tr&gt;&lt;td&gt;${LC.escape(o.order_number)}&lt;/td&gt;&lt;td&gt;${new Date(o.created_at).toLocaleString(&#x27;en-KE&#x27;)}&lt;/td&gt;&lt;td&gt;${LC.escape(o.customer_name||&#x27;Guest&#x27;)}&lt;/td&gt;&lt;td&gt;${LC.escape(o.payment_method||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;KES ${Number(o.total||0).toLocaleString(&#x27;en-KE&#x27;,{minimumFractionDigits:2})}&lt;/td&gt;&lt;/tr&gt;`).join(&#x27;&#x27;)}&lt;/tbody&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;`);
     print.document.close();
     print.focus();
-    setTimeout(()=>print.print(),300);
+    setTimeout(()=&gt;print.print(),300);
 };
 window.exportReport = exportReport;
 
 // ------------------------------------------------------------
 // Close modal when clicking outside; preserve existing API.
 // ------------------------------------------------------------
-document.addEventListener('click', function(e) {
-    if (e.target.classList?.contains('modal-overlay')) e.target.classList.remove('active');
+document.addEventListener(&#x27;click&#x27;, function(e) {
+    if (e.target.classList?.contains(&#x27;modal-overlay&#x27;)) e.target.classList.remove(&#x27;active&#x27;);
 });
 
 // ------------------------------------------------------------
 // Final initialization refresh.
 // ------------------------------------------------------------
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(() => {
+document.addEventListener(&#x27;DOMContentLoaded&#x27;, function() {
+    setTimeout(() =&gt; {
         try {
             updateStats();
-            if (currentUser) navigateTo(currentTab || 'dashboard');
+            if (currentUser) navigateTo(currentTab || &#x27;dashboard&#x27;);
         } catch (e) {
-            console.warn('Final Lucie Closet initialization warning:', e);
+            console.warn(&#x27;Final Lucie Closet initialization warning:&#x27;, e);
         }
     }, 250);
 });
@@ -2691,34 +2707,34 @@ document.addEventListener('DOMContentLoaded', function() {
    Loyalty • Users/Roles • Barcode • Advanced Product Fields
    ============================================================ */
 (function () {
-    'use strict';
+    &#x27;use strict&#x27;;
 
     const LCX = window.LC || {};
     window.LCX = LCX;
 
     const db = window.sb;
-    const safe = (id) => document.getElementById(id);
-    const val = (id) => safe(id)?.value?.trim() || '';
-    const num = (id) => Number(val(id) || 0);
-    const esc = (v) => (LCX.escape ? LCX.escape(v) : String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])));
-    const money = (v) => LCX.money ? LCX.money(v) : `KES ${Number(v || 0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    const safe = (id) =&gt; document.getElementById(id);
+    const val = (id) =&gt; safe(id)?.value?.trim() || &#x27;&#x27;;
+    const num = (id) =&gt; Number(val(id) || 0);
+    const esc = (v) =&gt; (LCX.escape ? LCX.escape(v) : String(v ?? &#x27;&#x27;).replace(/[&amp;&lt;&gt;&quot;&#x27;]/g, m =&gt; ({&#x27;&amp;&#x27;:&#x27;&amp;amp;&#x27;,&#x27;&lt;&#x27;:&#x27;&amp;lt;&#x27;,&#x27;&gt;&#x27;:&#x27;&amp;gt;&#x27;,&#x27;&quot;&#x27;:&#x27;&amp;quot;&#x27;,&quot;&#x27;&quot;:&#x27;&amp;#039;&#x27;}[m])));
+    const money = (v) =&gt; LCX.money ? LCX.money(v) : `KES ${Number(v || 0).toLocaleString(&#x27;en-KE&#x27;,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 
-    function toast(msg, type='info') {
-        if (typeof showToast === 'function') return showToast(msg, type);
-        const c = safe('toastContainer'); if (!c) return;
-        const el = document.createElement('div'); el.className = `toast ${type}`; el.innerHTML = `<i class="fas fa-info-circle"></i>${esc(msg)}`; c.appendChild(el);
-        setTimeout(() => el.remove(), 3500);
+    function toast(msg, type=&#x27;info&#x27;) {
+        if (typeof showToast === &#x27;function&#x27;) return showToast(msg, type);
+        const c = safe(&#x27;toastContainer&#x27;); if (!c) return;
+        const el = document.createElement(&#x27;div&#x27;); el.className = `toast ${type}`; el.innerHTML = `&lt;i class=&quot;fas fa-info-circle&quot;&gt;&lt;/i&gt;${esc(msg)}`; c.appendChild(el);
+        setTimeout(() =&gt; el.remove(), 3500);
     }
 
     async function insert(table, row) {
-        if (!db) throw new Error('Supabase is not initialized.');
+        if (!db) throw new Error(&#x27;Supabase is not initialized.&#x27;);
         const { data, error } = await db.from(table).insert(row).select().single();
         if (error) throw error;
         return data;
     }
     async function select(table, options={}) {
         if (!db) return [];
-        let q = db.from(table).select(options.columns || '*');
+        let q = db.from(table).select(options.columns || &#x27;*&#x27;);
         if (options.order) q = q.order(options.order, {ascending: options.ascending !== false});
         if (options.limit) q = q.limit(options.limit);
         const { data, error } = await q;
@@ -2727,7 +2743,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     async function update(table, values, filters) {
         let q = db.from(table).update(values);
-        Object.entries(filters || {}).forEach(([k,v]) => q = q.eq(k,v));
+        Object.entries(filters || {}).forEach(([k,v]) =&gt; q = q.eq(k,v));
         const { data, error } = await q.select();
         if (error) throw error;
         return data || [];
@@ -2735,45 +2751,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function audit(action, details={}) {
         try {
-            if (typeof LCX.audit === 'function') await LCX.audit(action, details);
+            if (typeof LCX.audit === &#x27;function&#x27;) await LCX.audit(action, details);
         } catch (_) {}
     }
 
     // ---------- Navigation ----------
     const moduleMeta = {
-        suppliers: ['🚚 Suppliers', 'Manage suppliers and supplier contacts'],
-        purchases: ['🛍️ Purchases', 'Receive stock and manage supplier purchases'],
-        returns: ['↩️ Returns & Refunds', 'Process customer returns and refunds'],
-        expenses: ['🧾 Expenses', 'Track operating expenses'],
-        shifts: ['💵 Cashier Shifts', 'Open, monitor and close till shifts'],
-        loyalty: ['🎁 Loyalty', 'Manage customer rewards and loyalty settings'],
-        users: ['👥 Users & Roles', 'Manage staff access and responsibilities']
+        suppliers: [&#x27;🚚 Suppliers&#x27;, &#x27;Manage suppliers and supplier contacts&#x27;],
+        purchases: [&#x27;🛍️ Purchases&#x27;, &#x27;Receive stock and manage supplier purchases&#x27;],
+        returns: [&#x27;↩️ Returns &amp; Refunds&#x27;, &#x27;Process customer returns and refunds&#x27;],
+        expenses: [&#x27;🧾 Expenses&#x27;, &#x27;Track operating expenses&#x27;],
+        shifts: [&#x27;💵 Cashier Shifts&#x27;, &#x27;Open, monitor and close till shifts&#x27;],
+        loyalty: [&#x27;🎁 Loyalty&#x27;, &#x27;Manage customer rewards and loyalty settings&#x27;],
+        users: [&#x27;👥 Users &amp; Roles&#x27;, &#x27;Manage staff access and responsibilities&#x27;]
     };
 
     function showModuleSection(section) {
-        const el = safe(section + 'Section');
+        const el = safe(section + &#x27;Section&#x27;);
         if (!el) return;
-        document.querySelectorAll('.section-page').forEach(s => s.classList.remove('active'));
-        el.classList.add('active');
+        document.querySelectorAll(&#x27;.section-page&#x27;).forEach(s =&gt; s.classList.remove(&#x27;active&#x27;));
+        el.classList.add(&#x27;active&#x27;);
         const meta = moduleMeta[section];
         if (meta) {
-            if (safe('pageTitle')) safe('pageTitle').textContent = meta[0];
-            if (safe('pageSubtitle')) safe('pageSubtitle').textContent = meta[1];
+            if (safe(&#x27;pageTitle&#x27;)) safe(&#x27;pageTitle&#x27;).textContent = meta[0];
+            if (safe(&#x27;pageSubtitle&#x27;)) safe(&#x27;pageSubtitle&#x27;).textContent = meta[1];
         }
-        document.querySelectorAll('.sidebar-menu li[data-section]').forEach(li => li.classList.toggle('active', li.dataset.section === section));
+        document.querySelectorAll(&#x27;.sidebar-menu li[data-section]&#x27;).forEach(li =&gt; li.classList.toggle(&#x27;active&#x27;, li.dataset.section === section));
     }
 
     window.navigateTo = (function(original) {
         return function(section) {
             if (moduleMeta[section]) {
                 showModuleSection(section);
-                if (section === 'suppliers') loadSuppliers();
-                if (section === 'purchases') loadPurchases();
-                if (section === 'returns') loadReturns();
-                if (section === 'expenses') loadExpenses();
-                if (section === 'shifts') loadShifts();
-                if (section === 'loyalty') loadLoyalty();
-                if (section === 'users') loadUsers();
+                if (section === &#x27;suppliers&#x27;) loadSuppliers();
+                if (section === &#x27;purchases&#x27;) loadPurchases();
+                if (section === &#x27;returns&#x27;) loadReturns();
+                if (section === &#x27;expenses&#x27;) loadExpenses();
+                if (section === &#x27;shifts&#x27;) loadShifts();
+                if (section === &#x27;loyalty&#x27;) loadLoyalty();
+                if (section === &#x27;users&#x27;) loadUsers();
                 return;
             }
             return original ? original(section) : undefined;
@@ -2782,201 +2798,204 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ---------- Suppliers ----------
     window.openSupplierModal = function () {
-        safe('supplierForm')?.reset();
-        safe('supplierModal')?.classList.add('active');
+        safe(&#x27;supplierForm&#x27;)?.reset();
+        safe(&#x27;supplierModal&#x27;)?.classList.add(&#x27;active&#x27;);
     };
     window.saveSupplier = async function(e) {
         e.preventDefault();
-        const name = val('supplierName');
-        if (!name) return toast('Supplier name is required.', 'error');
+        const name = val(&#x27;supplierName&#x27;);
+        if (!name) return toast(&#x27;Supplier name is required.&#x27;, &#x27;error&#x27;);
         try {
-            await insert('suppliers', { name, phone: val('supplierPhone'), email: val('supplierEmail'), address: val('supplierAddress'), status: 'active' });
-            closeModal('supplierModal');
-            toast('Supplier saved successfully.', 'success');
-            await audit('supplier_created', {name});
+            await insert(&#x27;suppliers&#x27;, { name, phone: val(&#x27;supplierPhone&#x27;), email: val(&#x27;supplierEmail&#x27;), address: val(&#x27;supplierAddress&#x27;), status: &#x27;active&#x27; });
+            closeModal(&#x27;supplierModal&#x27;);
+            toast(&#x27;Supplier saved successfully.&#x27;, &#x27;success&#x27;);
+            await audit(&#x27;supplier_created&#x27;, {name});
             loadSuppliers();
-        } catch (err) { toast(`Could not save supplier: ${err.message}`, 'error'); }
+        } catch (err) { toast(`Could not save supplier: ${err.message}`, &#x27;error&#x27;); }
     };
     window.loadSuppliers = async function() {
-        const box = safe('suppliersTable'); if (!box) return;
+        const box = safe(&#x27;suppliersTable&#x27;); if (!box) return;
         try {
-            const rows = await select('suppliers', {order:'created_at', ascending:false});
-            box.innerHTML = rows.length ? `<div class="table-wrapper"><table class="data-table"><thead><tr><th>Supplier</th><th>Phone</th><th>Email</th><th>Address</th><th>Status</th></tr></thead><tbody>${rows.map(r => `<tr><td><strong>${esc(r.name)}</strong></td><td>${esc(r.phone||'')}</td><td>${esc(r.email||'')}</td><td>${esc(r.address||'')}</td><td><span class="badge success">Active</span></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty-state"><i class="fas fa-truck"></i><h4>No suppliers</h4><p>Add your first supplier.</p></div>`;
-            populateSelect('purchaseSupplier', rows, 'id', 'name');
-        } catch (err) { box.innerHTML = `<div class="empty-state"><p>Unable to load suppliers.</p></div>`; console.warn(err); }
+            const rows = await select(&#x27;suppliers&#x27;, {order:&#x27;created_at&#x27;, ascending:false});
+            box.innerHTML = rows.length ? `&lt;div class=&quot;table-wrapper&quot;&gt;&lt;table class=&quot;data-table&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Supplier&lt;/th&gt;&lt;th&gt;Phone&lt;/th&gt;&lt;th&gt;Email&lt;/th&gt;&lt;th&gt;Address&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;${rows.map(r =&gt; `&lt;tr&gt;&lt;td&gt;&lt;strong&gt;${esc(r.name)}&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;${esc(r.phone||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;${esc(r.email||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;${esc(r.address||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge success&quot;&gt;Active&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;`).join(&#x27;&#x27;)}&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;` : `&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-truck&quot;&gt;&lt;/i&gt;&lt;h4&gt;No suppliers&lt;/h4&gt;&lt;p&gt;Add your first supplier.&lt;/p&gt;&lt;/div&gt;`;
+            populateSelect(&#x27;purchaseSupplier&#x27;, rows, &#x27;id&#x27;, &#x27;name&#x27;);
+        } catch (err) { box.innerHTML = `&lt;div class=&quot;empty-state&quot;&gt;&lt;p&gt;Unable to load suppliers.&lt;/p&gt;&lt;/div&gt;`; console.warn(err); }
     };
 
     // ---------- Purchases ----------
     window.openPurchaseModal = async function() {
-        safe('purchaseForm')?.reset();
+        safe(&#x27;purchaseForm&#x27;)?.reset();
         await loadSuppliers();
-        populateSelect('purchaseProduct', window.products || [], 'id', 'name');
-        safe('purchaseModal')?.classList.add('active');
+        populateSelect(&#x27;purchaseProduct&#x27;, window.products || [], &#x27;id&#x27;, &#x27;name&#x27;);
+        safe(&#x27;purchaseModal&#x27;)?.classList.add(&#x27;active&#x27;);
     };
     window.savePurchase = async function(e) {
         e.preventDefault();
-        const supplierId = val('purchaseSupplier'), productId = val('purchaseProduct');
-        const qty = num('purchaseQty'), unitCost = num('purchaseUnitCost');
-        if (!supplierId || !productId || qty <= 0 || unitCost < 0) return toast('Complete all purchase details.', 'error');
+        const supplierId = val(&#x27;purchaseSupplier&#x27;), productId = val(&#x27;purchaseProduct&#x27;);
+        const qty = num(&#x27;purchaseQty&#x27;), unitCost = num(&#x27;purchaseUnitCost&#x27;);
+        if (!supplierId || !productId || qty &lt;= 0 || unitCost &lt; 0) return toast(&#x27;Complete all purchase details.&#x27;, &#x27;error&#x27;);
         try {
-            const p = (window.products || []).find(x => String(x.id) === String(productId));
+            const p = (window.products || []).find(x =&gt; String(x.id) === String(productId));
             const oldStock = Number(p?.stock || 0), newStock = oldStock + qty;
-            await insert('purchases', { supplier_id: supplierId, product_id: productId, reference: val('purchaseReference'), quantity: qty, unit_cost: unitCost, total_cost: qty * unitCost, payment_status: val('purchasePaymentStatus') || 'paid', created_by: window.currentUser?.id || null });
+            await insert(&#x27;purchases&#x27;, { supplier_id: supplierId, product_id: productId, reference: val(&#x27;purchaseReference&#x27;), quantity: qty, unit_cost: unitCost, total_cost: qty * unitCost, payment_status: val(&#x27;purchasePaymentStatus&#x27;) || &#x27;paid&#x27;, created_by: window.currentUser?.id || null });
             if (db) {
-                const { error } = await db.from('products').update({stock:newStock, cost_price:unitCost}).eq('id', productId).eq('stock', oldStock);
+                const { error } = await db.from(&#x27;products&#x27;).update({stock:newStock, cost_price:unitCost}).eq(&#x27;id&#x27;, productId).eq(&#x27;stock&#x27;, oldStock);
                 if (error) throw error;
             }
-            closeModal('purchaseModal'); toast('Stock received successfully.', 'success');
-            await audit('purchase_received', {productId, quantity:qty, unitCost});
-            if (typeof loadProducts === 'function') await loadProducts();
+            closeModal(&#x27;purchaseModal&#x27;); toast(&#x27;Stock received successfully.&#x27;, &#x27;success&#x27;);
+            await audit(&#x27;purchase_received&#x27;, {productId, quantity:qty, unitCost});
+            if (typeof loadProducts === &#x27;function&#x27;) await loadProducts();
             loadPurchases();
-        } catch (err) { toast(`Purchase failed: ${err.message}`, 'error'); }
+        } catch (err) { toast(`Purchase failed: ${err.message}`, &#x27;error&#x27;); }
     };
     window.loadPurchases = async function() {
-        const box = safe('purchasesTable'); if (!box) return;
+        const box = safe(&#x27;purchasesTable&#x27;); if (!box) return;
         try {
-            const rows = await select('purchases', {order:'created_at', ascending:false, limit:200});
-            box.innerHTML = rows.length ? `<div class="table-wrapper"><table class="data-table"><thead><tr><th>Date</th><th>Reference</th><th>Product</th><th>Qty</th><th>Unit Cost</th><th>Total</th><th>Status</th></tr></thead><tbody>${rows.map(r => `<tr><td>${new Date(r.created_at).toLocaleString()}</td><td>${esc(r.reference||'')}</td><td>${esc(r.product_id||'')}</td><td>${Number(r.quantity||0)}</td><td>${money(r.unit_cost)}</td><td>${money(r.total_cost)}</td><td><span class="badge ${r.payment_status==='paid'?'success':'warning'}">${esc(r.payment_status||'pending')}</span></td></tr>`).join('')}</tbody></table></div>` : `<div class="empty-state"><i class="fas fa-shopping-basket"></i><h4>No purchases</h4><p>Received stock will appear here.</p></div>`;
-        } catch (err) { box.innerHTML = `<div class="empty-state"><p>Unable to load purchases.</p></div>`; }
+            const rows = await select(&#x27;purchases&#x27;, {order:&#x27;created_at&#x27;, ascending:false, limit:200});
+            box.innerHTML = rows.length ? `&lt;div class=&quot;table-wrapper&quot;&gt;&lt;table class=&quot;data-table&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Date&lt;/th&gt;&lt;th&gt;Reference&lt;/th&gt;&lt;th&gt;Product&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Unit Cost&lt;/th&gt;&lt;th&gt;Total&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;${rows.map(r =&gt; `&lt;tr&gt;&lt;td&gt;${new Date(r.created_at).toLocaleString()}&lt;/td&gt;&lt;td&gt;${esc(r.reference||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;${esc(r.product_id||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;${Number(r.quantity||0)}&lt;/td&gt;&lt;td&gt;${money(r.unit_cost)}&lt;/td&gt;&lt;td&gt;${money(r.total_cost)}&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge ${r.payment_status===&#x27;paid&#x27;?&#x27;success&#x27;:&#x27;warning&#x27;}&quot;&gt;${esc(r.payment_status||&#x27;pending&#x27;)}&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;`).join(&#x27;&#x27;)}&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;` : `&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-shopping-basket&quot;&gt;&lt;/i&gt;&lt;h4&gt;No purchases&lt;/h4&gt;&lt;p&gt;Received stock will appear here.&lt;/p&gt;&lt;/div&gt;`;
+        } catch (err) { box.innerHTML = `&lt;div class=&quot;empty-state&quot;&gt;&lt;p&gt;Unable to load purchases.&lt;/p&gt;&lt;/div&gt;`; }
     };
 
     // ---------- Returns ----------
     window.openReturnModal = async function() {
-        safe('returnForm')?.reset();
-        populateSelect('returnProduct', window.products || [], 'id', 'name');
-        safe('returnModal')?.classList.add('active');
+        safe(&#x27;returnForm&#x27;)?.reset();
+        populateSelect(&#x27;returnProduct&#x27;, window.products || [], &#x27;id&#x27;, &#x27;name&#x27;);
+        safe(&#x27;returnModal&#x27;)?.classList.add(&#x27;active&#x27;);
     };
     window.saveReturn = async function(e) {
         e.preventDefault();
-        const orderNo=val('returnOrderNo'), productId=val('returnProduct'), qty=num('returnQty');
-        if (!orderNo || !productId || qty<=0) return toast('Complete return details.', 'error');
+        const orderNo=val(&#x27;returnOrderNo&#x27;), productId=val(&#x27;returnProduct&#x27;), qty=num(&#x27;returnQty&#x27;);
+        if (!orderNo || !productId || qty&lt;=0) return toast(&#x27;Complete return details.&#x27;, &#x27;error&#x27;);
         try {
-            const product=(window.products||[]).find(x=>String(x.id)===String(productId));
-            if (!product) throw new Error('Product not found.');
-            await insert('returns', {order_no:orderNo, product_id:productId, quantity:qty, reason:val('returnReason'), refund_method:val('refundMethod'), amount:Number(product.price||0)*qty, created_by:window.currentUser?.id||null});
+            const product=(window.products||[]).find(x=&gt;String(x.id)===String(productId));
+            if (!product) throw new Error(&#x27;Product not found.&#x27;);
+            await insert(&#x27;returns&#x27;, {order_no:orderNo, product_id:productId, quantity:qty, reason:val(&#x27;returnReason&#x27;), refund_method:val(&#x27;refundMethod&#x27;), amount:Number(product.price||0)*qty, created_by:window.currentUser?.id||null});
             const oldStock=Number(product.stock||0);
             if (db) {
-                const {error}=await db.from('products').update({stock:oldStock+qty}).eq('id',productId).eq('stock',oldStock);
+                const {error}=await db.from(&#x27;products&#x27;).update({stock:oldStock+qty}).eq(&#x27;id&#x27;,productId).eq(&#x27;stock&#x27;,oldStock);
                 if(error) throw error;
             }
-            closeModal('returnModal'); toast('Return processed and stock restored.', 'success'); await audit('return_processed',{orderNo,productId,qty});
-            if(typeof loadProducts==='function') await loadProducts(); loadReturns();
-        } catch(err){ toast(`Return failed: ${err.message}`,'error'); }
+            closeModal(&#x27;returnModal&#x27;); toast(&#x27;Return processed and stock restored.&#x27;, &#x27;success&#x27;); await audit(&#x27;return_processed&#x27;,{orderNo,productId,qty});
+            if(typeof loadProducts===&#x27;function&#x27;) await loadProducts(); loadReturns();
+        } catch(err){ toast(`Return failed: ${err.message}`,&#x27;error&#x27;); }
     };
     window.loadReturns = async function(){
-        const box=safe('returnsTable'); if(!box)return;
+        const box=safe(&#x27;returnsTable&#x27;); if(!box)return;
         try{
-            const rows=await select('returns',{order:'created_at',ascending:false,limit:200});
-            box.innerHTML=rows.length?`<div class="table-wrapper"><table class="data-table"><thead><tr><th>Date</th><th>Order</th><th>Product</th><th>Qty</th><th>Reason</th><th>Refund</th><th>Amount</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${new Date(r.created_at).toLocaleString()}</td><td>${esc(r.order_no||'')}</td><td>${esc(r.product_id||'')}</td><td>${Number(r.quantity||0)}</td><td>${esc(r.reason||'')}</td><td>${esc(r.refund_method||'')}</td><td>${money(r.amount)}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty-state"><i class="fas fa-undo"></i><h4>No returns</h4><p>Processed returns will appear here.</p></div>`;
-        }catch(err){box.innerHTML='<div class="empty-state"><p>Unable to load returns.</p></div>';}
+            const rows=await select(&#x27;returns&#x27;,{order:&#x27;created_at&#x27;,ascending:false,limit:200});
+            box.innerHTML=rows.length?`&lt;div class=&quot;table-wrapper&quot;&gt;&lt;table class=&quot;data-table&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Date&lt;/th&gt;&lt;th&gt;Order&lt;/th&gt;&lt;th&gt;Product&lt;/th&gt;&lt;th&gt;Qty&lt;/th&gt;&lt;th&gt;Reason&lt;/th&gt;&lt;th&gt;Refund&lt;/th&gt;&lt;th&gt;Amount&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;${rows.map(r=&gt;`&lt;tr&gt;&lt;td&gt;${new Date(r.created_at).toLocaleString()}&lt;/td&gt;&lt;td&gt;${esc(r.order_no||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;${esc(r.product_id||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;${Number(r.quantity||0)}&lt;/td&gt;&lt;td&gt;${esc(r.reason||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;${esc(r.refund_method||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;${money(r.amount)}&lt;/td&gt;&lt;/tr&gt;`).join(&#x27;&#x27;)}&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;`:`&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-undo&quot;&gt;&lt;/i&gt;&lt;h4&gt;No returns&lt;/h4&gt;&lt;p&gt;Processed returns will appear here.&lt;/p&gt;&lt;/div&gt;`;
+        }catch(err){box.innerHTML=&#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;p&gt;Unable to load returns.&lt;/p&gt;&lt;/div&gt;&#x27;;}
     };
 
     // ---------- Expenses ----------
-    window.openExpenseModal=function(){safe('expenseForm')?.reset();safe('expenseModal')?.classList.add('active');};
+    window.openExpenseModal=function(){safe(&#x27;expenseForm&#x27;)?.reset();safe(&#x27;expenseModal&#x27;)?.classList.add(&#x27;active&#x27;);};
     window.saveExpense=async function(e){
-        e.preventDefault(); const amount=num('expenseAmount'); if(amount<=0)return toast('Enter a valid expense amount.','error');
-        try{await insert('expenses',{category:val('expenseCategory'),amount,description:val('expenseDescription'),created_by:window.currentUser?.id||null});closeModal('expenseModal');toast('Expense saved.','success');await audit('expense_created',{amount,category:val('expenseCategory')});loadExpenses();}
-        catch(err){toast(`Could not save expense: ${err.message}`,'error');}
+        e.preventDefault(); const amount=num(&#x27;expenseAmount&#x27;); if(amount&lt;=0)return toast(&#x27;Enter a valid expense amount.&#x27;,&#x27;error&#x27;);
+        try{await insert(&#x27;expenses&#x27;,{category:val(&#x27;expenseCategory&#x27;),amount,description:val(&#x27;expenseDescription&#x27;),created_by:window.currentUser?.id||null});closeModal(&#x27;expenseModal&#x27;);toast(&#x27;Expense saved.&#x27;,&#x27;success&#x27;);await audit(&#x27;expense_created&#x27;,{amount,category:val(&#x27;expenseCategory&#x27;)});loadExpenses();}
+        catch(err){toast(`Could not save expense: ${err.message}`,&#x27;error&#x27;);}
     };
     window.loadExpenses=async function(){
-        const box=safe('expensesTable');if(!box)return;
-        try{const rows=await select('expenses',{order:'created_at',ascending:false,limit:200});box.innerHTML=rows.length?`<div class="table-wrapper"><table class="data-table"><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${new Date(r.created_at).toLocaleString()}</td><td>${esc(r.category||'')}</td><td>${esc(r.description||'')}</td><td><strong>${money(r.amount)}</strong></td></tr>`).join('')}</tbody></table></div>`:`<div class="empty-state"><i class="fas fa-receipt"></i><h4>No expenses</h4><p>Business expenses will appear here.</p></div>`;}catch(err){box.innerHTML='<div class="empty-state"><p>Unable to load expenses.</p></div>';}
+        const box=safe(&#x27;expensesTable&#x27;);if(!box)return;
+        try{const rows=await select(&#x27;expenses&#x27;,{order:&#x27;created_at&#x27;,ascending:false,limit:200});box.innerHTML=rows.length?`&lt;div class=&quot;table-wrapper&quot;&gt;&lt;table class=&quot;data-table&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Date&lt;/th&gt;&lt;th&gt;Category&lt;/th&gt;&lt;th&gt;Description&lt;/th&gt;&lt;th&gt;Amount&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;${rows.map(r=&gt;`&lt;tr&gt;&lt;td&gt;${new Date(r.created_at).toLocaleString()}&lt;/td&gt;&lt;td&gt;${esc(r.category||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;${esc(r.description||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;&lt;strong&gt;${money(r.amount)}&lt;/strong&gt;&lt;/td&gt;&lt;/tr&gt;`).join(&#x27;&#x27;)}&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;`:`&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-receipt&quot;&gt;&lt;/i&gt;&lt;h4&gt;No expenses&lt;/h4&gt;&lt;p&gt;Business expenses will appear here.&lt;/p&gt;&lt;/div&gt;`;}catch(err){box.innerHTML=&#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;p&gt;Unable to load expenses.&lt;/p&gt;&lt;/div&gt;&#x27;;}
     };
 
     // ---------- Shifts ----------
-    window.openShiftModal=function(action){safe('shiftForm')?.reset();safe('shiftAction').value=action;safe('shiftModalTitle').textContent=action==='open'?'💵 Open Cashier Shift':'🔒 Close Cashier Shift';safe('openShiftFields').classList.toggle('hidden',action!=='open');safe('closeShiftFields').classList.toggle('hidden',action!=='close');safe('shiftModal').classList.add('active');};
+    window.openShiftModal=function(action){safe(&#x27;shiftForm&#x27;)?.reset();safe(&#x27;shiftAction&#x27;).value=action;safe(&#x27;shiftModalTitle&#x27;).textContent=action===&#x27;open&#x27;?&#x27;💵 Open Cashier Shift&#x27;:&#x27;🔒 Close Cashier Shift&#x27;;safe(&#x27;openShiftFields&#x27;).classList.toggle(&#x27;hidden&#x27;,action!==&#x27;open&#x27;);safe(&#x27;closeShiftFields&#x27;).classList.toggle(&#x27;hidden&#x27;,action!==&#x27;close&#x27;);safe(&#x27;shiftModal&#x27;).classList.add(&#x27;active&#x27;);};
     window.saveShift=async function(e){
-        e.preventDefault();const action=val('shiftAction');
+        e.preventDefault();const action=val(&#x27;shiftAction&#x27;);
         try{
-            if(action==='open'){const opening=num('shiftOpeningCash');if(opening<0)return toast('Opening cash cannot be negative.','error');await insert('cashier_shifts',{cashier_id:window.currentUser?.id||null,opened_at:new Date().toISOString(),opening_cash:opening,status:'open'});}
-            else {const closing=num('shiftClosingCash');if(closing<0)return toast('Closing cash cannot be negative.','error');const rows=await select('cashier_shifts',{order:'opened_at',ascending:false,limit:1});const current=rows[0];if(!current)throw new Error('No open shift found.');await update('cashier_shifts',{closed_at:new Date().toISOString(),closing_cash:closing,status:'closed',notes:val('shiftNotes')},{id:current.id});}
-            closeModal('shiftModal');toast(action==='open'?'Shift opened.':'Shift closed.','success');await audit(`shift_${action}`,{});loadShifts();
-        }catch(err){toast(`Shift operation failed: ${err.message}`,'error');}
+            if(action===&#x27;open&#x27;){const opening=num(&#x27;shiftOpeningCash&#x27;);if(opening&lt;0)return toast(&#x27;Opening cash cannot be negative.&#x27;,&#x27;error&#x27;);await insert(&#x27;cashier_shifts&#x27;,{cashier_id:window.currentUser?.id||null,opened_at:new Date().toISOString(),opening_cash:opening,status:&#x27;open&#x27;});}
+            else {const closing=num(&#x27;shiftClosingCash&#x27;);if(closing&lt;0)return toast(&#x27;Closing cash cannot be negative.&#x27;,&#x27;error&#x27;);const rows=await select(&#x27;cashier_shifts&#x27;,{order:&#x27;opened_at&#x27;,ascending:false,limit:1});const current=rows[0];if(!current)throw new Error(&#x27;No open shift found.&#x27;);await update(&#x27;cashier_shifts&#x27;,{closed_at:new Date().toISOString(),closing_cash:closing,status:&#x27;closed&#x27;,notes:val(&#x27;shiftNotes&#x27;)},{id:current.id});}
+            closeModal(&#x27;shiftModal&#x27;);toast(action===&#x27;open&#x27;?&#x27;Shift opened.&#x27;:&#x27;Shift closed.&#x27;,&#x27;success&#x27;);await audit(`shift_${action}`,{});loadShifts();
+        }catch(err){toast(`Shift operation failed: ${err.message}`,&#x27;error&#x27;);}
     };
     window.loadShifts=async function(){
-        const box=safe('shiftsTable');if(!box)return;
-        try{const rows=await select('cashier_shifts',{order:'opened_at',ascending:false,limit:100});box.innerHTML=rows.length?`<div class="table-wrapper"><table class="data-table"><thead><tr><th>Opened</th><th>Closed</th><th>Opening</th><th>Closing</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.opened_at?new Date(r.opened_at).toLocaleString():''}</td><td>${r.closed_at?new Date(r.closed_at).toLocaleString():'—'}</td><td>${money(r.opening_cash)}</td><td>${r.closing_cash==null?'—':money(r.closing_cash)}</td><td><span class="badge ${r.status==='open'?'warning':'success'}">${esc(r.status||'')}</span></td></tr>`).join('')}</tbody></table></div>`:`<div class="empty-state"><i class="fas fa-cash-register"></i><h4>No shifts</h4><p>Cashier shifts will appear here.</p></div>`;}catch(err){box.innerHTML='<div class="empty-state"><p>Unable to load shifts.</p></div>';}
+        const box=safe(&#x27;shiftsTable&#x27;);if(!box)return;
+        try{const rows=await select(&#x27;cashier_shifts&#x27;,{order:&#x27;opened_at&#x27;,ascending:false,limit:100});box.innerHTML=rows.length?`&lt;div class=&quot;table-wrapper&quot;&gt;&lt;table class=&quot;data-table&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Opened&lt;/th&gt;&lt;th&gt;Closed&lt;/th&gt;&lt;th&gt;Opening&lt;/th&gt;&lt;th&gt;Closing&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;${rows.map(r=&gt;`&lt;tr&gt;&lt;td&gt;${r.opened_at?new Date(r.opened_at).toLocaleString():&#x27;&#x27;}&lt;/td&gt;&lt;td&gt;${r.closed_at?new Date(r.closed_at).toLocaleString():&#x27;—&#x27;}&lt;/td&gt;&lt;td&gt;${money(r.opening_cash)}&lt;/td&gt;&lt;td&gt;${r.closing_cash==null?&#x27;—&#x27;:money(r.closing_cash)}&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge ${r.status===&#x27;open&#x27;?&#x27;warning&#x27;:&#x27;success&#x27;}&quot;&gt;${esc(r.status||&#x27;&#x27;)}&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;`).join(&#x27;&#x27;)}&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;`:`&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-cash-register&quot;&gt;&lt;/i&gt;&lt;h4&gt;No shifts&lt;/h4&gt;&lt;p&gt;Cashier shifts will appear here.&lt;/p&gt;&lt;/div&gt;`;}catch(err){box.innerHTML=&#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;p&gt;Unable to load shifts.&lt;/p&gt;&lt;/div&gt;&#x27;;}
     };
 
     // ---------- Loyalty ----------
-    window.openLoyaltyModal=function(){safe('loyaltyModal')?.classList.add('active');};
+    window.openLoyaltyModal=function(){safe(&#x27;loyaltyModal&#x27;)?.classList.add(&#x27;active&#x27;);};
     window.saveLoyalty=async function(e){
-        e.preventDefault();const rate=num('loyaltyPointsRate'),red=num('loyaltyRedemption');if(rate<=0||red<0)return toast('Enter valid loyalty settings.','error');
-        localStorage.setItem('lucie_loyalty_settings',JSON.stringify({rate,redemption:red}));closeModal('loyaltyModal');toast('Loyalty settings saved.','success');await audit('loyalty_settings_updated',{rate,redemption:red});loadLoyalty();
+        e.preventDefault();const rate=num(&#x27;loyaltyPointsRate&#x27;),red=num(&#x27;loyaltyRedemption&#x27;);if(rate&lt;=0||red&lt;0)return toast(&#x27;Enter valid loyalty settings.&#x27;,&#x27;error&#x27;);
+        localStorage.setItem(&#x27;lucie_loyalty_settings&#x27;,JSON.stringify({rate,redemption:red}));closeModal(&#x27;loyaltyModal&#x27;);toast(&#x27;Loyalty settings saved.&#x27;,&#x27;success&#x27;);await audit(&#x27;loyalty_settings_updated&#x27;,{rate,redemption:red});loadLoyalty();
     };
     window.loadLoyalty=async function(){
-        const box=safe('loyaltyTable');if(!box)return;
-        const settings=JSON.parse(localStorage.getItem('lucie_loyalty_settings')||'{"rate":100,"redemption":1}');
-        if(safe('loyaltyPointsRate'))safe('loyaltyPointsRate').value=settings.rate;if(safe('loyaltyRedemption'))safe('loyaltyRedemption').value=settings.redemption;
-        try{const rows=await select('customers',{order:'name',ascending:true});box.innerHTML=rows.length?`<div class="table-wrapper"><table class="data-table"><thead><tr><th>Customer</th><th>Phone</th><th>Points</th><th>Tier</th></tr></thead><tbody>${rows.map(r=>{const pts=Number(r.loyalty_points||0);return `<tr><td>${esc(r.name||'')}</td><td>${esc(r.phone||'')}</td><td>${pts.toLocaleString()}</td><td><span class="badge gold">${pts>=5000?'VIP':pts>=1000?'Gold':'Member'}</span></td></tr>`}).join('')}</tbody></table></div>`:`<div class="empty-state"><p>No loyalty members yet.</p></div>`;}catch(err){box.innerHTML='<div class="empty-state"><p>Unable to load loyalty members.</p></div>';}
+        const box=safe(&#x27;loyaltyTable&#x27;);if(!box)return;
+        const settings=JSON.parse(localStorage.getItem(&#x27;lucie_loyalty_settings&#x27;)||&#x27;{&quot;rate&quot;:100,&quot;redemption&quot;:1}&#x27;);
+        if(safe(&#x27;loyaltyPointsRate&#x27;))safe(&#x27;loyaltyPointsRate&#x27;).value=settings.rate;if(safe(&#x27;loyaltyRedemption&#x27;))safe(&#x27;loyaltyRedemption&#x27;).value=settings.redemption;
+        try{const rows=await select(&#x27;customers&#x27;,{order:&#x27;name&#x27;,ascending:true});box.innerHTML=rows.length?`&lt;div class=&quot;table-wrapper&quot;&gt;&lt;table class=&quot;data-table&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Customer&lt;/th&gt;&lt;th&gt;Phone&lt;/th&gt;&lt;th&gt;Points&lt;/th&gt;&lt;th&gt;Tier&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;${rows.map(r=&gt;{const pts=Number(r.loyalty_points||0);return `&lt;tr&gt;&lt;td&gt;${esc(r.name||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;${esc(r.phone||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;${pts.toLocaleString()}&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge gold&quot;&gt;${pts&gt;=5000?&#x27;VIP&#x27;:pts&gt;=1000?&#x27;Gold&#x27;:&#x27;Member&#x27;}&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;`}).join(&#x27;&#x27;)}&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;`:`&lt;div class=&quot;empty-state&quot;&gt;&lt;p&gt;No loyalty members yet.&lt;/p&gt;&lt;/div&gt;`;}catch(err){box.innerHTML=&#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;p&gt;Unable to load loyalty members.&lt;/p&gt;&lt;/div&gt;&#x27;;}
     };
 
-    // ---------- Users & Roles ----------
-    window.openUserModal=function(){safe('userForm')?.reset();safe('userModal')?.classList.add('active');};
+    // ---------- Users &amp; Roles ----------
+    window.openUserModal=function(){safe(&#x27;userForm&#x27;)?.reset();safe(&#x27;userModal&#x27;)?.classList.add(&#x27;active&#x27;);};
     window.saveUser=async function(e){
-        e.preventDefault();const name=val('staffName'),role=val('staffRole');if(!name||!role)return toast('Name and role are required.','error');
-        const pin=val('staffPin');if(pin&&!/^\d{4,6}$/.test(pin))return toast('PIN must contain 4 to 6 digits.','error');
-        try{await insert('users',{name,email:val('staffEmail'),role,pin:pin||null,status:'active'});closeModal('userModal');toast('User created.','success');await audit('user_created',{name,role});loadUsers();}
-        catch(err){toast(`Could not create user: ${err.message}`,'error');}
+        e.preventDefault();const name=val(&#x27;staffName&#x27;),role=val(&#x27;staffRole&#x27;);if(!name||!role)return toast(&#x27;Name and role are required.&#x27;,&#x27;error&#x27;);
+        const pin=val(&#x27;staffPin&#x27;);if(pin&amp;&amp;!/^\d{4,6}$/.test(pin))return toast(&#x27;PIN must contain 4 to 6 digits.&#x27;,&#x27;error&#x27;);
+        try{await insert(&#x27;users&#x27;,{name,email:val(&#x27;staffEmail&#x27;),role,pin:pin||null,status:&#x27;active&#x27;});closeModal(&#x27;userModal&#x27;);toast(&#x27;User created.&#x27;,&#x27;success&#x27;);await audit(&#x27;user_created&#x27;,{name,role});loadUsers();}
+        catch(err){toast(`Could not create user: ${err.message}`,&#x27;error&#x27;);}
     };
     window.loadUsers=async function(){
-        const box=safe('usersTable');if(!box)return;
-        try{const rows=await select('users',{order:'name',ascending:true});box.innerHTML=rows.length?`<div class="table-wrapper"><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td><strong>${esc(r.name||'')}</strong></td><td>${esc(r.email||'')}</td><td><span class="badge primary">${esc(r.role||'')}</span></td><td><span class="badge success">${esc(r.status||'active')}</span></td></tr>`).join('')}</tbody></table></div>`:`<div class="empty-state"><i class="fas fa-users"></i><h4>No staff users</h4><p>Add your first staff account.</p></div>`;}catch(err){box.innerHTML='<div class="empty-state"><p>Unable to load users.</p></div>';}
+        const box=safe(&#x27;usersTable&#x27;);if(!box)return;
+        try{const rows=await select(&#x27;users&#x27;,{order:&#x27;name&#x27;,ascending:true});box.innerHTML=rows.length?`&lt;div class=&quot;table-wrapper&quot;&gt;&lt;table class=&quot;data-table&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Email&lt;/th&gt;&lt;th&gt;Role&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;${rows.map(r=&gt;`&lt;tr&gt;&lt;td&gt;&lt;strong&gt;${esc(r.name||&#x27;&#x27;)}&lt;/strong&gt;&lt;/td&gt;&lt;td&gt;${esc(r.email||&#x27;&#x27;)}&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge primary&quot;&gt;${esc(r.role||&#x27;&#x27;)}&lt;/span&gt;&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;badge success&quot;&gt;${esc(r.status||&#x27;active&#x27;)}&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;`).join(&#x27;&#x27;)}&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;`:`&lt;div class=&quot;empty-state&quot;&gt;&lt;i class=&quot;fas fa-users&quot;&gt;&lt;/i&gt;&lt;h4&gt;No staff users&lt;/h4&gt;&lt;p&gt;Add your first staff account.&lt;/p&gt;&lt;/div&gt;`;}catch(err){box.innerHTML=&#x27;&lt;div class=&quot;empty-state&quot;&gt;&lt;p&gt;Unable to load users.&lt;/p&gt;&lt;/div&gt;&#x27;;}
     };
 
     // ---------- Helpers ----------
     function populateSelect(id, rows, valueKey, labelKey) {
         const el=safe(id);if(!el)return;
         const current=el.value;
-        el.innerHTML='<option value="">Select...</option>'+(rows||[]).map(r=>`<option value="${esc(r[valueKey])}">${esc(r[labelKey]||r.name||r.product_name||r[valueKey])}</option>`).join('');
+        el.innerHTML=&#x27;&lt;option value=&quot;&quot;&gt;Select...&lt;/option&gt;&#x27;+(rows||[]).map(r=&gt;`&lt;option value=&quot;${esc(r[valueKey])}&quot;&gt;${esc(r[labelKey]||r.name||r.product_name||r[valueKey])}&lt;/option&gt;`).join(&#x27;&#x27;);
         if(current)el.value=current;
     }
 
     // ---------- Product advanced fields ----------
     window.getAdvancedProductFields=function(){
         return {
-            barcode:val('productBarcode'), size:val('productSize'), colour:val('productColour'), material:val('productMaterial'),
-            description:val('productDescription'), supplier_id:val('productSupplier')||null, cost_price:num('productCostPrice'),
-            reorder_level:num('productReorderLevel'), tax_rate:num('productTax')
+            barcode:val(&#x27;productBarcode&#x27;), size:val(&#x27;productSize&#x27;), colour:val(&#x27;productColour&#x27;), material:val(&#x27;productMaterial&#x27;),
+            description:val(&#x27;productDescription&#x27;), supplier_id:val(&#x27;productSupplier&#x27;)||null, cost_price:num(&#x27;productCostPrice&#x27;),
+            reorder_level:num(&#x27;productReorderLevel&#x27;), tax_rate:num(&#x27;productTax&#x27;)
         };
     };
 
     // ---------- Barcode scanner ----------
-    let barcodeBuffer='', barcodeTimer=null;
-    document.addEventListener('keydown',function(e){
-        if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName) && document.activeElement?.id!=='posSearch') return;
-        if(e.key==='Enter' && barcodeBuffer.length>=4){
-            const code=barcodeBuffer;barcodeBuffer='';clearTimeout(barcodeTimer);
-            const p=(window.products||[]).find(x=>String(x.barcode||x.code||'').toLowerCase()===code.toLowerCase());
-            if(p && typeof addToCart==='function'){addToCart(p);toast(`${p.name} added to cart.`,'success');}
-            else toast(`Barcode ${code} not found.`,'warning');return;
+    let barcodeBuffer=&#x27;&#x27;, barcodeTimer=null;
+    document.addEventListener(&#x27;keydown&#x27;,function(e){
+        if([&#x27;INPUT&#x27;,&#x27;TEXTAREA&#x27;,&#x27;SELECT&#x27;].includes(document.activeElement?.tagName) &amp;&amp; document.activeElement?.id!==&#x27;posSearch&#x27;) return;
+        if(e.key===&#x27;Enter&#x27; &amp;&amp; barcodeBuffer.length&gt;=4){
+            const code=barcodeBuffer;barcodeBuffer=&#x27;&#x27;;clearTimeout(barcodeTimer);
+            const p=(window.products||[]).find(x=&gt;String(x.barcode||x.code||&#x27;&#x27;).toLowerCase()===code.toLowerCase());
+            if(p &amp;&amp; typeof addToCart===&#x27;function&#x27;){addToCart(p);toast(`${p.name} added to cart.`,&#x27;success&#x27;);}
+            else toast(`Barcode ${code} not found.`,&#x27;warning&#x27;);return;
         }
-        if(e.key.length===1){barcodeBuffer+=e.key;clearTimeout(barcodeTimer);barcodeTimer=setTimeout(()=>barcodeBuffer='',80);}
+        if(e.key.length===1){barcodeBuffer+=e.key;clearTimeout(barcodeTimer);barcodeTimer=setTimeout(()=&gt;barcodeBuffer=&#x27;&#x27;,80);}
     });
 
     // ---------- Login UX ----------
     window.showLogin = function(){
-        safe('loginScreen')?.classList.remove('hidden');
-        safe('dashboardScreen')?.classList.add('hidden');
+        safe(&#x27;loginScreen&#x27;)?.classList.remove(&#x27;hidden&#x27;);
+        safe(&#x27;dashboardScreen&#x27;)?.classList.add(&#x27;hidden&#x27;);
     };
 
     // ---------- Keyboard shortcuts ----------
-    document.addEventListener('keydown',function(e){
-        if(e.ctrlKey && e.key.toLowerCase()==='p'){e.preventDefault();window.navigateTo('pos');}
-        if(e.ctrlKey && e.key.toLowerCase()==='k'){e.preventDefault();safe('posSearch')?.focus();}
-        if(e.key==='Escape')document.querySelectorAll('.modal-overlay.active').forEach(m=>m.classList.remove('active'));
+    document.addEventListener(&#x27;keydown&#x27;,function(e){
+        if(e.ctrlKey &amp;&amp; e.key.toLowerCase()===&#x27;p&#x27;){e.preventDefault();window.navigateTo(&#x27;pos&#x27;);}
+        if(e.ctrlKey &amp;&amp; e.key.toLowerCase()===&#x27;k&#x27;){e.preventDefault();safe(&#x27;posSearch&#x27;)?.focus();}
+        if(e.key===&#x27;Escape&#x27;)document.querySelectorAll(&#x27;.modal-overlay.active&#x27;).forEach(m=&gt;m.classList.remove(&#x27;active&#x27;));
     });
 
     // ---------- Startup ----------
-    document.addEventListener('DOMContentLoaded',function(){
-        setTimeout(()=>{
-            ['suppliers','purchases','returns','expenses','shifts','loyalty','users'].forEach(s=>{
-                const section=safe(s+'Section');
-                if(section && !section.classList.contains('section-page')) section.classList.add('section-page');
+    document.addEventListener(&#x27;DOMContentLoaded&#x27;,function(){
+        setTimeout(()=&gt;{
+            [&#x27;suppliers&#x27;,&#x27;purchases&#x27;,&#x27;returns&#x27;,&#x27;expenses&#x27;,&#x27;shifts&#x27;,&#x27;loyalty&#x27;,&#x27;users&#x27;].forEach(s=&gt;{
+                const section=safe(s+&#x27;Section&#x27;);
+                if(section &amp;&amp; !section.classList.contains(&#x27;section-page&#x27;)) section.classList.add(&#x27;section-page&#x27;);
             });
             // Load module data quietly; missing tables are reported only in console.
-            if(safe('suppliersTable')) loadSuppliers();
-            if(safe('purchaseSupplier')) loadSuppliers();
+            if(safe(&#x27;suppliersTable&#x27;)) loadSuppliers();
+            if(safe(&#x27;purchaseSupplier&#x27;)) loadSuppliers();
         },500);
     });
 })();
+</pre>
+</body>
+</html>
