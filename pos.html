@@ -695,6 +695,102 @@ body:not(.authenticated) #sidebarToggle{display:none!important;}
 body.cashier-mode .sidebar-menu li[data-section]:not([data-section="dashboard"]):not([data-section="pos"]):not([data-section="orders"]):not([data-section="customers"]){display:none!important;}
 @media(max-width:650px){#lcNotificationPanel{top:68px!important;right:14px!important;}}
 </style>
+
+<style id="lucie-full-pos-hardening">
+/* Final enterprise POS hardening */
+#lcNotificationPanel{position:fixed!important;top:76px!important;right:22px!important;left:auto!important;bottom:auto!important;max-height:min(70vh,560px)!important;overflow:auto!important;z-index:99990!important;}
+#lcWelcomeOverlay{position:fixed!important;inset:0!important;z-index:99999!important;}
+body.lc-cashier .sidebar-menu li[data-section]:not([data-section="dashboard"]):not([data-section="pos"]):not([data-section="orders"]):not([data-section="customers"]){display:none!important;}
+body.lc-cashier .page-actions [data-admin-only],body.lc-cashier [data-admin-only]{display:none!important;}
+.lc-security-banner{margin:0 0 16px;padding:12px 14px;border:1px solid #ddd6fe;border-radius:14px;background:linear-gradient(135deg,#faf5ff,#fff);font-size:12px;color:#5b21b6;display:flex;gap:10px;align-items:flex-start}
+.lc-security-banner i{margin-top:2px}.lc-role-badge{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:800;background:#ede9fe;color:#5b21b6}
+</style>
+<script>
+(function(){
+'use strict';
+const roleMap={
+ admin:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
+ Administrator:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
+ Owner:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
+ Manager:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','quotations','gallery'],
+ Accountant:['dashboard','orders','customers','reports','profit'],
+ 'Stock Manager':['dashboard','products','inventory','gallery'],
+ Cashier:['dashboard','pos','orders','customers']
+};
+function canonicalRole(){const u=window.currentUser||{};const raw=String(u.role_name||u.role||'Cashier').trim();return Object.keys(roleMap).find(k=>k.toLowerCase()===raw.toLowerCase())||'Cashier';}
+function allowed(section){return roleMap[canonicalRole()]?.includes(section)||false;}
+window.LC_FULL_ROLE_MAP=roleMap;
+window.lcCurrentRole=canonicalRole;
+window.lcRoleAllowed=allowed;
+window.applyRoleBasedAccess=function(){
+ const role=canonicalRole(); const allowedSet=new Set(roleMap[role]||roleMap.Cashier);
+ document.body.classList.toggle('lc-cashier',role==='Cashier');
+ document.body.classList.toggle('lc-admin',role==='admin'||role==='Administrator'||role==='Owner');
+ document.querySelectorAll('.sidebar-menu li[data-section]').forEach(el=>{el.style.display=allowedSet.has(el.dataset.section)?'':'none';});
+ document.querySelectorAll('[data-admin-only]').forEach(el=>{el.style.display=(role==='admin'||role==='Administrator'||role==='Owner')?'':'none';});
+ const badge=document.getElementById('lcRoleBadge'); if(badge) badge.textContent=role;
+};
+const oldNav=window.navigateTo;
+if(typeof oldNav==='function') window.navigateTo=function(section){if(!allowed(section)){if(typeof showToast==='function')showToast('Access denied for '+canonicalRole()+'.','error');return;} return oldNav(section);};
+function guard(action,sections){if(sections.includes(canonicalRole()))return true;if(typeof showToast==='function')showToast('You do not have permission to '+action+'.','error');return false;}
+window.LC_PERMISSION_GUARD=guard;
+// Protect common sensitive operations even if a hidden button is invoked directly.
+const sensitive={openProductModal:['admin','Administrator','Owner','Manager','Stock Manager'],saveProduct:['admin','Administrator','Owner','Manager','Stock Manager'],openUserModal:['admin','Administrator','Owner'],saveUser:['admin','Administrator','Owner'],deleteUser:['admin','Administrator','Owner'],openExpenseModal:['admin','Administrator','Owner','Manager'],saveExpense:['admin','Administrator','Owner','Manager'],openReturnModal:['admin','Administrator','Owner','Manager'],saveReturn:['admin','Administrator','Owner','Manager'],openShiftModal:['admin','Administrator','Owner','Manager','Cashier'],saveShift:['admin','Administrator','Owner','Manager','Cashier']};
+Object.keys(sensitive).forEach(name=>{
+ const wrap=()=>{const fn=window[name];if(typeof fn!=='function'||fn.__lcGuarded)return false;const original=fn;const g=function(){const roles=sensitive[name];if(roles.some(r=>r.toLowerCase()===canonicalRole().toLowerCase()))return original.apply(this,arguments);if(typeof showToast==='function')showToast('Access denied for '+canonicalRole()+'.','error');return false;};g.__lcGuarded=true;window[name]=g;return true;};
+ let tries=0;const timer=setInterval(()=>{if(wrap()||++tries>40)clearInterval(timer);},100);
+});
+// Notification center: never allow it to become normal document content.
+window.closeLCNotifications=function(){const p=document.getElementById('lcNotificationPanel');if(p){p.classList.remove('open');p.setAttribute('aria-hidden','true');}};
+window.toggleLCNotifications=function(){const p=document.getElementById('lcNotificationPanel');if(!p)return;p.classList.toggle('open');p.setAttribute('aria-hidden',p.classList.contains('open')?'false':'true');};
+document.addEventListener('click',e=>{const p=document.getElementById('lcNotificationPanel'),b=document.getElementById('lcNotificationBell');if(p&&p.classList.contains('open')&&!p.contains(e.target)&&!b?.contains(e.target))window.closeLCNotifications();});
+// Welcome overlay: show briefly after login, then remove from interaction/layout.
+window.lcHideWelcome=function(){const o=document.getElementById('lcWelcomeOverlay');if(o){o.classList.remove('show');o.setAttribute('aria-hidden','true');}};
+function refreshRole(){setTimeout(window.applyRoleBasedAccess,50);setTimeout(window.applyRoleBasedAccess,500);}
+document.addEventListener('DOMContentLoaded',refreshRole);setTimeout(refreshRole,1200);
+// Add role badge near the top bar without changing existing markup.
+document.addEventListener('DOMContentLoaded',function(){const actions=document.querySelector('.page-actions');if(actions&&!document.getElementById('lcRoleBadge')){const b=document.createElement('span');b.id='lcRoleBadge';b.className='lc-role-badge';b.title='Current staff role';b.textContent=canonicalRole();actions.prepend(b);}});
+// Prevent a cashier from being routed to an inaccessible section after a stale session/tab restore.
+setInterval(()=>{if(window.currentUser)window.applyRoleBasedAccess();},3000);
+})();
+</script>
+
+<style id="lucie-notification-fix">
+/* Lucie Closet notification: fixed top-right green toast/panel */
+#notificationContainer,.notification-container,.notifications-container,[class*="notification"] {
+  box-sizing:border-box;
+}
+#notificationContainer {
+  position:fixed !important;
+  top:76px !important;
+  right:24px !important;
+  bottom:auto !important;
+  left:auto !important;
+  width:min(380px,calc(100vw - 32px)) !important;
+  max-height:calc(100vh - 100px) !important;
+  overflow-y:auto !important;
+  z-index:99999 !important;
+  pointer-events:none;
+}
+#notificationContainer > *, .notification-toast, .toast.notification {
+  pointer-events:auto;
+}
+.lucie-notification,.notification-toast {
+  background:#16a34a !important;
+  color:#fff !important;
+  border:1px solid #15803d !important;
+  box-shadow:0 12px 30px rgba(22,163,74,.25) !important;
+  border-radius:12px !important;
+}
+.lucie-notification *, .notification-toast * { color:#fff !important; }
+@media(max-width:600px){#notificationContainer{top:64px !important;right:16px !important;width:calc(100vw - 32px) !important;}}
+</style>
+
+<style id="lucie-toast-fix">
+#toast-container,.toast-container,.toasts,.toast-stack{position:fixed !important;top:76px !important;right:24px !important;bottom:auto !important;left:auto !important;z-index:100000 !important;width:min(380px,calc(100vw - 32px)) !important;}
+.toast.success,.toast.toast-success,.alert-success{background:#16a34a !important;color:#fff !important;border-color:#15803d !important;}
+@media(max-width:600px){#toast-container,.toast-container,.toasts,.toast-stack{top:64px !important;right:16px !important;width:calc(100vw - 32px) !important;}}
+</style>
 </head>
 <body>
 
