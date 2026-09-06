@@ -864,9 +864,6 @@ body:not(.authenticated) #sidebarToggle{display:none!important;}
         <!-- ===== USERS & ROLES ===== -->
         <section id="usersSection" class="section-page"><div class="card"><div class="card-header"><h3>👥 Users & Roles</h3><button class="btn btn-primary" onclick="openUserModal()"><i class="fas fa-user-plus"></i> Add User</button></div><div class="security-note">Role permissions must also be enforced with Supabase Row Level Security. The browser interface alone is not a security boundary.</div><div id="usersTable"><div class="empty-state"><p>No users loaded</p></div></div></div></section>
 
-    </div>
-
-
         <!-- ===== QUOTATIONS & INVOICES ===== -->
         <section id="quotationsSection" class="section-page">
             <div class="card">
@@ -938,6 +935,10 @@ body:not(.authenticated) #sidebarToggle{display:none!important;}
                 <div class="erp-tile"><div class="erp-icon"><i class="fas fa-sync-alt"></i></div><h4>Offline Expansion</h4><p>The UI is structured for a future offline queue and synchronization layer. Offline sales should be enabled only after conflict-safe sync is implemented.</p><div class="erp-status"><span class="erp-dot" style="background:var(--warning)"></span>Next phase</div></div>
             </div>
         </section>
+
+
+    </div>
+
 
     <!-- ===== MODALS ===== -->
 
@@ -1436,7 +1437,15 @@ function showDashboard() {
     if (userName) userName.textContent = session.user?.full_name || 'Admin';
     if (userRole) userRole.textContent = session.user?.role_name || 'Administrator';
     if (userAvatar) userAvatar.textContent = (session.user?.full_name || 'A').charAt(0).toUpperCase();
-    
+    currentTab = 'dashboard';
+    window.currentTab = 'dashboard';
+    updateGreeting(session.user || currentUser);
+    document.querySelectorAll('.section-page').forEach(el => el.classList.remove('active'));
+    const dash = document.getElementById('dashboardSection');
+    if (dash) dash.classList.add('active');
+    const dashNav = document.querySelector('.sidebar-menu li[data-section="dashboard"]');
+    document.querySelectorAll('.sidebar-menu li[data-section]').forEach(li => li.classList.remove('active'));
+    if (dashNav) dashNav.classList.add('active');
     loadData();
 }
 
@@ -1479,7 +1488,11 @@ async function checkAuth() {
         window.currentUser = user;
         updateUI(user);
         resetSessionTimer();
+        currentTab = 'dashboard';
+        window.currentTab = 'dashboard';
         showDashboard();
+        navigateTo('dashboard');
+        updateGreeting(user);
         return currentUser;
 
     } catch (error) {
@@ -1824,7 +1837,11 @@ async function handleLogin(e) {
 
             currentUser = sessionData.user;
             window.currentUser = currentUser;
+            currentTab = 'dashboard';
+            window.currentTab = 'dashboard';
             showDashboard();
+            navigateTo('dashboard');
+            updateGreeting(sessionData.user);
             showLCWelcome(sessionData.user);
 
         } else {
@@ -1874,7 +1891,7 @@ async function handleLogin(e) {
             // Normalize common database spellings so permissions are reliable.
             const roleText = String(resolvedRole || 'Cashier').trim();
             const roleAliases = {
-                admin: 'admin', administrator: 'Administrator', owner: 'Owner',
+                admin: 'Admin', administrator: 'Administrator', owner: 'Owner',
                 manager: 'Manager', accountant: 'Accountant', cashier: 'Cashier',
                 employee: 'Employee', 'sales assistant': 'Sales Assistant',
                 sales_assistant: 'Sales Assistant', 'stock manager': 'Stock Manager'
@@ -1894,7 +1911,11 @@ async function handleLogin(e) {
 
             currentUser = sessionData.user;
             window.currentUser = currentUser;
+            currentTab = 'dashboard';
+            window.currentTab = 'dashboard';
             showDashboard();
+            navigateTo('dashboard');
+            updateGreeting(sessionData.user);
             showLCWelcome(sessionData.user);
         }
 
@@ -1954,7 +1975,19 @@ function navigateTo(section) {
         'reports': 'reportsSection',
         'profit': 'profitSection',
         'audit': 'auditSection',
-        'settings': 'settingsSection'
+        'settings': 'settingsSection',
+        'suppliers': 'suppliersSection',
+        'purchases': 'purchasesSection',
+        'returns': 'returnsSection',
+        'expenses': 'expensesSection',
+        'shifts': 'shiftsSection',
+        'loyalty': 'loyaltySection',
+        'users': 'usersSection',
+        'quotations': 'quotationsSection',
+        'accounting': 'accountingSection',
+        'branches': 'branchesSection',
+        'compliance': 'complianceSection',
+        'businessHub': 'businessHubSection'
     };
 
     const target = document.getElementById(sectionMap[section]);
@@ -1973,7 +2006,19 @@ function navigateTo(section) {
         'reports': '📊 Reports',
         'profit': '💰 Profit/Loss',
         'audit': '📜 Audit Trail',
-        'settings': '⚙️ Settings'
+        'settings': '⚙️ Settings',
+        'suppliers': '🚚 Suppliers',
+        'purchases': '🛒 Purchases',
+        'returns': '↩️ Returns',
+        'expenses': '💸 Expenses',
+        'shifts': '💵 Cashier Shifts',
+        'loyalty': '⭐ Loyalty',
+        'users': '👥 Users & Roles',
+        'quotations': '🧾 Quotations & Invoices',
+        'accounting': '🧮 Accounting',
+        'branches': '🏪 Branches',
+        'compliance': '🛡️ eTIMS & Compliance',
+        'businessHub': '🚀 Business Hub PRO'
     };
 
     const pageTitle = document.getElementById('pageTitle');
@@ -2027,17 +2072,34 @@ function renderCurrentTab() {
         refreshProfitData();
     } else if (currentTab === 'audit') {
         loadAuditLogs();
+    } else if (currentTab === 'quotations') {
+        if (typeof renderQuotations === 'function') renderQuotations();
+    } else if (currentTab === 'accounting') {
+        if (typeof renderAccounting === 'function') renderAccounting();
+    } else if (currentTab === 'branches') {
+        if (typeof renderBranches === 'function') renderBranches();
+    } else if (currentTab === 'compliance') {
+        if (typeof renderCompliance === 'function') renderCompliance();
+    } else if (currentTab === 'businessHub') {
+        if (typeof renderBusinessHub === 'function') renderBusinessHub();
     }
 }
 
 // ============================================================
 // GREETING
 // ============================================================
-function updateGreeting() {
-    // Dashboard greeting is intentionally not rendered here. The welcome message
-    // appears once immediately after a successful login via showLCWelcome().
+function updateGreeting(user = window.currentUser || currentUser) {
     const container = document.getElementById('greetingContainer');
-    if (container) container.innerHTML = '';
+    if (!container) return;
+    const name = user?.full_name || user?.name || user?.email || 'there';
+    const role = user?.role_name || user?.role || 'User';
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    container.innerHTML = `
+      <div class="greeting-banner">
+        <h2><span>✨</span> ${lcEscape(greeting)}, ${lcEscape(name)}!</h2>
+        <span class="greeting-sub">Welcome to Lucie Closet. You are signed in as ${lcEscape(role)}. Here is your business overview for today.</span>
+      </div>`;
 }
 
 // ============================================================
@@ -3514,8 +3576,8 @@ const LC = window.LC || {};
 window.LC = LC;
 
 LC.roles = {
-    admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','quotations','accounting','branches','compliance','businessHub','settings'],
-    Admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings'],
+    admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub'],
+    Admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub'],
     Owner: ['dashboard','pos','orders','products','inventory','customers','reports','profit','audit','settings'],
     Administrator: ['dashboard','pos','orders','products','inventory','customers','reports','profit','audit','settings'],
     Manager: ['dashboard','pos','orders','products','inventory','customers','reports','profit'],
@@ -3527,16 +3589,17 @@ LC.roles = {
 LC.can = function(action) {
     const rawRole = currentUser?.role_name || currentUser?.role || 'Cashier';
     const role = Object.keys(LC.roles).find(k => k.toLowerCase() === String(rawRole).trim().toLowerCase()) || 'Cashier';
+    const canonicalRole = role.toLowerCase() === 'admin' ? 'Admin' : role;
     const rules = {
-        manageUsers: ['Owner','Administrator'],
-        manageSettings: ['Owner','Administrator'],
-        manageProducts: ['Owner','Administrator','Manager','Stock Manager'],
-        adjustStock: ['Owner','Administrator','Manager','Stock Manager'],
-        cancelOrders: ['Owner','Administrator','Manager'],
-        viewProfit: ['Owner','Administrator','Manager','Accountant'],
-        audit: ['Owner','Administrator','Manager']
+        manageUsers: ['admin','Admin','Owner','Administrator'],
+        manageSettings: ['admin','Admin','Owner','Administrator'],
+        manageProducts: ['admin','Admin','Owner','Administrator','Manager','Stock Manager'],
+        adjustStock: ['admin','Admin','Owner','Administrator','Manager','Stock Manager'],
+        cancelOrders: ['admin','Admin','Owner','Administrator','Manager'],
+        viewProfit: ['admin','Admin','Owner','Administrator','Manager','Accountant'],
+        audit: ['admin','Admin','Owner','Administrator','Manager']
     };
-    return (rules[action] || []).includes(role);
+    return (rules[action] || []).includes(canonicalRole);
 };
 
 LC.escape = function(value) {
@@ -4335,7 +4398,9 @@ loadAuditLogs = async function() {
     if (!table) return;
     let logs = [];
     try {
-        const { data, error } = await sb.from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(100);
+        let result = await sb.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100);
+        if (result.error) result = await sb.from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(100);
+        const { data, error } = result;
         if (!error && data) logs = data;
     } catch (_) {}
     if (!logs.length) {
@@ -4572,7 +4637,12 @@ document.addEventListener('DOMContentLoaded', function() {
         expenses: ['🧾 Expenses', 'Track operating expenses'],
         shifts: ['💵 Cashier Shifts', 'Open, monitor and close till shifts'],
         loyalty: ['🎁 Loyalty', 'Manage customer rewards and loyalty settings'],
-        users: ['👥 Users & Roles', 'Manage staff access and responsibilities']
+        users: ['👥 Users & Roles', 'Manage staff access and responsibilities'],
+        quotations: ['🧾 Quotations & Invoices', 'Create quotations and manage customer invoice records'],
+        accounting: ['🧮 Accounting', 'Review revenue, costs, expenses and estimated net performance'],
+        branches: ['🏪 Branches & Currency', 'Configure branch and operating currency settings'],
+        compliance: ['🛡️ eTIMS & Compliance', 'Review compliance readiness and transaction controls'],
+        businessHub: ['🚀 Business Hub PRO', 'Unified view of Lucie Closet retail operations']
     };
 
     function showModuleSection(section) {
@@ -4776,7 +4846,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if(p && typeof addToCart==='function'){addToCart(p);toast(`${p.name} added to cart.`,'success');}
             else toast(`Barcode ${code} not found.`,'warning');return;
         }
-        if(e.key.length===1){barcodeBuffer+=e.key;clearTimeout(barcodeTimer);barcodeTimer=setTimeout(()=>barcodeBuffer='',80);}
+        if(typeof e.key === 'string' && e.key.length===1){barcodeBuffer+=e.key;clearTimeout(barcodeTimer);barcodeTimer=setTimeout(()=>barcodeBuffer='',80);}
     });
 
     // ---------- Login UX ----------
@@ -5017,18 +5087,19 @@ document.addEventListener('DOMContentLoaded', function() {
 (function(){
   'use strict';
   const roleSections={
-    admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','quotations','accounting','branches','compliance','businessHub','settings'],
-    Admin:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','quotations','accounting','branches','compliance','businessHub','settings'],
-    Owner:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','quotations','accounting','branches','compliance','businessHub','settings'],
-    Administrator:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','quotations','accounting','branches','compliance','businessHub','settings'],
-    Manager:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','quotations','accounting'],
-    Accountant:['dashboard','orders','customers','reports','profit','quotations','accounting'],
+    admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub'],
+    Admin:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub'],
+    Owner:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub'],
+    Administrator:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub'],
+    Manager:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit'],
+    Accountant:['dashboard','orders','customers','reports','profit'],
     'Stock Manager':['dashboard','products','inventory','suppliers','purchases'],
     Cashier:['dashboard','pos','orders','customers'],
     'Sales Assistant':['dashboard','pos','orders','customers'],
     'sales_assistant':['dashboard','pos','orders','customers'],
     Employee:['dashboard','pos','orders','customers']
   };
+  const HIDDEN_UNFINISHED=[];
   const normalize=r=>{const x=String(r||'Cashier').trim(); const key=Object.keys(roleSections).find(k=>k.toLowerCase()===x.toLowerCase()); return key||'Cashier';};
   window.LC=window.LC||{}; window.LC.roleSections=roleSections; window.LC.getRole=()=>normalize(window.currentUser?.role_name||window.currentUser?.role);
   function applyRole(){
@@ -5037,7 +5108,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const allowed=roleSections[role]||roleSections.Cashier;
     document.body.classList.remove('cashier-mode');
     if(u) document.body.classList.add('authenticated');
-    document.querySelectorAll('.sidebar-menu li[data-section]').forEach(li=>{li.style.display=allowed.includes(li.dataset.section)?'flex':'none';});
+    document.querySelectorAll('.sidebar-menu li[data-section]').forEach(li=>{const sec=li.dataset.section; li.style.display=(!HIDDEN_UNFINISHED.includes(sec) && allowed.includes(sec))?'flex':'none';});
     document.querySelectorAll('.sidebar-menu .menu-label').forEach(label=>{
       let next=label.nextElementSibling, has=false;
       while(next && !next.classList.contains('menu-label')){if(next.dataset?.section && next.style.display!=='none') has=true; next=next.nextElementSibling;}
