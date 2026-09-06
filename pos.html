@@ -1225,6 +1225,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // ✅ FIXED: Use 'sb' instead of 'supabase' to avoid redeclaration
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Expose the initialized client to all Lucie Closet modules.
+window.sb = sb;
 
 // ============================================================
 // TOAST - Must be defined first
@@ -4660,7 +4662,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const LCX = window.LC || {};
     window.LCX = LCX;
 
-    const db = window.sb;
+    // Always use the initialized Supabase client.
+    const db = window.sb || sb;
     const safe = (id) => document.getElementById(id);
     const val = (id) => safe(id)?.value?.trim() || '';
     const num = (id) => Number(val(id) || 0);
@@ -4883,14 +4886,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // ---------- Users & Roles ----------
     window.openUserModal=function(){safe('userForm')?.reset();safe('userModal')?.classList.add('active');};
     window.saveUser=async function(e){
-        e.preventDefault();const name=val('staffName'),role=val('staffRole');if(!name||!role)return toast('Name and role are required.','error');
-        const pin=val('staffPin');if(pin&&!/^\d{4,6}$/.test(pin))return toast('PIN must contain 4 to 6 digits.','error');
-        try{await insert('users',{name,email:val('staffEmail'),role,pin:pin||null,status:'active'});closeModal('userModal');toast('User created.','success');await audit('user_created',{name,role});loadUsers();}
-        catch(err){toast(`Could not create user: ${err.message}`,'error');}
+        e.preventDefault();
+        const name=val('staffName'), email=val('staffEmail'), role=val('staffRole'), pin=val('staffPin');
+        if(!name||!role)return toast('Name and role are required.','error');
+        if(pin&&!/^\d{4,6}$/.test(pin))return toast('PIN must contain 4 to 6 digits.','error');
+        try{
+            const client=window.sb||sb;
+            if(!client || typeof client.from!=='function') throw new Error('Supabase client is unavailable. Refresh the page and try again.');
+            let roleId=null;
+            const rr=await client.from('roles').select('id,name').ilike('name',role).maybeSingle();
+            if(rr.error && rr.error.code!=='PGRST116') console.warn('Role lookup warning:',rr.error);
+            roleId=rr.data?.id||null;
+            const {data,error}=await client.from('users').insert({
+                full_name:name, email:email||null, role:role, role_id:roleId,
+                pin:pin||null, pin_enabled:!!pin, status:'active'
+            }).select().single();
+            if(error) throw error;
+            closeModal('userModal');
+            toast(`User ${name} created successfully.`,'success');
+            await audit('user_created',{name,email,role,role_id:roleId,user_id:data?.id});
+            loadUsers();
+        }catch(err){
+            console.error('Create user error:',err);
+            toast(`Could not create user: ${err.message||'Unknown error'}`,'error');
+        }
     };
     window.loadUsers=async function(){
         const box=safe('usersTable');if(!box)return;
-        try{const rows=await select('users',{order:'name',ascending:true});box.innerHTML=rows.length?`<div class="table-wrapper"><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td><strong>${esc(r.name||'')}</strong></td><td>${esc(r.email||'')}</td><td><span class="badge primary">${esc(r.role||'')}</span></td><td><span class="badge success">${esc(r.status||'active')}</span></td></tr>`).join('')}</tbody></table></div>`:`<div class="empty-state"><i class="fas fa-users"></i><h4>No staff users</h4><p>Add your first staff account.</p></div>`;}catch(err){box.innerHTML='<div class="empty-state"><p>Unable to load users.</p></div>';}
+        try{const rows=await select('users',{order:'name',ascending:true});box.innerHTML=rows.length?`<div class="table-wrapper"><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td><strong>${esc(r.full_name||r.name||'')}</strong></td><td>${esc(r.email||'')}</td><td><span class="badge primary">${esc(r.role||r.role_name||'')}</span></td><td><span class="badge success">${esc(r.status||'active')}</span></td></tr>`).join('')}</tbody></table></div>`:`<div class="empty-state"><i class="fas fa-users"></i><h4>No staff users</h4><p>Add your first staff account.</p></div>`;}catch(err){box.innerHTML='<div class="empty-state"><p>Unable to load users.</p></div>';}
     };
 
     // ---------- Helpers ----------
