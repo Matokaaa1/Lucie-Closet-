@@ -681,6 +681,20 @@ body:not(.authenticated) #sidebarToggle{display:none!important;}
   }
 }
 </style>
+    <!-- Lucie Closet Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%236b21a8'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='Georgia,serif' font-size='34' font-weight='700' fill='white'%3ELC%3C/text%3E%3C/svg%3E">
+    <meta name="theme-color" content="#6b21a8">
+<style id="lucie-final-ui-fixes">
+/* Notifications and welcome UI are overlays, never normal document content. */
+#lcNotificationPanel{position:fixed!important;top:76px!important;right:22px!important;left:auto!important;bottom:auto!important;width:min(390px,calc(100vw - 28px));z-index:6000;display:none!important;}
+#lcNotificationPanel.open{display:block!important;}
+#lcWelcomeOverlay{position:fixed!important;inset:0!important;z-index:10000!important;display:flex!important;align-items:center!important;justify-content:center!important;}
+#lcWelcomeOverlay:not(.show){display:flex!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;}
+#lcWelcomeOverlay.show{visibility:visible!important;opacity:1!important;pointer-events:auto!important;}
+/* Role based sidebar: only allowed sections are visible. */
+body.cashier-mode .sidebar-menu li[data-section]:not([data-section="dashboard"]):not([data-section="pos"]):not([data-section="orders"]):not([data-section="customers"]){display:none!important;}
+@media(max-width:650px){#lcNotificationPanel{top:68px!important;right:14px!important;}}
+</style>
 </head>
 <body>
 
@@ -4108,12 +4122,11 @@ navigateTo = function(section) {
         return;
     }
     originalNavigateTo(section);
-    // Keep the complete sidebar visible. Navigation access is checked when
-    // a section is opened, but clicking POS or another section must never
-    // make unrelated menu items disappear.
-    document.querySelectorAll('.sidebar-menu li[data-section]').forEach(item => {
-        item.style.display = '';
-    });
+    // Re-apply role visibility after every navigation.
+    // Cashiers must only see the sections granted to the Cashier role.
+    if (typeof window.applyRoleBasedAccess === 'function') {
+        window.applyRoleBasedAccess();
+    }
 };
 window.navigateTo = navigateTo;
 
@@ -4969,7 +4982,7 @@ body{background:linear-gradient(135deg,#f8f7ff 0%,#fff7fb 48%,#f4f7ff 100%)}
 .lc-welcome-progress{height:4px;border-radius:99px;background:#eee8f5;margin-top:24px;overflow:hidden}.lc-welcome-progress span{display:block;height:100%;width:100%;transform-origin:left;background:linear-gradient(90deg,#7c3aed,#ec4899);animation:lcWelcomeProgress 4s linear forwards}@keyframes lcWelcomeProgress{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 .lc-notification-bell{position:relative;width:42px;height:42px;border:1px solid var(--border,#e8e3ed);background:var(--bg-card,#fff);border-radius:13px;display:grid;place-items:center;color:var(--text,#222);cursor:pointer;transition:.2s}.lc-notification-bell:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(40,20,70,.10)}
 .lc-notification-count{position:absolute;right:-4px;top:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:99px;background:#ec4899;color:#fff;border:2px solid var(--bg-card,#fff);font-size:10px;font-weight:800;display:grid;place-items:center}.lc-notification-count.hidden{display:none}
-.lc-notification-panel{position:fixed;top:76px;right:22px;width:min(390px,calc(100vw - 28px));z-index:6000;background:var(--bg-card,#fff);border:1px solid var(--border,#e8e3ed);border-radius:20px;box-shadow:0 24px 70px rgba(24,15,45,.20);overflow:hidden;display:none}.lc-notification-panel.open{display:block;animation:lcNotifIn .2s ease}@keyframes lcNotifIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.lc-notification-panel{position:fixed!important;top:76px!important;right:22px!important;bottom:auto!important;left:auto!important;width:min(390px,calc(100vw - 28px));z-index:6000;background:var(--bg-card,#fff);border:1px solid var(--border,#e8e3ed);border-radius:20px;box-shadow:0 24px 70px rgba(24,15,45,.20);overflow:hidden;display:none}.lc-notification-panel.open{display:block;animation:lcNotifIn .2s ease}@keyframes lcNotifIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 .lc-notif-head{padding:15px 17px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border,#eee)}.lc-notif-head strong{font-size:15px}.lc-notif-clear{border:0;background:transparent;color:#7c3aed;font-size:12px;font-weight:700;cursor:pointer}.lc-notif-list{max-height:430px;overflow:auto}.lc-notif-item{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border,#f0edf3);cursor:pointer}.lc-notif-item:hover{background:#faf8fd}.lc-notif-icon{width:36px;height:36px;flex:0 0 36px;border-radius:12px;display:grid;place-items:center;background:#f2eaff;color:#7c3aed}.lc-notif-item.warning .lc-notif-icon{background:#fff4df;color:#d97706}.lc-notif-item.error .lc-notif-icon{background:#ffe9ed;color:#dc2626}.lc-notif-item.success .lc-notif-icon{background:#e8fbf2;color:#059669}.lc-notif-body{min-width:0}.lc-notif-title{font-size:13px;font-weight:800}.lc-notif-text{font-size:12px;color:#777184;margin-top:3px;line-height:1.4}.lc-notif-time{font-size:10px;color:#aaa2b1;margin-top:5px}.lc-notif-empty{padding:30px 18px;text-align:center;color:#8b8493;font-size:13px}.lc-notification-pulse{animation:lcBellPulse 1.5s ease}@keyframes lcBellPulse{0%,100%{transform:scale(1)}20%{transform:scale(1.08)}40%{transform:scale(.96)}60%{transform:scale(1.04)}}
 .lc-inline-alerts{position:fixed;top:82px;left:50%;transform:translateX(-50%);z-index:5500;width:min(520px,calc(100vw - 28px));display:flex;flex-direction:column;gap:9px;pointer-events:none}.lc-inline-alert{pointer-events:auto;display:flex;align-items:flex-start;gap:11px;padding:13px 15px;border-radius:16px;background:rgba(255,255,255,.96);border:1px solid #eee7f3;box-shadow:0 18px 45px rgba(30,15,50,.16);animation:lcAlertIn .3s ease}.lc-inline-alert .lc-alert-icon{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:#f2eaff;color:#7c3aed;flex:0 0 32px}.lc-inline-alert.warning .lc-alert-icon{background:#fff4df;color:#d97706}.lc-inline-alert.error .lc-alert-icon{background:#ffe9ed;color:#dc2626}.lc-inline-alert.success .lc-alert-icon{background:#e8fbf2;color:#059669}.lc-inline-alert strong{display:block;font-size:13px}.lc-inline-alert span{display:block;margin-top:2px;color:#777184;font-size:12px;line-height:1.35}.lc-alert-close{margin-left:auto;border:0;background:transparent;color:#aaa;cursor:pointer}@keyframes lcAlertIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
 @media(max-width:650px){.lc-notification-panel{top:68px;right:14px}.lc-inline-alerts{top:70px}.lc-welcome-card{padding:30px 22px}}
@@ -5627,6 +5640,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const allowed=roleSections[role]||roleSections.Cashier;
     document.body.classList.remove('cashier-mode');
     if(u) document.body.classList.add('authenticated');
+    if(['Cashier','Sales Assistant','sales_assistant','Employee'].includes(role)) document.body.classList.add('cashier-mode');
     document.querySelectorAll('.sidebar-menu li[data-section]').forEach(li=>{const sec=li.dataset.section; li.style.display=(!HIDDEN_UNFINISHED.includes(sec) && allowed.includes(sec))?'flex':'none';});
     document.querySelectorAll('.sidebar-menu .menu-label').forEach(label=>{
       let next=label.nextElementSibling, has=false;
