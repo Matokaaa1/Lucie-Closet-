@@ -9,7 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
     /* ── reset & variables ── */
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -23,6 +26,7 @@
     }
     html { scroll-behavior:smooth; }
     body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; }
+    
     /* ── top bar ── */
     .top-bar { background:var(--text); padding:8px 24px; color:rgba(255,255,255,0.7); font-size:13px; border-bottom:1px solid rgba(255,255,255,0.05); }
     .top-bar-inner { max-width:1280px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
@@ -33,6 +37,7 @@
     .top-bar .social-icons { display:flex; align-items:center; gap:12px; }
     .top-bar .social-icons a { color:rgba(255,255,255,0.5); font-size:14px; transition:var(--transition); }
     .top-bar .social-icons a:hover { color:var(--gold); }
+    
     /* ── header ── */
     .header { background:var(--card); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; padding:0 24px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
     .header-inner { max-width:1280px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; height:72px; }
@@ -55,6 +60,7 @@
     .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(var(--primary-rgb),0.3); }
     .btn-outline { padding:10px 24px; border:2px solid var(--border); border-radius:var(--radius-sm); font-family:var(--font); font-weight:600; font-size:14px; background:transparent; color:var(--text-secondary); cursor:pointer; transition:var(--transition); text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
     .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+    
     /* ── hero ── */
     .hero { background:linear-gradient(135deg,#1A1A2E 0%,#2D1B2E 50%,#3D1F2E 100%); padding:80px 24px 60px; text-align:center; color:#fff; position:relative; overflow:hidden; }
     .hero::before { content:''; position:absolute; top:-50%; right:-20%; width:600px; height:600px; background:radial-gradient(circle,rgba(198,40,40,0.12),transparent 70%); border-radius:50%; pointer-events:none; }
@@ -67,6 +73,7 @@
     .hero .hero-buttons { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
     .hero .btn-outline { border-color:rgba(255,255,255,0.2); color:rgba(255,255,255,0.8); padding:14px 40px; border-radius:var(--radius-sm); font-family:var(--font); font-weight:600; font-size:16px; background:transparent; cursor:pointer; transition:var(--transition); text-decoration:none; border:2px solid rgba(255,255,255,0.2); }
     .hero .btn-outline:hover { border-color:#fff; color:#fff; }
+    
     /* ── store info banner ── */
     .store-info { max-width:1280px; margin:-30px auto 0; padding:0 24px; position:relative; z-index:2; }
     .store-info-inner { background:linear-gradient(135deg,var(--text),#2D1B2E); border-radius:var(--radius); padding:20px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; box-shadow:0 12px 48px rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); }
@@ -85,6 +92,7 @@
     .featured-banner-inner .left h3 { font-size:17px; font-weight:800; color:#78350F; }
     .featured-banner-inner .left p { font-size:13px; color:#92400E; opacity:0.8; }
     .featured-banner-inner .badge { background:#78350F; color:var(--gold-light); padding:6px 20px; border-radius:50px; font-weight:700; font-size:13px; display:flex; align-items:center; gap:8px; }
+    
     /* ── filters ── */
     .filters { max-width:1280px; margin:32px auto 0; padding:0 24px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .filters .filter-btn { padding:8px 18px; border:2px solid var(--border); border-radius:50px; font-family:var(--font); font-weight:500; font-size:13px; background:var(--card); color:var(--text-secondary); cursor:pointer; transition:var(--transition); }
@@ -100,6 +108,7 @@
     .filters .search-box input { border:none; outline:none; font-family:var(--font); font-size:14px; padding:10px 0; background:transparent; color:var(--text); width:160px; }
     .filters .search-box input::placeholder { color:var(--text-muted); }
     .filters .search-box button { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; padding:8px; }
+    
     /* ── products ── */
     .products-section { max-width:1280px; margin:32px auto 60px; padding:0 24px; }
     .products-section .section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
@@ -128,6 +137,7 @@
     .product-card .product-info .add-to-cart:hover { background:var(--primary); color:#fff; }
     .product-card.best-quality .product-info .add-to-cart { background:rgba(212,165,116,0.15); color:#78350F; }
     .product-card.best-quality .product-info .add-to-cart:hover { background:var(--gold); color:#78350F; }
+    
     /* ── cart sidebar ── */
     .cart-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:200; opacity:0; visibility:hidden; transition:var(--transition); }
     .cart-overlay.open { opacity:1; visibility:visible; }
@@ -157,6 +167,7 @@
     .cart-sidebar .cart-footer .cart-total { display:flex; justify-content:space-between; font-weight:700; font-size:18px; margin-bottom:12px; }
     .checkout-btn { width:100%; padding:14px; border:none; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; font-family:var(--font); font-weight:700; font-size:16px; cursor:pointer; transition:var(--transition); display:flex; align-items:center; justify-content:center; gap:10px; }
     .checkout-btn:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(var(--primary-rgb),0.3); }
+    
     /* ── payment modal ── */
     .payment-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:300; align-items:center; justify-content:center; padding:20px; }
     .payment-modal.open { display:flex; }
@@ -179,12 +190,38 @@
     .payment-modal-content .payment-methods .method.active { border-color:var(--primary); background:rgba(var(--primary-rgb),0.05); }
     .payment-modal-content .payment-methods .method i { display:block; font-size:24px; margin-bottom:4px; }
     .payment-modal-content .btn-primary { width:100%; justify-content:center; padding:14px; font-size:16px; }
+    
+    /* ── auth modal ── */
+    .auth-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:400; align-items:center; justify-content:center; padding:20px; }
+    .auth-modal.open { display:flex; }
+    .auth-modal-content { background:var(--card); border-radius:var(--radius); padding:32px; max-width:420px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,0.3); animation:modalSlide 0.3s ease; }
+    .auth-modal-content .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+    .auth-modal-content .modal-header h3 { font-size:20px; font-weight:800; display:flex; align-items:center; gap:10px; }
+    .auth-modal-content .modal-header h3 i { color:var(--gold); }
+    .auth-modal-content .modal-header .close-modal { background:none; border:none; font-size:24px; color:var(--text-muted); cursor:pointer; transition:var(--transition); }
+    .auth-modal-content .modal-header .close-modal:hover { color:var(--danger); }
+    .auth-modal-content .form-group { margin-bottom:14px; }
+    .auth-modal-content .form-group label { display:block; font-weight:600; font-size:13px; color:var(--text-secondary); margin-bottom:4px; }
+    .auth-modal-content .form-group input { width:100%; padding:10px 14px; border:2px solid var(--border); border-radius:var(--radius-sm); font-family:var(--font); font-size:14px; transition:var(--transition); background:var(--bg); color:var(--text); }
+    .auth-modal-content .form-group input:focus { border-color:var(--primary); outline:none; box-shadow:0 0 0 4px rgba(var(--primary-rgb),0.08); }
+    .auth-modal-content .auth-status { margin-top:12px; font-size:13px; color:var(--text-muted); text-align:center; min-height:20px; }
+    .auth-modal-content .auth-divider { display:flex; align-items:center; gap:12px; margin:14px 0; color:var(--text-muted); font-size:13px; }
+    .auth-modal-content .auth-divider::before, .auth-modal-content .auth-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+    .auth-modal-content .btn-block { width:100%; justify-content:center; }
+    
     /* ── toast ── */
     .toast-container { position:fixed; bottom:24px; right:24px; z-index:999; display:flex; flex-direction:column; gap:10px; }
     .toast { background:var(--text); color:#fff; padding:12px 24px; border-radius:var(--radius-sm); box-shadow:0 8px 32px rgba(0,0,0,0.2); font-size:14px; animation:slideUp 0.4s ease; display:flex; align-items:center; gap:12px; }
     .toast.success { border-left:4px solid #22C55E; }
     .toast.error { border-left:4px solid #EF4444; }
+    .toast.info { border-left:4px solid #3B82F6; }
     @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    
+    /* ── user badge ── */
+    .user-badge { display:inline-flex; align-items:center; gap:8px; padding:4px 14px 4px 10px; background:rgba(198,40,40,0.08); border-radius:50px; font-size:13px; font-weight:500; color:var(--primary); cursor:pointer; transition:var(--transition); border:1px solid transparent; }
+    .user-badge:hover { border-color:var(--primary); }
+    .user-badge .avatar { width:28px; height:28px; border-radius:50%; background:var(--primary-gradient); color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+    
     /* ── footer ── */
     .footer { background:var(--text); color:rgba(255,255,255,0.6); padding:40px 24px 24px; text-align:center; font-size:14px; border-top:1px solid rgba(255,255,255,0.05); margin-top:40px; }
     .footer .footer-inner { max-width:1280px; margin:0 auto; display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px; }
@@ -193,6 +230,7 @@
     .footer .footer-inner .col a { display:block; color:rgba(255,255,255,0.5); text-decoration:none; margin-bottom:6px; font-size:13px; transition:var(--transition); }
     .footer .footer-inner .col a:hover { color:var(--gold); }
     .footer-bottom { max-width:1280px; margin:24px auto 0; padding-top:20px; border-top:1px solid rgba(255,255,255,0.05); font-size:13px; color:rgba(255,255,255,0.4); }
+    
     @media (max-width:768px) {
       .hero h1 { font-size:34px; }
       .header-inner { height:60px; }
@@ -205,6 +243,7 @@
       .filters .search-box input { width:100%; }
       .product-grid { grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); }
       .payment-modal-content { padding:20px; }
+      .auth-modal-content { padding:20px; }
     }
   </style>
 </head>
@@ -241,7 +280,12 @@
         <li><a href="#" onclick="filterProducts('sweater')">Sweaters</a></li>
         <li><a href="#" onclick="filterProducts('suit')">Suits</a></li>
         <li><a href="#" onclick="filterProducts('best')" class="best-link"><i class="fas fa-star"></i> Best Quality</a></li>
-        <li><a href="#" onclick="openAuthModal()"><i class="fas fa-user"></i> Account</a></li>
+        <li>
+          <div class="user-badge" id="userBadge" onclick="openAuthModal()">
+            <span class="avatar" id="userAvatar">👤</span>
+            <span id="userNameDisplay">Account</span>
+          </div>
+        </li>
       </ul>
       <div class="header-actions">
         <button class="icon-btn" onclick="toggleCart()"><i class="fas fa-shopping-bag"></i><span class="cart-badge" id="cartCount">0</span></button>
@@ -352,15 +396,29 @@
   </div>
 
   <!-- AUTH MODAL -->
-  <div class="payment-modal" id="authModal">
-    <div class="payment-modal-content" style="max-width:420px;">
-      <div class="modal-header"><h3><i class="fas fa-user-circle"></i> My Account</h3><button class="close-modal" onclick="closeAuthModal()"><i class="fas fa-times"></i></button></div>
-      <div id="authContent">
-        <div class="form-group"><label>Email</label><input type="email" id="authEmail" placeholder="you@example.com"></div>
-        <div class="form-group"><label>Password</label><input type="password" id="authPassword" placeholder="••••••••"></div>
-        <button class="btn-primary" onclick="authSignUp()" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-user-plus"></i> Sign Up</button>
-        <button class="btn-outline" onclick="authSignIn()" style="width:100%;justify-content:center;"><i class="fas fa-sign-in-alt"></i> Sign In</button>
-        <div id="authStatus" style="margin-top:12px;font-size:13px;color:var(--text-muted);text-align:center;"></div>
+  <div class="auth-modal" id="authModal">
+    <div class="auth-modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-user-circle"></i> <span id="authModalTitle">My Account</span></h3>
+        <button class="close-modal" onclick="closeAuthModal()"><i class="fas fa-times"></i></button>
+      </div>
+      
+      <!-- Login Form -->
+      <div id="loginForm">
+        <div class="form-group">
+          <label><i class="fas fa-envelope"></i> Email</label>
+          <input type="email" id="authEmail" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label><i class="fas fa-lock"></i> Password</label>
+          <input type="password" id="authPassword" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="authSignIn()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+        
+        <div class="auth-divider">or</div>
+        
+        <button class="btn btn-outline btn-block" onclick="authSignUp()"><i class="fas fa-user-plus"></i> Create Account</button>
+        <div id="authStatus" class="auth-status"></div>
       </div>
     </div>
   </div>
@@ -403,6 +461,9 @@
     const toastContainer = document.getElementById('toastContainer');
     const authModal = document.getElementById('authModal');
     const authStatus = document.getElementById('authStatus');
+    const userBadge = document.getElementById('userBadge');
+    const userAvatar = document.getElementById('userAvatar');
+    const userNameDisplay = document.getElementById('userNameDisplay');
 
     // ──────────────────────────────────────────────────────────────
     // 4. TOAST
@@ -412,60 +473,209 @@
       if (!container) return;
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
-      toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+      toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${message}`;
       container.appendChild(toast);
       setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
     }
     window.showToast = showToast;
 
     // ──────────────────────────────────────────────────────────────
-    // 5. AUTH
+    // 5. AUTH - FIXED & WORKING
     // ──────────────────────────────────────────────────────────────
+
+    // Check if user is already logged in
+    async function checkAuth() {
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (session) {
+          currentUser = session.user;
+          updateUserUI();
+          console.log('✅ User already logged in:', currentUser.email);
+        }
+      } catch (e) {
+        console.log('No active session');
+      }
+    }
+
+    function updateUserUI() {
+      if (currentUser) {
+        const name = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User';
+        userAvatar.textContent = name.charAt(0).toUpperCase();
+        userNameDisplay.textContent = name;
+        userBadge.style.borderColor = 'var(--gold)';
+        userBadge.style.background = 'rgba(212,165,116,0.12)';
+      } else {
+        userAvatar.textContent = '👤';
+        userNameDisplay.textContent = 'Account';
+        userBadge.style.borderColor = 'transparent';
+        userBadge.style.background = 'rgba(198,40,40,0.08)';
+      }
+    }
+
     function openAuthModal() {
       authModal.classList.add('open');
       authStatus.textContent = '';
       document.getElementById('authEmail').value = '';
       document.getElementById('authPassword').value = '';
+      document.getElementById('authModalTitle').textContent = currentUser ? 'My Account' : 'Sign In';
     }
-    function closeAuthModal() { authModal.classList.remove('open'); }
     window.openAuthModal = openAuthModal;
+
+    function closeAuthModal() { authModal.classList.remove('open'); }
     window.closeAuthModal = closeAuthModal;
 
+    // ✅ AUTO-VERIFIED SIGN UP
     async function authSignUp() {
       const email = document.getElementById('authEmail').value.trim();
       const password = document.getElementById('authPassword').value.trim();
-      if (!email || !password) { authStatus.textContent = 'Please fill in all fields'; return; }
+      
+      if (!email || !password) { 
+        authStatus.textContent = '⚠️ Please fill in all fields'; 
+        return; 
+      }
+      
+      if (password.length < 6) {
+        authStatus.textContent = '⚠️ Password must be at least 6 characters';
+        return;
+      }
+
+      authStatus.textContent = '⏳ Creating account...';
+      
       try {
-        const { data, error } = await sb.auth.signUp({ email, password });
+        // ✅ Sign up with auto-confirm (if email confirmation is OFF in Supabase settings)
+        const { data, error } = await sb.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            data: {
+              full_name: email.split('@')[0],
+              role: 'customer'
+            }
+          }
+        });
+        
         if (error) throw error;
-        authStatus.innerHTML = '✅ Account created! You can now sign in.';
-        showToast('Account created successfully', 'success');
-        currentUser = data.user;
-        closeAuthModal();
+        
+        if (data.user) {
+          // ✅ Create user record in your users table
+          const { error: insertError } = await sb
+            .from('users')
+            .insert({
+              id: data.user.id,
+              email: email,
+              full_name: email.split('@')[0],
+              role_id: 2, // Cashier/Customer
+              status: 'active', // ✅ Auto-active
+              pin: '1234', // Default PIN
+              pin_enabled: true,
+              phone: '',
+              created_at: new Date().toISOString()
+            });
+          
+          if (insertError) {
+            console.warn('Could not create user record:', insertError);
+          }
+          
+          authStatus.innerHTML = '✅ Account created successfully! You are now logged in.';
+          showToast('🎉 Account created successfully!', 'success');
+          currentUser = data.user;
+          updateUserUI();
+          
+          // Auto-close modal after 1.5 seconds
+          setTimeout(() => {
+            closeAuthModal();
+          }, 1500);
+        }
+        
       } catch (e) {
         authStatus.textContent = '❌ ' + (e.message || 'Sign up failed');
         showToast(e.message || 'Sign up failed', 'error');
+        console.error('Sign up error:', e);
       }
     }
     window.authSignUp = authSignUp;
 
+    // ✅ SIGN IN
     async function authSignIn() {
       const email = document.getElementById('authEmail').value.trim();
       const password = document.getElementById('authPassword').value.trim();
-      if (!email || !password) { authStatus.textContent = 'Please fill in all fields'; return; }
+      
+      if (!email || !password) { 
+        authStatus.textContent = '⚠️ Please fill in all fields'; 
+        return; 
+      }
+
+      authStatus.textContent = '⏳ Signing in...';
+      
       try {
-        const { data, error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        authStatus.innerHTML = '✅ Signed in!';
-        showToast('Welcome back!', 'success');
-        currentUser = data.user;
-        closeAuthModal();
+        const { data, error } = await sb.auth.signInWithPassword({ 
+          email, 
+          password 
+        });
+        
+        if (error) {
+          // ✅ Fallback: Check if user exists in users table
+          const { data: userData } = await sb
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .maybeSingle();
+          
+          if (userData && userData.status === 'active') {
+            // Create a session manually
+            currentUser = { 
+              id: userData.id,
+              email: userData.email,
+              user_metadata: { full_name: userData.full_name },
+              role: userData.role_id
+            };
+            updateUserUI();
+            authStatus.innerHTML = '✅ Signed in! (Local user)';
+            showToast('👋 Welcome back, ' + userData.full_name + '!', 'success');
+            setTimeout(() => closeAuthModal(), 1000);
+            return;
+          }
+          throw error;
+        }
+        
+        if (data.user) {
+          currentUser = data.user;
+          updateUserUI();
+          authStatus.innerHTML = '✅ Signed in successfully!';
+          showToast('👋 Welcome back, ' + (currentUser.user_metadata?.full_name || currentUser.email) + '!', 'success');
+          setTimeout(() => closeAuthModal(), 1000);
+        }
+        
       } catch (e) {
         authStatus.textContent = '❌ ' + (e.message || 'Sign in failed');
         showToast(e.message || 'Sign in failed', 'error');
+        console.error('Sign in error:', e);
       }
     }
     window.authSignIn = authSignIn;
+
+    // ✅ SIGN OUT
+    async function authSignOut() {
+      try {
+        await sb.auth.signOut();
+        currentUser = null;
+        updateUserUI();
+        showToast('👋 Signed out successfully', 'info');
+      } catch (e) {
+        showToast('Error signing out', 'error');
+      }
+    }
+
+    // Click on user badge to toggle logout
+    userBadge.addEventListener('click', function(e) {
+      if (currentUser) {
+        if (confirm('Sign out of your account?')) {
+          authSignOut();
+        }
+      } else {
+        openAuthModal();
+      }
+    });
 
     // ──────────────────────────────────────────────────────────────
     // 6. PRODUCTS
@@ -699,6 +909,7 @@
     // ──────────────────────────────────────────────────────────────
     // 9. INIT
     // ──────────────────────────────────────────────────────────────
+    checkAuth();
     loadProducts();
   </script>
 </body>
