@@ -1206,10 +1206,27 @@ body:not(.authenticated) #sidebarToggle{display:none!important;}
                     <div class="form-group"><label>Barcode</label><input type="text" id="productBarcode" placeholder="Scan or enter barcode"></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>Material</label><input type="text" id="productMaterial" placeholder="Cotton, Linen, etc."></div>
+                    <div class="form-group"><label>Material / Fabric</label><input type="text" id="productMaterial" placeholder="Cotton, Linen, Silk, etc."></div>
                     <div class="form-group"><label>Tax / VAT (%)</label><input type="number" id="productTax" min="0" step="0.01" value="0"></div>
                 </div>
-                <div class="form-group"><label>Description</label><textarea id="productDescription" rows="3" placeholder="Product description"></textarea></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Compare / Original Price (KES)</label><input type="number" id="productComparePrice" min="0" step="0.01" placeholder="Optional"></div>
+                    <div class="form-group"><label>Discount / Sale Price (KES)</label><input type="number" id="productSalePrice" min="0" step="0.01" placeholder="Optional"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Fit / Style</label><input type="text" id="productFit" placeholder="Regular, Slim, Oversized, A-line..."></div>
+                    <div class="form-group"><label>Occasion</label><input type="text" id="productOccasion" placeholder="Casual, Office, Evening..."></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Care Instructions</label><input type="text" id="productCare" placeholder="Hand wash, Machine wash, Dry clean..."></div>
+                    <div class="form-group"><label>Available Sizes</label><input type="text" id="productSizes" placeholder="XS, S, M, L, XL, XXL"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Rating</label><input type="number" id="productRating" min="0" max="5" step="0.1" value="0"></div>
+                    <div class="form-group"><label>Reviews Count</label><input type="number" id="productReviews" min="0" step="1" value="0"></div>
+                </div>
+                <div class="form-group"><label>Description</label><textarea id="productDescription" rows="5" placeholder="Write the full product description customers should see..."></textarea></div>
+                <div class="form-group"><label>Product Tags</label><input type="text" id="productTags" placeholder="new, trending, best seller, summer"></div>
                 <div class="form-group">
                     <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
                         <input type="checkbox" id="productBestQuality"> Best Quality
@@ -3116,7 +3133,75 @@ function printReceipt() {
     if (!printWindow) { showToast('Please allow pop-ups to print the receipt.', 'warning'); return; }
     printWindow.document.write(`<!doctype html><html><head><title>Lucie Closet Receipt</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>
         *{box-sizing:border-box}body{margin:0;padding:18px;background:#fff;font-family:Arial,sans-serif;color:#17141a}.receipt-paper{width:100%;max-width:420px;margin:auto}.receipt-brand{text-align:center;padding-bottom:16px;border-bottom:1px dashed #bbb}.receipt-logo{width:44px;height:44px;border-radius:12px;margin:0 auto 8px;background:#7C3AED;color:#fff;display:flex;align-items:center;justify-content:center}.receipt-brand h2{margin:0;font-size:20px}.receipt-brand p{margin:4px 0;color:#777;font-size:10px}.receipt-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 0;border-bottom:1px solid #ddd}.receipt-meta div{font-size:9px;color:#777}.receipt-meta strong{display:block;color:#222;font-size:10px;margin-top:2px}.receipt-items{width:100%;border-collapse:collapse;margin:10px 0}.receipt-items th{text-align:left;font-size:9px;color:#777;padding:6px 0;border-bottom:1px solid #ddd}.receipt-items td{padding:7px 0;font-size:10px;border-bottom:1px solid #eee}.receipt-items th:last-child,.receipt-items td:last-child{text-align:right}.receipt-totals{border-top:1px dashed #bbb;padding-top:8px}.receipt-total-row{display:flex;justify-content:space-between;padding:3px 0;font-size:10px}.receipt-total-row.grand{font-size:15px;font-weight:900}.receipt-payment{margin-top:10px;padding:8px;background:#f3efff;color:#5B21B6;font-size:9px}.receipt-thanks{text-align:center;margin-top:12px;padding-top:10px;border-top:1px dashed #bbb;color:#777;font-size:9px;line-height:1.5}@media print{body{padding:0}.receipt-paper{max-width:none}}
-    </style></head><body>${content}</body></html>`);
+    </style></head><body>${content}
+<script>
+/* ============================================================
+   LUCIE CLOSET PRODUCT EDITOR - COMPLETE FIELD EDITING
+   ============================================================ */
+(function(){
+  const q=id=>document.getElementById(id);
+  const val=id=>q(id)?.value ?? '';
+  const set=(id,v)=>{if(q(id)) q(id).value=v==null?'':v};
+  const check=(id,v)=>{if(q(id)) q(id).checked=!!v};
+
+  window.renderProductVariants=function(list){
+    const body=q('variantsList'); if(!body)return;
+    const arr=Array.isArray(list)?list:[];
+    body.innerHTML=arr.map((v,i)=>`<tr><td>${LC.escape(v.size||'')}</td><td>${LC.escape(v.color||'')}</td><td>${Number(v.stock||0)}</td><td><button type="button" class="btn btn-sm btn-danger" onclick="removeVariant(${i})"><i class="fas fa-trash"></i></button></td></tr>`).join('');
+    if(q('variantsData')) q('variantsData').value=JSON.stringify(arr);
+  };
+  window.addVariant=function(){
+    const arr=JSON.parse(q('variantsData')?.value||'[]');
+    const size=val('variantSize').trim(), color=val('variantColor').trim(), stock=Number(val('variantStock')||0);
+    if(!size && !color){showToast('Enter a size or colour for the variant.','error');return;}
+    arr.push({size,color,stock}); renderProductVariants(arr); set('variantSize','');set('variantColor','');set('variantStock','');
+  };
+  window.removeVariant=function(i){const arr=JSON.parse(q('variantsData')?.value||'[]');arr.splice(i,1);renderProductVariants(arr)};
+
+  window.openProductModal=function(product=null){
+    set('editProductId',product?.id||'');
+    set('productName',product?.name); set('productCode',product?.code); set('productCategory',product?.category);
+    set('productGender',product?.gender||'unisex'); set('productPrice',product?.price); set('productStock',product?.stock);
+    set('productCostPrice',product?.cost_price ?? product?.cost); set('productReorderLevel',product?.reorder_level ?? product?.minimum_stock ?? 5);
+    set('productColour',product?.colour ?? product?.color); set('productSize',product?.size ?? product?.variant);
+    set('productSupplier',product?.supplier); set('productBarcode',product?.barcode); set('productMaterial',product?.material); set('productTax',product?.tax ?? product?.tax_rate ?? 0);
+    set('productDescription',product?.description); set('productImageUrl',product?.image_url);
+    set('productComparePrice',product?.compare_price ?? product?.original_price ?? product?.old_price);
+    set('productSalePrice',product?.sale_price ?? product?.discount_price); set('productFit',product?.fit); set('productOccasion',product?.occasion);
+    set('productCare',product?.care_instructions ?? product?.care); set('productSizes',Array.isArray(product?.sizes)?product.sizes.join(', '):(product?.sizes||''));
+    set('productRating',product?.rating ?? 0); set('productReviews',product?.reviews_count ?? product?.review_count ?? 0);
+    set('productTags',Array.isArray(product?.tags)?product.tags.join(', '):(product?.tags||'')); check('productBestQuality',product?.best_quality);
+    let variants=product?.variants; if(typeof variants==='string'){try{variants=JSON.parse(variants)}catch(e){variants=[]}} renderProductVariants(variants||[]);
+    const preview=q('imagePreview'); if(preview) preview.innerHTML=product?.image_url?`<img src="${LC.escape(product.image_url)}" alt="Product image" style="max-width:100%;max-height:180px;object-fit:contain;border-radius:12px;">`:'';
+    if(q('productModalTitle'))q('productModalTitle').textContent=product?'✏️ Edit Product':'📦 Add Product';
+    if(q('saveProductBtn'))q('saveProductBtn').innerHTML=product?'<i class="fas fa-save"></i> Update Product':'<i class="fas fa-save"></i> Save Product';
+    openModal('productModal');
+  };
+
+  window.saveProduct=async function(e){
+    e.preventDefault(); if(!LC.permissionToast('manageProducts'))return;
+    const id=val('editProductId'); const name=val('productName').trim(), code=val('productCode').trim(), category=val('productCategory');
+    const price=Number(val('productPrice')), stock=Number(val('productStock'));
+    if(!name||!code||!category||!Number.isFinite(price)||price<0||!Number.isFinite(stock)||stock<0){showToast('Complete the required product fields.','error');return}
+    const num=(id,def=null)=>{const n=Number(val(id));return Number.isFinite(n)&&val(id)!==''?n:def};
+    const csv=id=>val(id).split(',').map(x=>x.trim()).filter(Boolean);
+    const variants=JSON.parse(val('variantsData')||'[]');
+    const data={name,code,category,gender:val('productGender')||'unisex',price,stock,best_quality:!!q('productBestQuality')?.checked,
+      cost_price:num('productCostPrice',0),reorder_level:num('productReorderLevel',5),colour:val('productColour').trim()||null,size:val('productSize').trim()||null,
+      supplier:val('productSupplier').trim()||null,barcode:val('productBarcode').trim()||null,material:val('productMaterial').trim()||null,tax:num('productTax',0),
+      description:val('productDescription').trim()||null,image_url:val('productImageUrl').trim()||null,
+      compare_price:num('productComparePrice',null),sale_price:num('productSalePrice',null),fit:val('productFit').trim()||null,occasion:val('productOccasion').trim()||null,
+      care_instructions:val('productCare').trim()||null,sizes:csv('productSizes'),rating:num('productRating',0),reviews_count:num('productReviews',0),tags:csv('productTags'),variants};
+    const base={name,code,category,gender:data.gender,price,stock,best_quality:data.best_quality,image_url:data.image_url};
+    try{let r;if(id)r=await sb.from('products').update(data).eq('id',Number(id));else r=await sb.from('products').insert([data]);
+      if(r.error){console.warn('Extended product fields unavailable; retrying core fields:',r.error); if(id)r=await sb.from('products').update(base).eq('id',Number(id));else r=await sb.from('products').insert([base]); if(r.error)throw r.error; showToast('Saved core fields. Some detailed fields need matching columns in products table.','warning')}
+      else showToast(id?'Product updated successfully.':'Product added successfully.','success');
+      await loadProducts();updateStats();renderCurrentTab();closeModal('productModal');
+    }catch(err){console.error(err);showToast('Could not save product: '+(err.message||'Unknown error'),'error')}
+  };
+})();
+</script>
+</body></html>`);
     printWindow.document.close();
     setTimeout(() => { printWindow.focus(); printWindow.print(); }, 250);
 }
