@@ -1,20 +1,4 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lucie Closet - pos.js Source</title>
-<style>
-body{font-family:Consolas,Monaco,"Courier New",monospace;background:#fff;color:#111;margin:0}
-header{position:sticky;top:0;background:#f3f4f6;border-bottom:1px solid #d1d5db;padding:12px 16px;font-family:Arial,sans-serif;z-index:2}
-header strong{margin-right:12px}
-header a{display:inline-block;padding:8px 12px;border:1px solid #9ca3af;border-radius:6px;text-decoration:none;color:#111;background:#fff}
-pre{margin:0;padding:20px;white-space:pre-wrap;word-break:break-word;line-height:1.45;font-size:14px}
-</style>
-</head>
-<body>
-<header><strong>Lucie Closet — pos.js</strong><a href="pos.js" download>Download pos.js</a></header>
-<pre>// ============================================================
+// ============================================================
 // LUCIE CLOSET · POS + ADMIN SYSTEM - COMPLETE FIXED
 // ============================================================
 
