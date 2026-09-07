@@ -244,6 +244,10 @@
         /* ===== MODALS ===== */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
         .modal-overlay.active { display: flex; }
+/* Payment modal must always sit above checkout and other overlays. */
+#stkPushModal { z-index: 99999 !important; }
+#stkPushModal.active { display: flex !important; visibility: visible !important; opacity: 1 !important; }
+#stkPushModal .stk-modal { position: relative; z-index: 100000; }
         .modal { background: var(--bg-card); border-radius: var(--radius); max-width: 580px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 28px 32px; border: 1px solid var(--border); box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease; }
         .modal-lg { max-width: 740px; }
         @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -1049,10 +1053,11 @@ setInterval(()=>{if(window.currentUser)window.applyRoleBasedAccess();},3000);
         <section id="gallerySection" class="section-page">
             <div class="card">
                 <div class="card-header">
-                    <div><h3>🖼️ Product Photo Gallery</h3><div style="font-size:12px;color:var(--text-muted);margin-top:3px;">All product photos are loaded from Supabase Storage and remain available across POS, Products and future catalog updates.</div></div>
+                    <div><h3>🖼️ Product Photo Gallery</h3><div style="font-size:12px;color:var(--text-muted);margin-top:3px;">Upload multiple photos, assign them to a product, and reuse them across POS, Products and future catalog updates.</div></div>
                     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                         <input id="gallerySearch" type="search" placeholder="Search photos..." oninput="renderPhotoGallery()" style="min-width:220px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text-primary);">
-                        <button class="btn btn-primary btn-sm" onclick="renderPhotoGallery()"><i class="fas fa-sync"></i> Refresh</button>
+                        <button class="btn btn-primary btn-sm" onclick="openGalleryUploadModal()"><i class="fas fa-cloud-upload-alt"></i> Upload Photos</button>
+                        <button class="btn btn-outline btn-sm" onclick="renderPhotoGallery()"><i class="fas fa-sync"></i> Refresh</button>
                     </div>
                 </div>
                 <div id="photoGallery" class="photo-gallery-grid"></div>
@@ -4482,9 +4487,12 @@ async function waitForPayHeroPayment(transactionId, timeoutMs = 90000) {
                     return resolve(data);
                 }
 
-                if (['failed', 'cancelled', 'canceled', 'rejected', 'declined', 'expired'].includes(status)) {
+                if (['failed', 'cancelled', 'canceled', 'rejected', 'declined', 'expired', 'not_found'].includes(status) ||
+                    data.code === 'PAYHERO_REFERENCE_NOT_FOUND') {
                     activeStkPoll = null;
-                    return reject(new Error(data.message || `M-Pesa payment ${status}.`));
+                    return reject(new Error(data.message || (status === 'not_found'
+                        ? 'PayHero could not find the payment reference. Please start a new M-Pesa payment.'
+                        : `M-Pesa payment ${status}.`)));
                 }
 
                 const elapsed = Math.floor((Date.now() - started) / 1000);
@@ -4575,11 +4583,19 @@ completeOrder = async function() {
         let mpesaReceipt = '';
 
         if (selectedPayment === 'mpesa') {
+            // Open the payment dialog BEFORE the network request so the cashier
+            // always sees the STK workflow immediately after Complete Sale.
             openStkPaymentModal(total, stkPhone);
             setStkStatus(
                 'Sending M-Pesa prompt',
                 `An STK prompt will be sent to ${stkPhone}. Please wait…`
             );
+            const stkModal = document.getElementById('stkPushModal');
+            if (stkModal) {
+                stkModal.classList.add('active');
+                stkModal.style.display = 'flex';
+                stkModal.style.zIndex = '99999';
+            }
 
             paymentResult = await payHeroInvoke({
                 action: 'stk_push',
@@ -5928,6 +5944,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const hidden=document.getElementById('imageGalleryData');if(hidden)hidden.value=JSON.stringify(imgs);
     const url=document.getElementById('productImageUrl');if(url)url.value=imgs.find(x=>x.is_primary)?.url||imgs[0]?.url||'';
   }
+  window.refreshProductImageEditor = refreshProductImageEditor;
 
   async function handleProductFiles(){
     const input=document.getElementById('productImages');if(!input)return;
@@ -5949,6 +5966,103 @@ document.addEventListener('DOMContentLoaded', function() {
     input.value='';
   }
   document.addEventListener('change',e=>{if(e.target?.id==='productImages')handleProductFiles()});
+
+  // ============================================================
+  // FULL GALLERY UPLOAD MODAL
+  // Upload multiple photos and attach them directly to a product.
+  // ============================================================
+  function ensureGalleryUploadModal(){
+    if(document.getElementById('galleryUploadModal')) return;
+    document.body.insertAdjacentHTML('beforeend',`
+      <div class="modal-overlay" id="galleryUploadModal" style="z-index:100000;">
+        <div class="modal modal-lg" style="max-width:760px;">
+          <div class="modal-header">
+            <div>
+              <h3>☁️ Upload Product Photos</h3>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Select a product, choose one or more photos, then upload them directly to the Lucie Closet gallery.</div>
+            </div>
+            <button class="close" type="button" onclick="closeGalleryUploadModal()">&times;</button>
+          </div>
+          <div class="form-group">
+            <label>Product *</label>
+            <select id="galleryUploadProduct" style="width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:12px;background:var(--bg);color:var(--text-primary)"></select>
+            <small style="display:block;margin-top:5px;color:#64748b">The first photo becomes the main product photo if the product does not already have one.</small>
+          </div>
+          <div class="form-group">
+            <label>Photos *</label>
+            <input id="galleryUploadFiles" type="file" accept="image/*" multiple style="display:none">
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('galleryUploadFiles').click()"><i class="fas fa-images"></i> Select Photos</button>
+            <span id="galleryUploadCount" style="margin-left:10px;font-size:12px;color:var(--text-muted)">No photos selected</span>
+          </div>
+          <div id="galleryUploadPreview" class="image-gallery" style="margin-bottom:15px"></div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline" onclick="closeGalleryUploadModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" id="galleryUploadSubmit" onclick="uploadGalleryPhotos()"><i class="fas fa-cloud-upload-alt"></i> Upload Photos</button>
+          </div>
+        </div>
+      </div>`);
+    const input=document.getElementById('galleryUploadFiles');
+    input?.addEventListener('change',()=>{
+      const files=Array.from(input.files||[]);
+      const count=document.getElementById('galleryUploadCount');
+      if(count) count.textContent=files.length?`${files.length} photo${files.length===1?'':'s'} selected`:'No photos selected';
+      const preview=document.getElementById('galleryUploadPreview');
+      if(preview){
+        preview.innerHTML=files.map(f=>`<div class="gallery-item"><img src="${URL.createObjectURL(f)}" alt="${esc(f.name)}" loading="lazy"><span class="main-badge">READY</span></div>`).join('');
+      }
+    });
+  }
+
+  window.openGalleryUploadModal=async function(){
+    ensureGalleryUploadModal();
+    const select=document.getElementById('galleryUploadProduct');
+    if(!select)return;
+    const list=(typeof products!=='undefined'&&Array.isArray(products))?products:[];
+    select.innerHTML='<option value="">Select product...</option>'+list.map(p=>`<option value="${esc(p.id)}">${esc(p.name||'Unnamed product')} — ${esc(p.code||'No code')}</option>`).join('');
+    document.getElementById('galleryUploadFiles').value='';
+    document.getElementById('galleryUploadPreview').innerHTML='';
+    document.getElementById('galleryUploadCount').textContent='No photos selected';
+    document.getElementById('galleryUploadModal').classList.add('active');
+  };
+
+  window.closeGalleryUploadModal=function(){
+    document.getElementById('galleryUploadModal')?.classList.remove('active');
+  };
+
+  window.uploadGalleryPhotos=async function(){
+    const pid=Number(document.getElementById('galleryUploadProduct')?.value||0);
+    const input=document.getElementById('galleryUploadFiles');
+    const btn=document.getElementById('galleryUploadSubmit');
+    const files=Array.from(input?.files||[]);
+    if(!pid){showToast('Select a product first.','error');return;}
+    if(!files.length){showToast('Select at least one photo.','error');return;}
+    if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Uploading...';}
+    try{
+      let existing=await getProductImages(pid);
+      for(const file of files){
+        const uploaded=await uploadProductFile(file,pid);
+        const isPrimary=existing.length===0;
+        const item={url:uploaded.url,path:uploaded.path,name:file.name,product_id:pid,is_primary:isPrimary,sort_order:existing.length};
+        await persistProductImage(pid,item);
+        existing.push(item);
+        if(isPrimary) await setPrimaryProductImage(pid,uploaded.url);
+      }
+      await refreshProductImageEditor(pid);
+      const product=productById(pid);
+      if(product && existing[0]?.url) product.image_url=existing.find(x=>x.is_primary)?.url||existing[0].url;
+      await loadProducts();
+      renderPhotoGallery();
+      if(typeof renderProductsTable==='function')renderProductsTable();
+      if(typeof renderPOSProducts==='function')renderPOSProducts();
+      closeGalleryUploadModal();
+      showToast(`${files.length} photo${files.length===1?'':'s'} uploaded to the gallery successfully.`,'success');
+    }catch(e){
+      console.error('Gallery upload failed:',e);
+      showToast('Gallery upload failed: '+(e.message||'Check Supabase Storage permissions.'),'error');
+    }finally{
+      if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-cloud-upload-alt"></i> Upload Photos';}
+    }
+  };
 
   function ensureEditor(){
     if(document.getElementById('photoEditorModal'))return;
@@ -6053,6 +6167,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if(q('productModalTitle'))q('productModalTitle').textContent=product?'✏️ Edit Product':'📦 Add Product';
     if(q('saveProductBtn'))q('saveProductBtn').innerHTML=product?'<i class="fas fa-save"></i> Update Product':'<i class="fas fa-save"></i> Save Product';
     openModal('productModal');
+    // The final editor override also refreshes the real Supabase gallery.
+    const productId = product?.id || q('editProductId')?.value;
+    if(productId && typeof window.refreshProductImageEditor === 'function'){
+      Promise.resolve(window.refreshProductImageEditor(Number(productId))).catch(err=>console.warn('Gallery refresh:',err));
+    }
   };
 
   window.saveProduct=async function(e){
