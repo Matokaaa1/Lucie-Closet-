@@ -1060,7 +1060,17 @@ setInterval(()=>{if(window.currentUser)window.applyRoleBasedAccess();},3000);
                         <button class="btn btn-outline btn-sm" onclick="renderPhotoGallery()"><i class="fas fa-sync"></i> Refresh</button>
                     </div>
                 </div>
-                <div id="photoGallery" class="photo-gallery-grid"></div>
+                
+                <div id="galleryUploadToolbar" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 16px;padding:14px 16px;border:2px dashed #d8c5a3;border-radius:14px;background:#fffaf4;">
+                    <div>
+                        <div style="font-weight:800;font-size:14px;color:var(--text-primary);"><i class="fas fa-images"></i> Add Product Images</div>
+                        <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">Select a product, choose one or more photos, preview them, then upload them to the gallery.</div>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="galleryMainUploadBtn" onclick="openGalleryUploadModal()" style="min-height:42px;padding:10px 18px;font-weight:800;">
+                        <i class="fas fa-cloud-upload-alt"></i> Upload Images
+                    </button>
+                </div>
+<div id="photoGallery" class="photo-gallery-grid"></div>
             </div>
         </section>
 
@@ -1430,7 +1440,7 @@ setInterval(()=>{if(window.currentUser)window.applyRoleBasedAccess();},3000);
                         <span>Total</span>
                         <span id="checkoutTotal">KES 0</span>
                     </div>
-                    <button id="completeSaleBtn" class="btn btn-primary btn-block" onclick="completeOrder()"><i class="fas fa-check"></i> Complete Sale</button>
+                    <button id="completeSaleBtn" class="btn btn-primary btn-block" onclick="completeUltimateSale()"><i class="fas fa-check"></i> Complete Sale</button>
                 </div>
             </div>
         </div>
@@ -3100,72 +3110,6 @@ function calculateChange() {
 }
 window.calculateChange = calculateChange;
 
-async function completeOrder() {
-    if (!cart.length) return;
-
-    const checkoutName = document.getElementById('checkoutName');
-    const checkoutPhone = document.getElementById('checkoutPhone');
-    const mpesaCode = document.getElementById('mpesaCode');
-    
-    const selectedCustomer = document.getElementById('checkoutCustomer');
-    const selected = selectedCustomer && selectedCustomer.value ? (customers||[]).find(c=>String(c.id)===String(selectedCustomer.value)) : null;
-    const name = selected?.name || (checkoutName ? checkoutName.value.trim() || 'Walk-in Customer' : 'Walk-in Customer');
-    const phone = selected?.phone || (checkoutPhone ? checkoutPhone.value.trim() || 'N/A' : 'N/A');
-    const subtotal = getCartSubtotal();
-    const discount = getCheckoutDiscount();
-    const total = Math.max(0, subtotal - discount);
-
-    let paymentDetails = selectedPayment;
-    if (selectedPayment === 'mpesa') {
-        const code = mpesaCode ? mpesaCode.value.trim() : '';
-        if (!code) { showToast('Please enter M-Pesa transaction code', 'error'); return; }
-        paymentDetails = `M-Pesa: ${code}`;
-    }
-
-    const orderData = {
-        order_number: 'POS-' + Date.now().toString().slice(-6),
-        customer_name: name,
-        customer_phone: phone,
-        customer_email: '',
-        items: cart.map(i => ({ id: i.id, name: i.name, code: i.code, qty: i.qty, price: i.price })),
-        total: total,
-        payment_method: paymentDetails,
-        status: 'completed',
-        created_at: new Date().toISOString()
-    };
-
-    try {
-        const { error } = await sb.from('orders').insert([orderData]);
-        if (error) throw error;
-
-        for (const item of cart) {
-            const product = products.find(p => p.id === item.id);
-            if (product) {
-                const newStock = product.stock - item.qty;
-                await sb.from('products').update({ stock: newStock }).eq('id', item.id);
-                product.stock = newStock;
-            }
-        }
-
-        orderData.subtotal = subtotal; orderData.discount = discount;
-        try { const receipts=JSON.parse(localStorage.getItem('luciecloset_receipt_meta')||'{}'); receipts[orderData.order_number]={subtotal,discount}; localStorage.setItem('luciecloset_receipt_meta',JSON.stringify(receipts)); } catch(_) {}
-        showToast(`✅ Order ${orderData.order_number} completed!`, 'success');
-        generateReceipt(orderData);
-
-        cart = [];
-        updateCartUI();
-        closeModal('checkoutModal');
-        await loadProducts();
-        updateStats();
-        renderPOSProducts();
-
-    } catch (e) {
-        console.error('Order error:', e);
-        showToast('Error processing order', 'error');
-    }
-}
-window.completeOrder = completeOrder;
-
 function getCartSubtotal(){ return cart.reduce((sum,i)=>sum+(Number(i.price)||0)*(Number(i.qty)||0),0); }
 function getCheckoutDiscount(){ const el=document.getElementById('checkoutDiscount'); return Math.min(Math.max(Number(el?.value)||0,0),getCartSubtotal()); }
 function refreshCheckoutTotal(){
@@ -4522,8 +4466,13 @@ function extractPayHeroReceipt(data) {
            '';
 }
 
-completeOrder = async function() {
-    if (isSubmitting || !cart.length) return;
+async function completeUltimateSale() {
+    // Single authoritative checkout entry point. Never silently ignore a click.
+    if (isSubmitting) return;
+    if (!Array.isArray(cart) || cart.length === 0) {
+        showToast('Add items to the cart first.', 'warning');
+        return;
+    }
     isSubmitting = true;
 
     const completeBtn = document.getElementById('completeSaleBtn');
@@ -4773,7 +4722,8 @@ completeOrder = async function() {
         }
     }
 };
-window.completeOrder = completeOrder;
+window.completeUltimateSale = completeUltimateSale;
+window.completeOrder = completeUltimateSale;
 
 
 // ------------------------------------------------------------
