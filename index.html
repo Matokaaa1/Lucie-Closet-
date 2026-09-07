@@ -598,6 +598,18 @@
     </div>
   </div>
 
+
+  <!-- PRODUCT VIEW MODAL -->
+  <div class="auth-modal" id="productViewModal" aria-hidden="true">
+    <div class="auth-modal-content" style="max-width:920px;width:94%;">
+      <div class="modal-header">
+        <h3><i class="fas fa-eye"></i> <span id="productViewTitle">Product Details</span></h3>
+        <button class="close-modal" onclick="closeProductView()"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="productViewBody" style="padding:4px 0 8px;"></div>
+    </div>
+  </div>
+
   <!-- AUTH MODAL -->
   <div class="auth-modal" id="authModal">
     <div class="auth-modal-content">
@@ -653,7 +665,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsc2xkd3NodHhvZmNrdmtpeHh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMTE1NTksImV4cCI6MjEwMzc4NzU1OX0.BAfgQG4Z28bgKSfL9Li7Gbgp62sTM-5NxB4qVQ-b0H4';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const STORAGE_BASE = SUPABASE_URL + '/storage/v1/object/public/product-images/';
-    const IMAGE_CATALOG = {"LCIMG001":"LC_001_1004593949.jpg","LCIMG002":"LC_002_1004593985.jpg","LCIMG003":"LC_003_1004662163.jpg","LCIMG004":"LC_004_1004662167.jpg","LCIMG005":"LC_005_1004662171.jpg","LCIMG006":"LC_006_1004662172.jpg","LCIMG007":"LC_007_1004662223.jpg","LCIMG008":"LC_008_1004662242.jpg","LCIMG009":"LC_009_1004662296.jpg","LCIMG010":"LC_010_1004662299.jpg","LCIMG011":"LC_011_1004662311.jpg","LCIMG012":"LC_012_1004664184.jpg","LCIMG013":"LC_013_1004664191.jpg","LCIMG014":"LC_014_1004664192.jpg","LCIMG015":"LC_015_1004664193.jpg","LCIMG016":"LC_016_1004664194.jpg","LCIMG017":"LC_017_1004664197.jpg","LCIMG018":"LC_018_1004664199.jpg","LCIMG019":"LC_019_1004664212.jpg","LCIMG020":"LC_020_1004664214.jpg","LCIMG021":"LC_021_1004664215.jpg","LCIMG022":"LC_022_1004664216.jpg","LCIMG023":"LC_023_1004664217.jpg","LCIMG024":"LC_024_1004664218.jpg","LCIMG025":"LC_025_1004664219.jpg","LCIMG026":"LC_026_1004664220.jpg","LCIMG027":"LC_027_1004664221.jpg","LCIMG028":"LC_028_1004664222.jpg","LCIMG029":"LC_029_1004664223.jpg","LCIMG030":"LC_030_1004664224.jpg","LCIMG031":"LC_031_1004664225.jpg","LCIMG032":"LC_032_1004664244.jpg","LCIMG033":"LC_033_1004664245.jpg","LCIMG034":"LC_034_1004664246.jpg","LCIMG035":"LC_035_1004664247.jpg","LCIMG036":"LC_036_1004664248.jpg","LCIMG037":"LC_037_1004664254.jpg","LCIMG038":"LC_038_1004664289.jpg","LCIMG039":"LC_039_1004664291.jpg","LCIMG040":"LC_040_1004664309.jpg","LCIMG041":"LC_041_1004664310.jpg","LCIMG042":"LC_042_1004664327.jpg","LCIMG043":"LC_043_1004664329.jpg","LCIMG044":"LC_044_1004664330.jpg","LCIMG045":"LC_045_1004664332.jpg","LCIMG046":"LC_046_1004664333.jpg"};
+    const IMAGE_CATALOG = {"LCIMG001":"LC_001_1004593949.jpg","LCIMG002":"LC_002_1004593985.jpg","LCIMG003":"LC_003_1004662163.jpg","LCIMG004":"LC_004_1004662167.jpg","LCIMG005":"LC_005_1004662171.jpg","LCIMG006":"LC_006_1004662172.jpg","LCIMG007":"LC_007_1004662223.jpg","LCIMG008":"LC_008_1004662242.jpg","LCIMG009":"LC_009_1004662296.jpg","LCIMG010":"LC_010_1004662299.jpg","LCIMG011":"LC_011_1004662311.jpg","LCIMG012":"LC_012_1004664184.jpg","LCIMG013":"LC_013_1004664191.jpg","LCIMG014":"LC_014_1004664192.jpg","LCIMG015":"LC_015_1004664193.jpg","LCIMG016":"LC_016_1004664194.jpg","LCIMG017":"LC_017_1004664197.jpg","LCIMG018":"LC_018_1004664199.jpg","LCIMG019":"LC_019_1004664212.jpg","LCIMG020":"LC_020_1004664214.jpg","LCIMG021":"LC_021_1004664215.jpg","LCIMG022":"LC_022_1004664216.jpg","LCIMG023":"LC_023_1004664217.jpg","LCIMG024":"LC_024_1004664218.jpg","LCIMG025":"LC_025_1004664219.jpg","LCIMG026":"LC_026_1004664220.jpg","LCIMG027":"LC_027_1004664221.jpg","LCIMG028":"LC_028_1004664222.jpg","LCIMG029":"LC_029_1004664223.jpg","LCIMG030":"LC_030_1004664224.jpg","LCIMG031":"LC_031_1004664225.jpg","LCIMG032":"LC_032_1004664244.jpg","LCIMG033":"LC_033_1004664245.jpg","LCIMG034":"LC_034_1004664246.jpg","LCIMG035":"LC_035_1004664247.jpg","LCIMG036":"LC_036_1004664248.jpg","LCIMG037":"LC_037_1004664254.jpg","LCIMG038":"LC_038_1004664289.jpg","LCIMG039":"LC_039_1004664291.jpg","LCIMG040":"LC_040_1004664309.jpg","LCIMG041":"LC_041_1004664310.jpg","LCIMG042":"LC_042_1004664327.jpg","LCIMG043":"LC_043_1004664329.jpg","LCIMG044":"LC_044_1004664330.jpg","LCIMG045":"LC_045_1004664332.jpg","LCIMG046":"LC_046_1004664333.jpg","LCIMG047":"LCIMG047.jpg","LCIMG048":"LCIMG048.jpg","LCIMG049":"LCIMG049.jpg","LCIMG050":"LCIMG050.jpg","LCIMG051":"LCIMG051.jpg","LCIMG052":"LCIMG052.jpg","LCIMG053":"LCIMG053.jpg","LCIMG054":"LCIMG054.jpg","LCIMG055":"LCIMG055.jpg","LCIMG056":"LCIMG056.jpg"};
     function productImageUrl(p) {
       if (p?.image_url) return p.image_url;
       const code = String(p?.code || '').trim();
@@ -709,26 +721,30 @@
     window.showToast = showToast;
 
     // ──────────────────────────────────────────────────────────────
-    // 5. AUTH - FIXED & WORKING
+    // 5. CUSTOMER AUTHENTICATION
     // ──────────────────────────────────────────────────────────────
 
-    // Check if user is already logged in
     async function checkAuth() {
       try {
-        const { data: { session } } = await sb.auth.getSession();
-        if (session) {
-          currentUser = session.user;
-          updateUserUI();
-          console.log('✅ User already logged in:', currentUser.email);
-        }
+        const { data, error } = await sb.auth.getSession();
+        if (error) throw error;
+        currentUser = data?.session?.user || null;
+        updateUserUI();
       } catch (e) {
-        console.log('No active session');
+        console.error('Auth session check failed:', e);
+        currentUser = null;
+        updateUserUI();
       }
     }
 
     function updateUserUI() {
       if (currentUser) {
-        const name = currentUser.user_metadata?.full_name || currentUser.full_name || currentUser.email?.split('@')[0] || 'User';
+        const name =
+          currentUser.user_metadata?.full_name ||
+          currentUser.user_metadata?.name ||
+          currentUser.email?.split('@')[0] ||
+          'Customer';
+
         userAvatar.textContent = name.charAt(0).toUpperCase();
         userNameDisplay.textContent = name;
         userBadge.classList.add('logged-in');
@@ -744,12 +760,11 @@
     }
 
     function handleAccountClick() {
-      if (!currentUser) {
+      if (currentUser) {
+        window.location.href = 'customer-dashboard-fixed.html';
+      } else {
         openAuthModal('signin');
-        return;
       }
-      // Logged-in customers go directly to their profile/dashboard.
-      window.location.href = 'customer-dashboard.html';
     }
     window.handleAccountClick = handleAccountClick;
 
@@ -757,6 +772,7 @@
 
     function setAuthMode(mode) {
       authMode = mode === 'signup' ? 'signup' : 'signin';
+
       const signupFields = document.getElementById('signupFields');
       const confirmField = document.getElementById('confirmPasswordField');
       const signInTab = document.getElementById('signInTab');
@@ -764,46 +780,61 @@
       const primary = document.getElementById('authPrimaryBtn');
       const hint = document.getElementById('authHint');
       const password = document.getElementById('authPassword');
+
       if (signupFields) signupFields.classList.toggle('show', authMode === 'signup');
       if (confirmField) confirmField.classList.toggle('show', authMode === 'signup');
       if (signInTab) signInTab.classList.toggle('active', authMode === 'signin');
       if (signUpTab) signUpTab.classList.toggle('active', authMode === 'signup');
+
       if (primary) {
-        primary.innerHTML = authMode === 'signup' ? '<i class="fas fa-user-plus"></i> Create My Account' : '<i class="fas fa-sign-in-alt"></i> Sign In';
+        primary.innerHTML = authMode === 'signup'
+          ? '<i class="fas fa-user-plus"></i> Create My Account'
+          : '<i class="fas fa-sign-in-alt"></i> Sign In';
         primary.onclick = authMode === 'signup' ? authSignUp : authSignIn;
       }
-      if (hint) hint.innerHTML = authMode === 'signup' ? '<i class="fas fa-info-circle"></i> Full name, phone number, email and password are required.' : '<i class="fas fa-lock"></i> Sign in with your registered email and password.';
-      if (password) password.autocomplete = authMode === 'signup' ? 'new-password' : 'current-password';
+
+      if (hint) {
+        hint.innerHTML = authMode === 'signup'
+          ? '<i class="fas fa-info-circle"></i> Create your customer account with your name, phone, email and password.'
+          : '<i class="fas fa-lock"></i> Sign in with the email and password used when creating your account.';
+      }
+
+      if (password) {
+        password.autocomplete = authMode === 'signup' ? 'new-password' : 'current-password';
+      }
+
       if (authStatus) authStatus.textContent = '';
     }
 
     function openAuthModal(mode = 'signin') {
       authModal.classList.add('open');
-      ['authFullName','authPhone','authEmail','authPassword','authConfirmPassword'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-      document.getElementById('authModalTitle').textContent = mode === 'signup' ? 'Create Your Account' : 'Welcome Back';
+
+      ['authFullName','authPhone','authEmail','authPassword','authConfirmPassword'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+
+      document.getElementById('authModalTitle').textContent =
+        mode === 'signup' ? 'Create Your Account' : 'Welcome Back';
+
       setAuthMode(mode);
     }
     window.openAuthModal = openAuthModal;
 
-    function closeAuthModal() { authModal.classList.remove('open'); }
+    function closeAuthModal() {
+      authModal.classList.remove('open');
+    }
     window.closeAuthModal = closeAuthModal;
 
-    // ✅ AUTO-VERIFIED SIGN UP
     async function authSignUp() {
       const fullName = document.getElementById('authFullName').value.trim();
       const phone = document.getElementById('authPhone').value.trim();
-      const email = document.getElementById('authEmail').value.trim();
-      const password = document.getElementById('authPassword').value.trim();
-      const confirmPassword = document.getElementById('authConfirmPassword').value.trim();
-      
-      // Every customer account field is mandatory.
-      if (!fullName || !phone || !email || !password || !confirmPassword) { 
-        authStatus.textContent = '⚠️ Please complete your full name, phone number, email and password fields.'; 
-        return; 
-      }
+      const email = document.getElementById('authEmail').value.trim().toLowerCase();
+      const password = document.getElementById('authPassword').value;
+      const confirmPassword = document.getElementById('authConfirmPassword').value;
 
-      if (fullName.length < 2) {
-        authStatus.textContent = '⚠️ Please enter your full name.';
+      if (!fullName || !phone || !email || !password || !confirmPassword) {
+        authStatus.textContent = '⚠️ Please complete all required fields.';
         return;
       }
 
@@ -812,9 +843,9 @@
         authStatus.textContent = '⚠️ Please enter a valid phone number.';
         return;
       }
-      
+
       if (password.length < 6) {
-        authStatus.textContent = '⚠️ Password must be at least 6 characters';
+        authStatus.textContent = '⚠️ Password must be at least 6 characters.';
         return;
       }
 
@@ -823,152 +854,136 @@
         return;
       }
 
-      authStatus.textContent = '⏳ Creating your customer account...';
-      
+      authStatus.textContent = '⏳ Creating your account...';
+
       try {
-        // Store the complete customer profile in Supabase Auth metadata.
         const { data, error } = await sb.auth.signUp({
-          email: email,
-          password: password,
+          email,
+          password,
           options: {
             data: {
               full_name: fullName,
-              phone: phone,
+              phone,
               role: 'customer'
             }
           }
         });
-        
-        if (error) throw error;
-        
-        if (data.user) {
-          // Keep the same complete customer details in the users table.
-          const { error: insertError } = await sb
-            .from('users')
-            .insert({
-              id: data.user.id,
-              email: email,
-              full_name: fullName,
-              role_id: 2,
-              status: 'active',
-              phone: phone,
-              created_at: new Date().toISOString()
-            });
-          
-          if (insertError) {
-            console.warn('Could not create user record:', insertError);
-          }
 
-          // Also keep the customer in the customer register for POS/order lookup.
-          try {
-            const { error: customerError } = await sb
-              .from('customers')
-              .insert([{ name: fullName, phone: phone, email: email }]);
-            if (customerError) console.warn('Could not create customer record:', customerError);
-          } catch (customerErr) {
-            console.warn('Customer register insert skipped:', customerErr);
-          }
-          
-          authStatus.innerHTML = '✅ Account created successfully! Your full name and phone number have been saved.';
-          showToast('🎉 Account created successfully!', 'success');
+        if (error) throw error;
+
+        if (!data?.user) {
+          throw new Error('Supabase did not return a customer account.');
+        }
+
+        // Only write application records after an authenticated session exists.
+        // This avoids pretending a local users-table record is a real login session.
+        if (data.session) {
+          const { error: userError } = await sb.from('users').upsert({
+            id: data.user.id,
+            email,
+            full_name: fullName,
+            role_id: 2,
+            status: 'active',
+            phone,
+            created_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+
+          if (userError) console.warn('Users table profile save:', userError);
+
+          const { error: customerError } = await sb.from('customers').upsert([{
+            name: fullName,
+            phone,
+            email
+          }], { onConflict: 'email' });
+
+          if (customerError) console.warn('Customer register save:', customerError);
+
           currentUser = data.user;
           updateUserUI();
-          
-          // After account creation, take the customer to their profile/dashboard.
+          authStatus.textContent = '✅ Account created successfully. Opening your profile...';
+          showToast('🎉 Account created successfully!', 'success');
+
           setTimeout(() => {
             closeAuthModal();
             window.location.href = 'customer-dashboard-fixed.html';
-          }, 900);
+          }, 700);
+        } else {
+          // Email confirmation is enabled: there is no valid session yet.
+          authStatus.innerHTML =
+            '✅ Account created. Please confirm your email, then return and sign in.';
+          showToast('Account created. Check your email to confirm.', 'success');
         }
-        
+
       } catch (e) {
-        authStatus.textContent = '❌ ' + (e.message || 'Sign up failed');
-        showToast(e.message || 'Sign up failed', 'error');
-        console.error('Sign up error:', e);
+        console.error('Customer sign-up error:', e);
+        authStatus.textContent = '❌ ' + (e?.message || 'Account creation failed.');
+        showToast(e?.message || 'Account creation failed.', 'error');
       }
     }
     window.authSignUp = authSignUp;
 
-    // ✅ SIGN IN
     async function authSignIn() {
-      const email = document.getElementById('authEmail').value.trim();
-      const password = document.getElementById('authPassword').value.trim();
-      
-      if (!email || !password) { 
-        authStatus.textContent = '⚠️ Please fill in all fields'; 
-        return; 
+      const email = document.getElementById('authEmail').value.trim().toLowerCase();
+      const password = document.getElementById('authPassword').value;
+
+      if (!email || !password) {
+        authStatus.textContent = '⚠️ Please enter your email and password.';
+        return;
       }
 
       authStatus.textContent = '⏳ Signing in...';
-      
+
       try {
-        const { data, error } = await sb.auth.signInWithPassword({ 
-          email, 
-          password 
-        });
-        
-        if (error) {
-          // ✅ Fallback: Check if user exists in users table
-          const { data: userData } = await sb
-            .from('users')
-            .select('*')
-            .eq('email', email)
-            .maybeSingle();
-          
-          if (userData && userData.status === 'active') {
-            // Create a session manually
-            currentUser = { 
-              id: userData.id,
-              email: userData.email,
-              user_metadata: { full_name: userData.full_name },
-              role: userData.role_id
-            };
-            updateUserUI();
-            authStatus.innerHTML = '✅ Signed in! (Local user)';
-            showToast('👋 Welcome back, ' + userData.full_name + '!', 'success');
-            setTimeout(() => closeAuthModal(), 1000);
-            return;
-          }
-          throw error;
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+
+        if (!data?.session || !data?.user) {
+          throw new Error('Login succeeded but no active session was returned.');
         }
-        
-        if (data.user) {
-          currentUser = data.user;
-          updateUserUI();
-          authStatus.innerHTML = '✅ Signed in successfully!';
-          showToast('👋 Welcome back, ' + (currentUser.user_metadata?.full_name || currentUser.email) + '!', 'success');
-          setTimeout(() => closeAuthModal(), 1000);
-        }
-        
+
+        currentUser = data.user;
+        updateUserUI();
+
+        const name =
+          currentUser.user_metadata?.full_name ||
+          currentUser.email?.split('@')[0] ||
+          'Customer';
+
+        authStatus.textContent = '✅ Signed in successfully. Opening your profile...';
+        showToast('👋 Welcome back, ' + name + '!', 'success');
+
+        setTimeout(() => {
+          closeAuthModal();
+          window.location.href = 'customer-dashboard-fixed.html';
+        }, 500);
+
       } catch (e) {
-        authStatus.textContent = '❌ ' + (e.message || 'Sign in failed');
-        showToast(e.message || 'Sign in failed', 'error');
-        console.error('Sign in error:', e);
+        console.error('Customer sign-in error:', e);
+        authStatus.textContent = '❌ ' + (e?.message || 'Sign in failed.');
+        showToast(e?.message || 'Sign in failed.', 'error');
       }
     }
     window.authSignIn = authSignIn;
 
-    // ✅ SIGN OUT
     async function authSignOut() {
       try {
-        await sb.auth.signOut();
+        const { error } = await sb.auth.signOut();
+        if (error) throw error;
         currentUser = null;
         updateUserUI();
-        showToast('👋 Signed out successfully', 'info');
+        showToast('👋 Signed out successfully.', 'info');
       } catch (e) {
-        showToast('Error signing out', 'error');
+        console.error('Sign out error:', e);
+        showToast('Could not sign out.', 'error');
       }
     }
+    window.authSignOut = authSignOut;
 
-    // Click on user badge to toggle logout
-    userBadge.addEventListener('click', function(e) {
-      if (currentUser) {
-        if (confirm('Sign out of your account?')) {
-          authSignOut();
-        }
-      } else {
-        openAuthModal();
-      }
+    // Keep the Supabase session in sync without adding a second click
+    // handler to the account badge.
+    sb.auth.onAuthStateChange((_event, session) => {
+      currentUser = session?.user || null;
+      updateUserUI();
     });
 
     // ──────────────────────────────────────────────────────────────
@@ -1063,7 +1078,14 @@
               <div class="product-name">${escapeHtml(p.name)}</div>
               <div class="product-price">KSh ${p.price} <span class="original">${Math.round(p.price*1.2)}</span></div>
               <div class="product-rating"><i class="fas fa-star"></i> ${p.rating || 4.0} <span>(${5 + (Number(p.id || 0) % 16)} reviews)</span></div>
-              <button class="add-to-cart" onclick="addToCart(${p.id})"><i class="fas fa-plus"></i> Add to Cart</button>
+              <div class="product-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+                <button type="button" class="btn-outline" style="padding:11px 10px;border-radius:10px;cursor:pointer;" onclick="viewProduct(${p.id})">
+                  <i class="fas fa-eye"></i> View
+                </button>
+                <button type="button" class="add-to-cart" style="margin:0;" onclick="addToCart(${p.id})">
+                  <i class="fas fa-plus"></i> Add to Cart
+                </button>
+              </div>
             </div>
           </div>
         `;
@@ -1091,6 +1113,102 @@
       document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.gender-btn').forEach(b => { if(b.dataset.gender === gender) b.classList.add('active'); });
       renderProducts();
+    };
+
+
+    // ──────────────────────────────────────────────────────────────
+    // PRODUCT VIEW
+    // ──────────────────────────────────────────────────────────────
+    window.viewProduct = function(productId) {
+      const p = products.find(item => String(item.id) === String(productId));
+      if (!p) {
+        showToast('Product could not be found.', 'error');
+        return;
+      }
+
+      const modal = document.getElementById('productViewModal');
+      const body = document.getElementById('productViewBody');
+      const title = document.getElementById('productViewTitle');
+      if (!modal || !body) return;
+
+      const imageUrl = productImageUrl(p);
+      const fallbackIcon = p.category === 'dress' ? '👗' :
+                           p.category === 'top' ? '👕' :
+                           p.category === 'sweater' ? '🧥' :
+                           p.category === 'suit' ? '👔' : '👠';
+
+      title.textContent = p.name || 'Product Details';
+
+      const gallery = Array.isArray(p.images) ? p.images :
+                      Array.isArray(p.gallery) ? p.gallery : [];
+
+      const extraImages = gallery.map(x => {
+        if (typeof x === 'string') return x;
+        return x?.url || x?.image_url || '';
+      }).filter(Boolean);
+
+      const allImages = [imageUrl, ...extraImages].filter((v, i, a) => v && a.indexOf(v) === i);
+
+      body.innerHTML = `
+        <div style="display:grid;grid-template-columns:minmax(280px,1fr) minmax(280px,1fr);gap:26px;align-items:start;">
+          <div>
+            <div id="productViewMainImage" style="height:390px;border-radius:16px;background:#f7f3ed;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #eee;">
+              ${allImages[0]
+                ? `<img src="${escapeHtml(allImages[0])}" alt="${escapeHtml(p.name)}" style="width:100%;height:100%;object-fit:contain;" onerror="this.outerHTML='<span style=&quot;font-size:90px&quot;>${fallbackIcon}</span>'">`
+                : `<span style="font-size:90px">${fallbackIcon}</span>`}
+            </div>
+            ${allImages.length > 1 ? `
+              <div style="display:flex;gap:8px;overflow:auto;margin-top:10px;">
+                ${allImages.map((url, idx) => `
+                  <button type="button" onclick="selectProductViewImage(${idx})"
+                    style="border:1px solid #ddd;background:#fff;border-radius:8px;padding:3px;width:68px;height:68px;flex:0 0 auto;cursor:pointer;">
+                    <img src="${escapeHtml(url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">
+                  </button>`).join('')}
+              </div>` : ''}
+          </div>
+
+          <div>
+            <div style="font-size:12px;color:#999;text-transform:uppercase;letter-spacing:.08em;">${escapeHtml(p.code || 'N/A')}</div>
+            <h2 style="margin:6px 0 10px;color:#1f1f1f;">${escapeHtml(p.name || 'Product')}</h2>
+            <div style="font-size:26px;font-weight:800;color:#b8863b;margin-bottom:14px;">KSh ${Number(p.price || 0).toLocaleString('en-KE')}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
+              <span style="padding:7px 10px;border-radius:20px;background:#f4f4f4;font-size:12px;">${escapeHtml(p.category || 'Fashion')}</span>
+              ${p.gender ? `<span style="padding:7px 10px;border-radius:20px;background:#f4f4f4;font-size:12px;">${escapeHtml(p.gender)}</span>` : ''}
+              <span style="padding:7px 10px;border-radius:20px;background:${Number(p.stock||0)>0?'#edf8f0':'#fff0f0'};color:${Number(p.stock||0)>0?'#237a3b':'#b42318'};font-size:12px;">
+                ${Number(p.stock || 0) > 0 ? `${Number(p.stock)} in stock` : 'Out of stock'}
+              </span>
+            </div>
+            ${p.description ? `<p style="line-height:1.7;color:#666;margin-bottom:18px;">${escapeHtml(p.description)}</p>` : ''}
+            ${p.size || p.size_variant ? `<p style="margin:8px 0;"><strong>Size:</strong> ${escapeHtml(p.size || p.size_variant)}</p>` : ''}
+            ${p.colour || p.color ? `<p style="margin:8px 0;"><strong>Colour:</strong> ${escapeHtml(p.colour || p.color)}</p>` : ''}
+            ${p.material ? `<p style="margin:8px 0;"><strong>Material:</strong> ${escapeHtml(p.material)}</p>` : ''}
+            ${p.fit_style || p.style ? `<p style="margin:8px 0;"><strong>Style:</strong> ${escapeHtml(p.fit_style || p.style)}</p>` : ''}
+            <button type="button" class="btn-primary" style="width:100%;margin-top:22px;padding:13px;" onclick="addToCart(${Number(p.id)});closeProductView();">
+              <i class="fas fa-shopping-bag"></i> Add to Cart
+            </button>
+          </div>
+        </div>
+      `;
+
+      window.__productViewImages = allImages;
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+    };
+
+    window.selectProductViewImage = function(index) {
+      const urls = window.__productViewImages || [];
+      const url = urls[index];
+      const holder = document.getElementById('productViewMainImage');
+      if (!url || !holder) return;
+      holder.innerHTML = `<img src="${escapeHtml(url)}" alt="Product image" style="width:100%;height:100%;object-fit:contain;">`;
+    };
+
+    window.closeProductView = function() {
+      const modal = document.getElementById('productViewModal');
+      if (modal) {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+      }
     };
 
     // ──────────────────────────────────────────────────────────────
