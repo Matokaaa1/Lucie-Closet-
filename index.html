@@ -1,3 +1,23 @@
+<script>
+// Prevent browser/password-manager autofill from placing an email address into the product search box.
+document.addEventListener('DOMContentLoaded', function(){
+  const search = document.getElementById('searchInput');
+  if (!search) return;
+  const looksLikeEmail = value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((value || '').trim());
+  if (looksLikeEmail(search.value)) {
+    search.value = '';
+    if (typeof renderProducts === 'function') renderProducts();
+  }
+  search.setAttribute('autocomplete', 'off');
+  search.setAttribute('name', 'product-search');
+  search.addEventListener('focus', function(){
+    if (looksLikeEmail(this.value)) {
+      this.value = '';
+      if (typeof renderProducts === 'function') renderProducts();
+    }
+  });
+});
+</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -528,7 +548,7 @@
       <button class="gender-btn" data-gender="unisex" onclick="filterGender('unisex')"><i class="fas fa-people-arrows"></i> Unisex</button>
     </div>
     <div class="search-box">
-      <input type="text" id="searchInput" placeholder="Search products..." oninput="renderProducts()">
+      <input type="search" id="searchInput" name="product-search" placeholder="Search products..." autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-lpignore="true" data-form-type="other" inputmode="search" aria-label="Search products" oninput="renderProducts()">
       <button><i class="fas fa-search"></i></button>
     </div>
   </div>
@@ -547,7 +567,17 @@
     <div class="why-inner">
       <div class="why-heading">
         <span class="eyebrow">WHY LUCIE CLOSET</span>
-        <h2>A better way to shop fashion.</h2>
+        
+<div class="shoes-catalog-banner" style="margin:0 0 18px;padding:14px 16px;border:1px solid #eadccf;border-radius:14px;background:#fffaf5;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+  <div>
+    <strong style="display:block;color:#222;font-size:15px;">👟 Shoes Collection</strong>
+    <span style="font-size:12px;color:#777;">Upload shoes through the POS Gallery. Products saved with category <b>Shoes</b> will appear here automatically.</span>
+  </div>
+  <button type="button" class="btn-outline" onclick="filterProducts('shoes')" style="padding:9px 14px;border-radius:9px;cursor:pointer;">
+    <i class="fas fa-shoe-prints"></i> View Shoes
+  </button>
+</div>
+<h2>A better way to shop fashion.</h2>
         <p>From selection to checkout, everything is designed to make your shopping experience simple and enjoyable.</p>
       </div>
       <div class="why-grid">
@@ -761,7 +791,7 @@
 
     function handleAccountClick() {
       if (currentUser) {
-        window.location.href = 'customer-dashboard.html';
+        window.location.href = 'customer-dashboard-fixed.html';
       } else {
         openAuthModal('signin');
       }
@@ -1131,60 +1161,147 @@
       const title = document.getElementById('productViewTitle');
       if (!modal || !body) return;
 
+      const esc = window.escapeHtml || escapeHtml;
+      const value = (v, fallback = 'Not specified') => {
+        if (v === null || v === undefined || String(v).trim() === '') return fallback;
+        return esc(v);
+      };
+      const number = (v, fallback = '0') => {
+        const n = Number(v);
+        return Number.isFinite(n) ? n.toLocaleString('en-KE') : fallback;
+      };
+      const yesNo = v => (v === true || v === 'true' || v === 1 || v === '1') ? 'Yes' : 'No';
+      const listValue = v => {
+        if (Array.isArray(v)) return v.map(x => typeof x === 'object' ? (x.name || x.label || x.value || '') : x).filter(Boolean).join(', ') || 'Not specified';
+        return value(v);
+      };
+
       const imageUrl = productImageUrl(p);
       const fallbackIcon = p.category === 'dress' ? '👗' :
                            p.category === 'top' ? '👕' :
                            p.category === 'sweater' ? '🧥' :
-                           p.category === 'suit' ? '👔' : '👠';
-
-      title.textContent = p.name || 'Product Details';
+                           p.category === 'suit' ? '👔' :
+                           p.category === 'shoes' ? '👠' : '👜';
 
       const gallery = Array.isArray(p.images) ? p.images :
-                      Array.isArray(p.gallery) ? p.gallery : [];
+                      Array.isArray(p.gallery) ? p.gallery :
+                      Array.isArray(p.image_gallery) ? p.image_gallery : [];
 
       const extraImages = gallery.map(x => {
         if (typeof x === 'string') return x;
-        return x?.url || x?.image_url || '';
+        return x?.url || x?.image_url || x?.path || '';
       }).filter(Boolean);
 
-      const allImages = [imageUrl, ...extraImages].filter((v, i, a) => v && a.indexOf(v) === i);
+      const allImages = [imageUrl, ...extraImages]
+        .filter(Boolean)
+        .map(String)
+        .filter((v, i, a) => a.indexOf(v) === i);
+
+      const variants = Array.isArray(p.variants) ? p.variants : [];
+      const tags = listValue(p.product_tags ?? p.tags ?? p.productTags);
+      const sizes = listValue(p.available_sizes ?? p.sizes ?? p.product_sizes ?? p.availableSizes);
+      const salePrice = p.sale_price ?? p.discount_price ?? p.salePrice;
+      const comparePrice = p.compare_price ?? p.original_price ?? p.comparePrice;
+      const fit = p.fit_style ?? p.fit ?? p.style ?? p.fitStyle;
+      const colour = p.colour ?? p.color;
+      const tax = p.tax ?? p.tax_rate ?? p.vat ?? p.tax_percentage ?? p.taxRate;
+      const reorder = p.reorder_level ?? p.reorderLevel;
+      const reviewCount = p.reviews_count ?? p.review_count ?? p.reviews ?? p.reviewsCount;
+      const supplier = p.supplier ?? p.supplier_name ?? p.supplierName;
+      const barcode = p.barcode ?? p.bar_code;
+      const material = p.material ?? p.fabric;
+      const size = p.size ?? p.size_variant ?? p.variant;
+      const occasion = p.occasion;
+      const care = p.care_instructions ?? p.care ?? p.careInstructions;
+      const rating = p.rating;
+
+      title.textContent = p.name || 'Product Details';
 
       body.innerHTML = `
-        <div style="display:grid;grid-template-columns:minmax(280px,1fr) minmax(280px,1fr);gap:26px;align-items:start;">
+        <div style="display:grid;grid-template-columns:minmax(280px,0.95fr) minmax(320px,1.05fr);gap:24px;align-items:start;">
           <div>
-            <div id="productViewMainImage" style="height:390px;border-radius:16px;background:#f7f3ed;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #eee;">
+            <div id="productViewMainImage" style="height:400px;border-radius:16px;background:#f7f3ed;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid #eee;">
               ${allImages[0]
-                ? `<img src="${escapeHtml(allImages[0])}" alt="${escapeHtml(p.name)}" style="width:100%;height:100%;object-fit:contain;" onerror="this.outerHTML='<span style=&quot;font-size:90px&quot;>${fallbackIcon}</span>'">`
+                ? `<img src="${esc(allImages[0])}" alt="${value(p.name,'Product')}" style="width:100%;height:100%;object-fit:contain;" onerror="this.outerHTML='<span style=&quot;font-size:90px&quot;>${fallbackIcon}</span>'">`
                 : `<span style="font-size:90px">${fallbackIcon}</span>`}
             </div>
             ${allImages.length > 1 ? `
-              <div style="display:flex;gap:8px;overflow:auto;margin-top:10px;">
+              <div style="display:flex;gap:8px;overflow:auto;margin-top:10px;padding-bottom:4px;">
                 ${allImages.map((url, idx) => `
-                  <button type="button" onclick="selectProductViewImage(${idx})"
-                    style="border:1px solid #ddd;background:#fff;border-radius:8px;padding:3px;width:68px;height:68px;flex:0 0 auto;cursor:pointer;">
-                    <img src="${escapeHtml(url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">
+                  <button type="button" onclick="selectProductViewImage(${idx})" style="border:1px solid #ddd;background:#fff;border-radius:8px;padding:3px;width:68px;height:68px;flex:0 0 auto;cursor:pointer;">
+                    <img src="${esc(url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">
                   </button>`).join('')}
               </div>` : ''}
           </div>
 
           <div>
-            <div style="font-size:12px;color:#999;text-transform:uppercase;letter-spacing:.08em;">${escapeHtml(p.code || 'N/A')}</div>
-            <h2 style="margin:6px 0 10px;color:#1f1f1f;">${escapeHtml(p.name || 'Product')}</h2>
-            <div style="font-size:26px;font-weight:800;color:#b8863b;margin-bottom:14px;">KSh ${Number(p.price || 0).toLocaleString('en-KE')}</div>
-            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
-              <span style="padding:7px 10px;border-radius:20px;background:#f4f4f4;font-size:12px;">${escapeHtml(p.category || 'Fashion')}</span>
-              ${p.gender ? `<span style="padding:7px 10px;border-radius:20px;background:#f4f4f4;font-size:12px;">${escapeHtml(p.gender)}</span>` : ''}
-              <span style="padding:7px 10px;border-radius:20px;background:${Number(p.stock||0)>0?'#edf8f0':'#fff0f0'};color:${Number(p.stock||0)>0?'#237a3b':'#b42318'};font-size:12px;">
-                ${Number(p.stock || 0) > 0 ? `${Number(p.stock)} in stock` : 'Out of stock'}
-              </span>
+            <div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;">SKU: ${value(p.code)}</div>
+            <h2 style="margin:0 0 8px;color:#1f1f1f;">${value(p.name,'Product')}</h2>
+
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+              <strong style="font-size:26px;color:#b8863b;">KSh ${number(salePrice || p.price)}</strong>
+              ${comparePrice && Number(comparePrice) > Number(salePrice || p.price) ? `<span style="text-decoration:line-through;color:#999;">KSh ${number(comparePrice)}</span>` : ''}
             </div>
-            ${p.description ? `<p style="line-height:1.7;color:#666;margin-bottom:18px;">${escapeHtml(p.description)}</p>` : ''}
-            ${p.size || p.size_variant ? `<p style="margin:8px 0;"><strong>Size:</strong> ${escapeHtml(p.size || p.size_variant)}</p>` : ''}
-            ${p.colour || p.color ? `<p style="margin:8px 0;"><strong>Colour:</strong> ${escapeHtml(p.colour || p.color)}</p>` : ''}
-            ${p.material ? `<p style="margin:8px 0;"><strong>Material:</strong> ${escapeHtml(p.material)}</p>` : ''}
-            ${p.fit_style || p.style ? `<p style="margin:8px 0;"><strong>Style:</strong> ${escapeHtml(p.fit_style || p.style)}</p>` : ''}
-            <button type="button" class="btn-primary" style="width:100%;margin-top:22px;padding:13px;" onclick="addToCart(${Number(p.id)});closeProductView();">
-              <i class="fas fa-shopping-bag"></i> Add to Cart
+
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px;">
+              <span style="padding:6px 10px;border-radius:20px;background:#f4f4f4;font-size:12px;">${value(p.category,'Fashion')}</span>
+              <span style="padding:6px 10px;border-radius:20px;background:#f4f4f4;font-size:12px;">${value(p.gender,'Unisex')}</span>
+              <span style="padding:6px 10px;border-radius:20px;background:${Number(p.stock||0)>0?'#edf8f0':'#fff0f0'};color:${Number(p.stock||0)>0?'#237a3b':'#b42318'};font-size:12px;">${Number(p.stock||0)>0 ? `${number(p.stock)} in stock` : 'Out of stock'}</span>
+              ${p.best_quality ? `<span style="padding:6px 10px;border-radius:20px;background:#fff7df;color:#9a6a00;font-size:12px;"><i class="fas fa-star"></i> Best Quality</span>` : ''}
+            </div>
+
+            <div style="border:1px solid #eee;border-radius:14px;overflow:hidden;margin-bottom:16px;">
+              <div style="padding:11px 14px;background:#fafafa;font-weight:700;border-bottom:1px solid #eee;"><i class="fas fa-list"></i> Product Information</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;">
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Product Name</small><br><strong>${value(p.name)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Product Code / SKU</small><br><strong>${value(p.code)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Category</small><br><strong>${value(p.category)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Gender</small><br><strong>${value(p.gender)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Selling Price</small><br><strong>KSh ${number(p.price)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Stock</small><br><strong>${number(p.stock)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Cost Price</small><br><strong>KSh ${number(p.cost_price ?? p.costPrice)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Reorder Level</small><br><strong>${number(reorder)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Colour</small><br><strong>${value(colour)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Size / Variant</small><br><strong>${value(size)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Supplier</small><br><strong>${value(supplier)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Barcode</small><br><strong>${value(barcode)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Material / Fabric</small><br><strong>${value(material)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Tax / VAT</small><br><strong>${tax === undefined || tax === null || tax === '' ? 'Not specified' : number(tax) + '%'}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Compare / Original Price</small><br><strong>${comparePrice ? 'KSh ' + number(comparePrice) : 'Not specified'}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Discount / Sale Price</small><br><strong>${salePrice ? 'KSh ' + number(salePrice) : 'Not specified'}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Fit / Style</small><br><strong>${value(fit)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Occasion</small><br><strong>${value(occasion)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Available Sizes</small><br><strong>${value(sizes)}</strong></div>
+                <div style="padding:10px 14px;border-bottom:1px solid #eee;"><small>Rating</small><br><strong><i class="fas fa-star" style="color:#d4a574;"></i> ${rating === undefined || rating === null || rating === '' ? 'Not rated' : number(rating)}/5</strong></div>
+                <div style="padding:10px 14px;"><small>Reviews Count</small><br><strong>${number(reviewCount)}</strong></div>
+                <div style="padding:10px 14px;"><small>Best Quality</small><br><strong>${yesNo(p.best_quality)}</strong></div>
+              </div>
+            </div>
+
+            <div style="border:1px solid #eee;border-radius:14px;padding:14px;margin-bottom:12px;">
+              <h4 style="margin:0 0 8px;"><i class="fas fa-align-left"></i> Description</h4>
+              <p style="line-height:1.7;color:#666;margin:0;white-space:pre-wrap;">${value(p.description,'No description provided.')}</p>
+            </div>
+
+            <div style="border:1px solid #eee;border-radius:14px;padding:14px;margin-bottom:12px;">
+              <h4 style="margin:0 0 8px;"><i class="fas fa-hands-wash"></i> Care Instructions</h4>
+              <p style="line-height:1.7;color:#666;margin:0;">${value(care)}</p>
+            </div>
+
+            <div style="border:1px solid #eee;border-radius:14px;padding:14px;margin-bottom:12px;">
+              <h4 style="margin:0 0 8px;"><i class="fas fa-tags"></i> Product Tags</h4>
+              <p style="margin:0;color:#666;">${tags}</p>
+            </div>
+
+            <div style="border:1px solid #eee;border-radius:14px;padding:14px;margin-bottom:12px;">
+              <h4 style="margin:0 0 8px;"><i class="fas fa-layer-group"></i> Product Variants</h4>
+              ${variants.length ? `<div style="overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr><th style="text-align:left;padding:7px;border-bottom:1px solid #eee;">Size</th><th style="text-align:left;padding:7px;border-bottom:1px solid #eee;">Colour</th><th style="text-align:right;padding:7px;border-bottom:1px solid #eee;">Stock</th></tr></thead><tbody>${variants.map(v => `<tr><td style="padding:7px;border-bottom:1px solid #f2f2f2;">${value(v.size ?? v.variant_size)}</td><td style="padding:7px;border-bottom:1px solid #f2f2f2;">${value(v.color ?? v.colour ?? v.variant_color)}</td><td style="padding:7px;text-align:right;border-bottom:1px solid #f2f2f2;">${number(v.stock)}</td></tr>`).join('')}</tbody></table></div>` : '<span style="color:#999;">No variants specified.</span>'}
+            </div>
+
+            <div style="font-size:12px;color:#777;margin:8px 0 16px;"><i class="fas fa-images"></i> Product photos: ${allImages.length}</div>
+
+            <button type="button" class="btn-primary" style="width:100%;padding:13px;" onclick="addToCart(${Number(p.id)});closeProductView();">
+              <i class="fas fa-shopping-bag"></i> Add to Cart · KSh ${number(salePrice || p.price)}
             </button>
           </div>
         </div>
