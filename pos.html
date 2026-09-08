@@ -367,6 +367,105 @@
 .pos-quick-checkout{white-space:nowrap;box-shadow:0 8px 18px rgba(124,58,237,.16);font-weight:800}
 .pos-quick-checkout span{margin-left:4px;font-size:10px;opacity:.9}
 @media(min-width:1025px){#posSection .pos-layout{grid-template-columns:minmax(0,1fr) 340px;gap:10px}#posSection .pos-products{min-width:0}.pos-cart{position:sticky;top:16px;height:calc(100vh - 120px);max-height:760px}}
+
+/* ============================================================
+   LUCIE CLOSET · ULTRA MODERN DASHBOARD BUILD 8
+   ============================================================ */
+:root{
+  --primary:#7c3aed;--primary-light:#a855f7;--primary-dark:#5b21b6;
+  --primary-gradient:linear-gradient(135deg,#7c3aed,#ec4899);
+  --gold:#ec4899;--gold-light:#f9a8d4;
+  --secondary:#0b1633;--bg:#f7f4fb;--bg-card:#ffffff;
+  --text-primary:#171522;--text-secondary:#5e5a6e;--text-muted:#8b8799;
+  --border:#ece8f4;--shadow:0 8px 30px rgba(35,20,70,.06);--shadow-lg:0 18px 55px rgba(35,20,70,.12);
+  --radius:18px;--radius-sm:12px;
+}
+body{background:radial-gradient(circle at 78% 8%,rgba(236,72,153,.10),transparent 25%),radial-gradient(circle at 30% 12%,rgba(124,58,237,.08),transparent 28%),var(--bg);}
+body:before{background-image:linear-gradient(rgba(91,33,182,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(91,33,182,.018) 1px,transparent 1px)!important;background-size:34px 34px!important;}
+.sidebar{background:linear-gradient(180deg,#0a1430 0%,#101b3d 52%,#0a1430 100%);border-right:1px solid rgba(255,255,255,.08);box-shadow:16px 0 50px rgba(7,11,30,.18);}
+.sidebar-brand .logo-icon{background:linear-gradient(135deg,#7c3aed,#ec4899);box-shadow:0 8px 25px rgba(124,58,237,.34);}
+.sidebar-brand .brand-text .gold{color:#f0a6df;}
+.sidebar-menu li.active{background:linear-gradient(90deg,rgba(124,58,237,.28),rgba(236,72,153,.10));box-shadow:inset 3px 0 0 #a855f7,0 8px 24px rgba(124,58,237,.12);}
+.sidebar-menu li.active i{color:#d8b4fe;}
+.sidebar-menu li .badge{background:linear-gradient(135deg,#7c3aed,#ec4899);}
+.main-content{padding:16px 24px 40px;}
+.top-bar{padding:10px 18px;background:rgba(255,255,255,.84);backdrop-filter:blur(18px);border-color:rgba(226,220,239,.85);border-radius:20px;box-shadow:0 12px 40px rgba(35,20,70,.07);margin-bottom:16px;}
+.top-bar .page-title h1{font-size:21px;}
+.stat-card,.card,.lc-intel-card{border-color:rgba(226,220,239,.85);box-shadow:0 8px 30px rgba(35,20,70,.055);}
+.stat-card:hover,.card:hover{transform:translateY(-2px);box-shadow:0 18px 50px rgba(35,20,70,.10);}
+.greeting-banner{background:linear-gradient(110deg,#fff 0%,#fcf9ff 48%,#fff0f8 100%)!important;border:1px solid rgba(229,221,240,.85)!important;box-shadow:0 12px 35px rgba(35,20,70,.06)!important;min-height:98px;display:flex;flex-direction:column;justify-content:center;}
+.greeting-banner:before{background:linear-gradient(90deg,#7c3aed,#ec4899)!important;}
+.quick-actions{gap:8px!important;margin-bottom:16px!important;}
+.quick-action{border:1px solid #e8e1f1!important;background:rgba(255,255,255,.88)!important;box-shadow:0 5px 16px rgba(35,20,70,.045)!important;}
+.quick-action:hover{border-color:#c4b5fd!important;box-shadow:0 10px 24px rgba(124,58,237,.12)!important;}
+.stats-grid.lc-modern-kpis{grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px;}
+.lc-kpi{position:relative;min-height:118px;padding:17px 16px 14px!important;overflow:hidden;background:rgba(255,255,255,.92)!important;}
+.lc-kpi:after{content:"";position:absolute;width:105px;height:105px;border-radius:50%;right:-55px;top:-48px;background:var(--kpi-glow,rgba(124,58,237,.12));}
+.lc-kpi .stat-icon{width:40px;height:40px;border-radius:12px;margin-bottom:9px;position:relative;z-index:1;}
+.lc-kpi .stat-value{font-size:23px;position:relative;z-index:1;white-space:nowrap;}
+.lc-kpi .stat-label{font-size:11px;position:relative;z-index:1;}
+.lc-kpi .lc-kpi-trend{font-size:10px;color:#10b981;margin-top:5px;position:relative;z-index:1;}
+.lc-kpi.sales{--kpi-glow:rgba(236,72,153,.13)} .lc-kpi.orders{--kpi-glow:rgba(59,130,246,.12)} .lc-kpi.items{--kpi-glow:rgba(124,58,237,.13)} .lc-kpi.stock{--kpi-glow:rgba(245,158,11,.12)} .lc-kpi.low{--kpi-glow:rgba(239,68,68,.12)} .lc-kpi.customers{--kpi-glow:rgba(16,185,129,.12)}
+.lc-dashboard-intelligence{grid-template-columns:1.35fr .9fr!important;gap:14px!important;margin:0 0 14px!important;}
+.lc-intel-card{padding:18px!important;border-radius:18px!important;}
+.lc-target-value{font-size:26px!important;letter-spacing:-.7px;}
+.lc-progress{height:10px!important;background:#f0eafa!important;}
+.lc-progress span{background:linear-gradient(90deg,#7c3aed,#ec4899)!important;}
+.lc-modern-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.9fr);gap:14px;margin-bottom:14px;}
+.lc-modern-grid .card{margin-bottom:0;}
+.lc-modern-chart-card{min-height:340px;}
+.lc-chart-toolbar{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.lc-chart-tab{border:1px solid #e9e2f2;background:#fff;border-radius:999px;padding:7px 11px;font-size:11px;font-weight:700;color:#6b6678;cursor:pointer;}
+.lc-chart-tab.active{background:linear-gradient(135deg,#7c3aed,#8b5cf6);border-color:#7c3aed;color:#fff;box-shadow:0 5px 14px rgba(124,58,237,.22);}
+.lc-chart-period{border:1px solid #e9e2f2;background:#fff;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:600;color:#6b6678;}
+.lc-modern-chart-wrap{height:255px!important;margin-top:8px;}
+.lc-target-side .lc-mini-grid{gap:9px!important;}
+.lc-target-side .lc-mini{background:linear-gradient(135deg,#faf7ff,#fff)!important;border:1px solid #eee7f6;}
+.lc-alert-row{padding:10px 0!important;}
+.lc-alert-dot{box-shadow:0 0 0 4px rgba(124,58,237,.08);}
+.lc-alert-row small{display:block;margin-top:2px;font-size:11px;}
+.lc-three-grid{display:grid;grid-template-columns:1.08fr .92fr .92fr;gap:14px;margin-bottom:14px;}
+.lc-three-grid .card{margin-bottom:0;min-height:292px;}
+.lc-section-kicker{font-size:11px;color:var(--text-muted);margin-top:3px;}
+.lc-top-products{display:flex;flex-direction:column;gap:0;margin-top:5px;}
+.lc-top-product{display:grid;grid-template-columns:26px 40px minmax(0,1fr) auto;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid #eeeaf3;}
+.lc-top-product:last-child{border-bottom:0;}
+.lc-rank{font-size:11px;color:#8b8799;font-weight:800;}
+.lc-product-thumb{width:40px;height:44px;border-radius:9px;object-fit:cover;background:#f5f1fa;border:1px solid #eee8f5;}
+.lc-product-thumb.placeholder{display:grid;place-items:center;font-size:16px;}
+.lc-product-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lc-product-meta{font-size:10px;color:var(--text-muted);margin-top:2px;}
+.lc-product-revenue{text-align:right;font-size:12px;font-weight:800;color:#7c3aed;white-space:nowrap;}
+.lc-payment-layout{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:center;height:225px;}
+.lc-payment-center{position:relative;height:155px;}
+.lc-payment-center canvas{width:100%!important;height:100%!important;}
+.lc-payment-legend{display:flex;flex-direction:column;gap:12px;}
+.lc-payment-item{display:grid;grid-template-columns:10px 1fr auto;gap:8px;align-items:center;font-size:11px;}
+.lc-payment-dot{width:9px;height:9px;border-radius:50%;background:#7c3aed;}
+.lc-payment-item strong{display:block;font-size:12px;}.lc-payment-item small{color:var(--text-muted);}
+.lc-inventory-health{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.lc-health-box{padding:14px;border-radius:13px;background:#faf8fd;border:1px solid #eee9f5;}
+.lc-health-box b{display:block;font-size:19px;}.lc-health-box span{font-size:10px;color:var(--text-muted);}.lc-health-box.danger{background:#fff7f8}.lc-health-box.success{background:#f3fbf7}.lc-health-box.warn{background:#fffaf0}.lc-health-box.info{background:#f4f8ff}
+.lc-recent-card{margin-bottom:14px!important;}
+.lc-activity-list{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;}
+.lc-activity{display:grid;grid-template-columns:34px 1fr auto;gap:9px;align-items:center;padding:10px 0;border-bottom:1px solid #eeeaf3;}
+.lc-activity:nth-last-child(-n+2){border-bottom:0;}
+.lc-activity-icon{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:#f2edff;color:#7c3aed;font-size:13px;}
+.lc-activity.success .lc-activity-icon{background:#ecfdf5;color:#10b981}.lc-activity.warning .lc-activity-icon{background:#fff7ed;color:#f59e0b}.lc-activity.info .lc-activity-icon{background:#eff6ff;color:#3b82f6}
+.lc-activity strong{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.lc-activity small{display:block;color:var(--text-muted);font-size:10px;margin-top:2px;}.lc-activity-time{font-size:9px;color:var(--text-muted);white-space:nowrap;text-align:right;}
+.lc-fashion-banner{display:grid;grid-template-columns:1.3fr .8fr;gap:14px;margin-bottom:14px;}
+.lc-fashion-card{min-height:112px;border-radius:20px;overflow:hidden;position:relative;border:1px solid rgba(226,220,239,.85);box-shadow:0 8px 30px rgba(35,20,70,.055);padding:22px 25px;background:linear-gradient(110deg,#fff0fa,#f5eaff 55%,#fff);}
+.lc-fashion-card.dark{background:linear-gradient(110deg,#111a38,#202b53);color:#fff;}
+.lc-fashion-card:after{content:"";position:absolute;width:210px;height:210px;border-radius:50%;right:-55px;top:-90px;background:rgba(236,72,153,.14);}
+.lc-fashion-card.dark:after{background:rgba(124,58,237,.22);}
+.lc-fashion-card h3{font-family:var(--font-display);font-style:italic;font-size:24px;position:relative;z-index:1;}.lc-fashion-card p{font-size:11px;color:#777185;margin:5px 0 12px;position:relative;z-index:1;}.lc-fashion-card.dark p{color:#c6c9da;}
+.lc-fashion-cta{display:inline-flex;padding:8px 13px;border-radius:999px;background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;font-size:10px;font-weight:800;position:relative;z-index:1;}
+.lc-dashboard-footer{display:flex;justify-content:space-between;align-items:center;color:#9b97a8;font-size:10px;padding:4px 4px 0;}
+@media(max-width:1250px){.stats-grid.lc-modern-kpis{grid-template-columns:repeat(3,1fr)}.lc-modern-grid{grid-template-columns:1fr}.lc-three-grid{grid-template-columns:1fr 1fr}.lc-fashion-banner{grid-template-columns:1fr}}
+@media(max-width:850px){.stats-grid.lc-modern-kpis{grid-template-columns:1fr 1fr}.lc-three-grid{grid-template-columns:1fr}.lc-activity-list{grid-template-columns:1fr}.lc-activity:nth-last-child(-n+2){border-bottom:1px solid #eeeaf3}.lc-activity:last-child{border-bottom:0}.lc-payment-layout{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.main-content{padding:10px 12px 28px}.stats-grid.lc-modern-kpis{grid-template-columns:1fr 1fr}.lc-payment-layout{grid-template-columns:1fr;height:auto}.lc-fashion-card h3{font-size:20px}.lc-chart-toolbar{margin-top:8px}.lc-modern-chart-wrap{height:230px!important}}
+[data-theme="dark"] .top-bar,[data-theme="dark"] .stat-card,[data-theme="dark"] .card,[data-theme="dark"] .lc-intel-card,[data-theme="dark"] .lc-fashion-card{background:#17203a!important;border-color:#293452!important;color:#f1f5f9}.dark .lc-chart-tab{background:#1b2440;color:#cbd5e1;border-color:#303b5a}
+
 </style>
 
 <style id="lucie-ultra-modern">
@@ -895,9 +994,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             </div>
         </header>
 
-        <!-- ===== DASHBOARD ===== -->
+        <!-- ===== DASHBOARD · ULTRA MODERN ===== -->
         <section id="dashboardSection" class="section-page active">
             <div id="greetingContainer"></div>
+
             <div class="quick-actions">
                 <button class="quick-action" onclick="navigateTo('pos')"><i class="fas fa-cash-register"></i> New Sale</button>
                 <button class="quick-action" onclick="openProductModal()"><i class="fas fa-plus"></i> Add Product</button>
@@ -905,76 +1005,90 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 <button class="quick-action" onclick="navigateTo('inventory')"><i class="fas fa-boxes"></i> Manage Stock</button>
                 <button class="quick-action" onclick="navigateTo('reports')"><i class="fas fa-chart-line"></i> View Reports</button>
             </div>
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card">
-                    <div class="stat-glow"></div>
-                    <div class="stat-icon purple"><i class="fas fa-money-bill-wave"></i></div>
-                    <div class="stat-value" id="todaySales">KES 0</div>
-                    <div class="stat-label">Today's Sales</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon gold"><i class="fas fa-star"></i></div>
-                    <div class="stat-value" id="bestQualityCount">0</div>
-                    <div class="stat-label">Best Quality Items</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon blue"><i class="fas fa-shopping-bag"></i></div>
-                    <div class="stat-value" id="totalOrders">0</div>
-                    <div class="stat-label">Total Orders</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div>
-                    <div class="stat-value" id="lowStock">0</div>
-                    <div class="stat-label">Low Stock Items</div>
-                </div>
+
+            <div class="stats-grid lc-modern-kpis" id="statsGrid">
+                <div class="stat-card lc-kpi sales"><div class="stat-icon purple"><i class="fas fa-bag-shopping"></i></div><div class="stat-value" id="todaySales">KES 0</div><div class="stat-label">Today's Sales</div><div class="lc-kpi-trend" id="todaySalesTrend">↗ Live today</div></div>
+                <div class="stat-card lc-kpi orders"><div class="stat-icon blue"><i class="fas fa-receipt"></i></div><div class="stat-value" id="ordersToday">0</div><div class="stat-label">Orders Today</div><div class="lc-kpi-trend" id="ordersTrend">↗ Completed</div></div>
+                <div class="stat-card lc-kpi items"><div class="stat-icon purple"><i class="fas fa-box-open"></i></div><div class="stat-value" id="itemsSoldToday">0</div><div class="stat-label">Items Sold</div><div class="lc-kpi-trend">↗ Units today</div></div>
+                <div class="stat-card lc-kpi stock"><div class="stat-icon orange"><i class="fas fa-cubes"></i></div><div class="stat-value" id="productsInStock">0</div><div class="stat-label">Products in Stock</div><div class="lc-kpi-trend" style="color:var(--text-muted)">Catalogue health</div></div>
+                <div class="stat-card lc-kpi low"><div class="stat-icon red"><i class="fas fa-triangle-exclamation"></i></div><div class="stat-value" id="lowStock">0</div><div class="stat-label">Low Stock Items</div><div class="lc-kpi-trend" id="lowStockTrend" style="color:#ef4444">Needs attention</div></div>
+                <div class="stat-card lc-kpi customers"><div class="stat-icon green"><i class="fas fa-users"></i></div><div class="stat-value" id="totalCustomers">0</div><div class="stat-label">Total Customers</div><div class="lc-kpi-trend" style="color:#10b981">↗ Customer base</div></div>
             </div>
-            <div class="lc-dashboard-intelligence">
-                <div class="lc-intel-card">
+
+            <div class="lc-modern-grid">
+                <div class="card lc-modern-chart-card">
+                    <div class="card-header">
+                        <div><h3>📈 Sales Overview</h3><div class="lc-section-kicker">Track revenue performance and customer demand</div></div>
+                        <div class="lc-chart-toolbar">
+                            <button type="button" class="lc-chart-tab active" data-period="7" onclick="setLCDashboardPeriod(7,this)">7 Days</button>
+                            <button type="button" class="lc-chart-tab" data-period="30" onclick="setLCDashboardPeriod(30,this)">30 Days</button>
+                            <button type="button" class="lc-chart-tab" data-period="90" onclick="setLCDashboardPeriod(90,this)">3 Months</button>
+                            <button type="button" class="card-action" onclick="refreshAll()"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                    </div>
+                    <div class="lc-modern-chart-wrap dashboard-chart-wrap"><canvas id="salesChart"></canvas></div>
+                </div>
+
+                <div class="lc-intel-card lc-target-side">
                     <div class="lc-intel-head"><h3>🎯 Today's Sales Target</h3><button class="card-action" onclick="setLCSalesTarget()">Set Target</button></div>
                     <div class="lc-target-value" id="lcTargetProgress">KES 0 / KES 100,000</div>
                     <div class="lc-progress"><span id="lcTargetBar"></span></div>
-                    <div style="font-size:12px;color:var(--text-muted)" id="lcTargetPercent">0% achieved</div>
-                    <div class="lc-mini-grid"><div class="lc-mini"><b id="lcIntelProfit">KES 0</b><span>Estimated profit</span></div><div class="lc-mini"><b id="lcIntelStockValue">KES 0</b><span>Stock value</span></div><div class="lc-mini"><b id="lcIntelUnits">0</b><span>Units sold</span></div></div>
-                </div>
-                <div class="lc-intel-card">
-                    <div class="lc-intel-head"><h3>🔔 Business Alerts</h3><button class="card-action" onclick="toggleLCNotifications()">View All</button></div>
-                    <div id="lcBusinessAlerts"><div class="lc-alert-row"><span class="lc-alert-dot"></span><div><strong>Checking your business health…</strong><small>Loading live information</small></div></div></div>
+                    <div style="font-size:11px;color:var(--text-muted)" id="lcTargetPercent">0% achieved</div>
+                    <div class="lc-mini-grid">
+                        <div class="lc-mini"><b id="lcIntelProfit">KES 0</b><span>Estimated profit</span></div>
+                        <div class="lc-mini"><b id="lcIntelUnits">0</b><span>Units sold</span></div>
+                        <div class="lc-mini"><b id="lcIntelAvgOrder">KES 0</b><span>Avg. order value</span></div>
+                    </div>
+                    <div class="lc-mini" style="margin-top:10px"><b id="lcIntelStockValue">KES 0</b><span>Inventory cost value</span></div>
                 </div>
             </div>
-            <div class="grid-2 dashboard-chart-row">
-                <div class="card dashboard-chart-card">
-                    <div class="card-header">
-                        <div><h3>📈 Sales Overview</h3><small>Last 7 days</small></div>
-                        <button class="card-action" onclick="refreshAll()"><i class="fas fa-sync-alt"></i> Refresh</button>
-                    </div>
-                    <div class="dashboard-chart-wrap"><canvas id="salesChart"></canvas></div>
+
+            <div class="lc-three-grid">
+                <div class="card">
+                    <div class="card-header"><div><h3>🏆 Top Products</h3><div class="lc-section-kicker">Best performers · recent completed sales</div></div><button class="card-action" onclick="navigateTo('products')">View All</button></div>
+                    <div id="topProductsList" class="lc-top-products"><div class="empty-state"><p>Loading...</p></div></div>
                 </div>
                 <div class="card">
-                    <div class="card-header"><div><h3>🏆 Top Products</h3><small>Best performers</small></div></div>
-                    <div id="topProductsList"><div class="empty-state"><p>Loading...</p></div></div>
+                    <div class="card-header"><div><h3>💳 Payment Mix</h3><div class="lc-section-kicker">Completed sales by payment method</div></div></div>
+                    <div class="lc-payment-layout"><div class="lc-payment-center"><canvas id="paymentChart"></canvas></div><div id="lcPaymentLegend" class="lc-payment-legend"></div></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><div><h3>📦 Inventory Health</h3><div class="lc-section-kicker">Overview of your stock status</div></div><button class="card-action" onclick="navigateTo('inventory')">Manage</button></div>
+                    <div class="lc-inventory-health">
+                        <div class="lc-health-box info"><b id="lcInventoryValue">KES 0</b><span>Stock Value</span></div>
+                        <div class="lc-health-box danger"><b id="lcInventoryLow">0</b><span>Low Stock</span></div>
+                        <div class="lc-health-box warn"><b id="lcInventoryOut">0</b><span>Out of Stock</span></div>
+                        <div class="lc-health-box success"><b id="lcInventoryFast">0</b><span>Fast Moving</span></div>
+                    </div>
                 </div>
             </div>
-            <div class="dashboard-chart-grid">
-                <div class="card dashboard-chart-card">
-                    <div class="card-header"><div><h3>💳 Payment Mix</h3><small>Completed sales by payment method</small></div></div>
-                    <div class="dashboard-chart-wrap compact-chart"><canvas id="paymentChart"></canvas></div>
+
+            <div class="lc-modern-grid">
+                <div class="lc-intel-card">
+                    <div class="lc-intel-head"><div><h3>🔔 Business Alerts</h3><div class="lc-section-kicker">Live operational signals</div></div><button class="card-action" onclick="toggleLCNotifications()">View All</button></div>
+                    <div id="lcBusinessAlerts"><div class="lc-alert-row"><span class="lc-alert-dot"></span><div><strong>Checking your business health…</strong><small>Loading live information</small></div></div></div>
                 </div>
-                <div class="card dashboard-chart-card">
-                    <div class="card-header"><div><h3>🛍️ Sales by Category</h3><small>Revenue contribution</small></div></div>
-                    <div class="dashboard-chart-wrap"><canvas id="categoryChart"></canvas></div>
-                </div>
-                <div class="card dashboard-chart-card">
-                    <div class="card-header"><div><h3>⏰ Sales by Hour</h3><small>When customers buy most</small></div></div>
-                    <div class="dashboard-chart-wrap"><canvas id="hourlyChart"></canvas></div>
+                <div class="card">
+                    <div class="card-header"><div><h3>⏰ Sales by Hour</h3><div class="lc-section-kicker">When customers buy most</div></div></div>
+                    <div class="dashboard-chart-wrap" style="height:205px"><canvas id="hourlyChart"></canvas></div>
                 </div>
             </div>
+
+            <div class="card lc-recent-card">
+                <div class="card-header"><div><h3>⚡ Recent Activity</h3><div class="lc-section-kicker">Latest sales and business activity</div></div><button class="card-action" onclick="navigateTo('audit')">View Audit Trail</button></div>
+                <div id="lcRecentActivity" class="lc-activity-list"><div class="empty-state"><p>Loading recent activity...</p></div></div>
+            </div>
+
             <div class="card">
-                <div class="card-header">
-                    <h3>📋 Recent Orders</h3>
-                    <button class="card-action" onclick="navigateTo('orders')">View All →</button>
-                </div>
+                <div class="card-header"><div><h3>📋 Recent Orders</h3><div class="lc-section-kicker">Latest customer transactions</div></div><button class="card-action" onclick="navigateTo('orders')">View All →</button></div>
                 <div id="recentOrdersTable"><div class="empty-state"><p>Loading orders...</p></div></div>
             </div>
+
+            <div class="lc-fashion-banner">
+                <div class="lc-fashion-card"><h3>More Than Fashion</h3><p>It's a lifestyle · Quality · Style · Confidence</p><span class="lc-fashion-cta" onclick="navigateTo('pos')">Grow Your Business <i class="fas fa-arrow-right" style="margin-left:6px"></i></span></div>
+                <div class="lc-fashion-card dark"><h3>Style With Confidence</h3><p>Keep your catalogue fresh and your customers coming back.</p><span class="lc-fashion-cta" onclick="navigateTo('products')">View Products <i class="fas fa-arrow-right" style="margin-left:6px"></i></span></div>
+            </div>
+            <div class="lc-dashboard-footer"><span>© ${new Date().getFullYear()} Lucie Closet. All rights reserved.</span><span>Powered by <strong>CampusNexus</strong> · 0790969743</span></div>
         </section>
 
         <!-- ===== POS ===== -->
@@ -1884,18 +1998,24 @@ async function loadData() {
 // ============================================================
 function updateStats() {
     const today = new Date().toDateString();
-    const todayOrders = orders.filter(o => new Date(o.created_at).toDateString() === today && o.status === 'completed');
-    const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-
-    const todaySales = document.getElementById('todaySales');
-    const bestQualityCount = document.getElementById('bestQualityCount');
-    const totalOrders = document.getElementById('totalOrders');
-    const lowStock = document.getElementById('lowStock');
-    
-    if (todaySales) todaySales.textContent = `KES ${todayRevenue}`;
-    if (bestQualityCount) bestQualityCount.textContent = products.filter(p => p.best_quality).length;
-    if (totalOrders) totalOrders.textContent = orders.length;
-    if (lowStock) lowStock.textContent = products.filter(p => p.stock < 5).length;
+    const completed = orders.filter(o => String(o.status || '').toLowerCase() === 'completed');
+    const todayOrders = completed.filter(o => new Date(o.created_at).toDateString() === today);
+    const todayRevenue = todayOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+    const todayUnits = todayOrders.reduce((sum, o) => sum + (Array.isArray(o.items) ? o.items.reduce((n, i) => n + Number(i.qty || 0), 0) : 0), 0);
+    const lowCount = products.filter(p => Number(p.stock || 0) > 0 && Number(p.stock || 0) <= Number(p.reorder_level ?? 5)).length;
+    const outCount = products.filter(p => Number(p.stock || 0) <= 0).length;
+    const inStock = products.filter(p => Number(p.stock || 0) > 0).length;
+    const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+    set('todaySales', `KES ${todayRevenue.toLocaleString('en-KE')}`);
+    set('bestQualityCount', products.filter(p => p.best_quality).length);
+    set('totalOrders', orders.length);
+    set('lowStock', lowCount + outCount);
+    set('ordersToday', todayOrders.length);
+    set('itemsSoldToday', todayUnits);
+    set('productsInStock', inStock);
+    set('totalCustomers', customers.length);
+    set('lowStockTrend', outCount ? `${outCount} out of stock` : (lowCount ? `${lowCount} need attention` : '✓ Healthy stock'));
+    set('ordersTrend', `${todayOrders.length} completed`);
 }
 
 // ============================================================
@@ -2723,6 +2843,7 @@ document.addEventListener('click', (event) => {
 // ============================================================
 // DASHBOARD
 // ============================================================
+let lcDashboardPeriod = 7;
 function renderDashboard() {
     renderRecentOrders();
     renderTopProducts();
@@ -2730,7 +2851,17 @@ function renderDashboard() {
     renderPaymentChart();
     renderCategoryChart();
     renderHourlyChart();
+    refreshLCBusinessIntel();
+    renderLCDashboardExtras();
+    loadLCRecentActivity();
 }
+function setLCDashboardPeriod(days, btn) {
+    lcDashboardPeriod = Number(days) || 7;
+    document.querySelectorAll('.lc-chart-tab').forEach(x => x.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderSalesChart();
+}
+window.setLCDashboardPeriod = setLCDashboardPeriod;
 
 function renderRecentOrders() {
     const recent = orders.slice(0, 10);
@@ -2775,30 +2906,24 @@ function renderRecentOrders() {
 function renderTopProducts() {
     const productSales = {};
     orders.forEach(o => {
-        if (o.items) {
-            o.items.forEach(i => {
-                if (!productSales[i.id]) productSales[i.id] = { name: i.name, qty: 0, revenue: 0 };
-                productSales[i.id].qty += i.qty;
-                productSales[i.id].revenue += i.price * i.qty;
-            });
-        }
+        if (String(o.status||'').toLowerCase() !== 'completed' || !Array.isArray(o.items)) return;
+        o.items.forEach(i => {
+            const key=String(i.id??i.product_id??i.name??'unknown');
+            if(!productSales[key]) productSales[key]={id:i.id, name:i.name||'Product', qty:0, revenue:0};
+            productSales[key].qty += Number(i.qty||0);
+            productSales[key].revenue += Number(i.price||0)*Number(i.qty||0);
+        });
     });
-
-    const sorted = Object.values(productSales).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
-    const container = document.getElementById('topProductsList');
-    if (!container) return;
-
-    if (!sorted.length) {
-        container.innerHTML = '<div class="empty-state"><p>No sales data</p></div>';
-        return;
-    }
-
-    container.innerHTML = sorted.map((p, i) => `
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
-            <span>${i+1}. ${p.name}</span>
-            <span style="font-weight:600;color:var(--primary);">KES ${p.revenue}</span>
-        </div>
-    `).join('');
+    const sorted=Object.values(productSales).sort((a,b)=>b.revenue-a.revenue).slice(0,5);
+    const container=document.getElementById('topProductsList'); if(!container)return;
+    if(!sorted.length){container.innerHTML='<div class="empty-state"><p>No completed sales yet</p></div>';return;}
+    const byId=Object.fromEntries(products.map(p=>[String(p.id),p]));
+    const shared=new Map((Array.isArray(SHARED_IMAGE_CATALOG)?SHARED_IMAGE_CATALOG:[]).map(x=>[String(x.code),x.image_url]));
+    container.innerHTML=sorted.map((p,i)=>{
+        const db=byId[String(p.id)]; const img=db?.image_url||shared.get(String(db?.code||''));
+        const thumb=img?`<img class="lc-product-thumb" src="${lcEscape(img)}" alt="" loading="lazy">`:`<div class="lc-product-thumb placeholder">${db?.category==='dress'?'👗':db?.category==='top'?'👕':'👜'}</div>`;
+        return `<div class="lc-top-product"><span class="lc-rank">${i+1}</span>${thumb}<div><div class="lc-product-name" title="${lcEscape(p.name)}">${lcEscape(p.name)}</div><div class="lc-product-meta">${p.qty} unit${p.qty===1?'':'s'} sold</div></div><div class="lc-product-revenue">KES ${Number(p.revenue).toLocaleString('en-KE')}</div></div>`;
+    }).join('');
 }
 
 function getCompletedOrders() {
@@ -2822,22 +2947,21 @@ function renderSalesChart() {
     const canvas = document.getElementById('salesChart');
     if (!canvas || typeof Chart === 'undefined') return;
     if (salesChartInstance) salesChartInstance.destroy();
+    const days = Math.max(7, Math.min(90, Number(lcDashboardPeriod || 7)));
     const labels = [], values = [];
-    for (let i = 6; i >= 0; i--) {
+    const step = days <= 14 ? 1 : (days <= 45 ? 3 : 7);
+    for (let i = days - 1; i >= 0; i -= step) {
         const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - i);
         const key = d.toDateString();
-        labels.push(d.toLocaleDateString('en-KE', { weekday:'short' }));
-        values.push(getCompletedOrders().filter(o => new Date(o.created_at).toDateString() === key)
-            .reduce((sum,o) => sum + Number(o.total || 0), 0));
+        labels.push(days <= 14 ? d.toLocaleDateString('en-KE',{weekday:'short'}) : d.toLocaleDateString('en-KE',{day:'numeric',month:'short'}));
+        const end = new Date(d); end.setDate(end.getDate() + step);
+        values.push(getCompletedOrders().filter(o => { const t=new Date(o.created_at); return t>=d && t<end; }).reduce((sum,o)=>sum+Number(o.total||0),0));
     }
     const options = chartCommonOptions();
-    options.plugins.tooltip = { callbacks: { label: c => 'KES ' + Number(c.raw || 0).toLocaleString('en-KE') } };
-    options.scales.y.ticks = { callback: v => 'KES ' + Number(v).toLocaleString('en-KE') };
-    salesChartInstance = new Chart(canvas.getContext('2d'), {
-        type:'line',
-        data:{ labels, datasets:[{ label:'Sales', data:values, borderWidth:3, tension:.35, fill:true, pointRadius:4, pointHoverRadius:6 }] },
-        options
-    });
+    options.plugins.tooltip = { callbacks:{label:c=>'KES '+Number(c.raw||0).toLocaleString('en-KE')} };
+    options.scales.y.ticks = { callback:v=>'KES '+Number(v).toLocaleString('en-KE') };
+    options.scales.x.ticks = { maxRotation:0, autoSkip:true, maxTicksLimit: days<=14 ? 7 : 10 };
+    salesChartInstance = new Chart(canvas.getContext('2d'), { type:'line', data:{labels,datasets:[{label:'Sales',data:values,borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,.16)',borderWidth:3,tension:.38,fill:true,pointRadius:days<=14?4:2.5,pointHoverRadius:6}]}, options });
 }
 
 function renderPaymentChart() {
@@ -2845,18 +2969,14 @@ function renderPaymentChart() {
     if (!canvas || typeof Chart === 'undefined') return;
     if (paymentChartInstance) paymentChartInstance.destroy();
     const totals = {};
-    getCompletedOrders().forEach(o => {
-        const method = String(o.payment_method || 'Other').toUpperCase();
-        totals[method] = (totals[method] || 0) + Number(o.total || 0);
-    });
-    const entries = Object.entries(totals);
-    const labels = entries.length ? entries.map(([k]) => k) : ['No sales'];
-    const values = entries.length ? entries.map(([,v]) => v) : [1];
-    paymentChartInstance = new Chart(canvas.getContext('2d'), {
-        type:'doughnut',
-        data:{ labels, datasets:[{ data:values, borderWidth:2 }] },
-        options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', plugins:{ legend:{ position:'bottom', labels:{ usePointStyle:true, padding:14 } }, tooltip:{ callbacks:{ label:c => 'KES ' + Number(c.raw || 0).toLocaleString('en-KE') } } } }
-    });
+    getCompletedOrders().forEach(o => { const method=String(o.payment_method||'Other').toUpperCase(); totals[method]=(totals[method]||0)+Number(o.total||0); });
+    const entries=Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+    const labels=entries.length?entries.map(([k])=>k):['No sales']; const values=entries.length?entries.map(([,v])=>v):[1];
+    const legend=document.getElementById('lcPaymentLegend');
+    const palette=['#7c3aed','#3b82f6','#ec4899','#10b981','#f59e0b','#8b5cf6'];
+    const total=values.reduce((a,b)=>a+b,0)||1;
+    if(legend) legend.innerHTML=entries.length?entries.slice(0,5).map(([k,v],i)=>`<div class="lc-payment-item"><span class="lc-payment-dot" style="background:${palette[i%palette.length]}"></span><div><strong>${lcEscape(k)}</strong><small>${((v/total)*100).toFixed(0)}%</small></div><b>KES ${Number(v).toLocaleString('en-KE')}</b></div>`).join(''):'<div class="empty-state"><p>No completed sales yet.</p></div>';
+    paymentChartInstance=new Chart(canvas.getContext('2d'),{type:'doughnut',data:{labels,datasets:[{data:values,backgroundColor:palette,borderWidth:0,hoverOffset:5}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'KES '+Number(c.raw||0).toLocaleString('en-KE')}}}}});
 }
 
 function renderCategoryChart() {
@@ -2899,6 +3019,35 @@ function renderHourlyChart() {
         data:{ labels, datasets:[{ label:'Sales', data:values, borderWidth:2.5, tension:.3, pointRadius:3, fill:true }] },
         options
     });
+}
+
+
+// ============================================================
+// ULTRA MODERN DASHBOARD EXTRAS
+// ============================================================
+function renderLCDashboardExtras(){
+    const money=n=>'KES '+Number(n||0).toLocaleString('en-KE',{maximumFractionDigits:2});
+    const stockValue=(products||[]).reduce((a,p)=>a+Number(p.stock||0)*Number(p.cost_price||p.buying_price||0),0);
+    const low=(products||[]).filter(p=>Number(p.stock||0)>0&&Number(p.stock||0)<=Number(p.reorder_level??5)).length;
+    const out=(products||[]).filter(p=>Number(p.stock||0)<=0).length;
+    const completed=getCompletedOrders(); const cutoff=Date.now()-30*86400000;
+    const recent=completed.filter(o=>new Date(o.created_at).getTime()>=cutoff);
+    const qty=recent.reduce((a,o)=>a+(o.items||[]).reduce((x,i)=>x+Number(i.qty||0),0),0);
+    const el=(id,v)=>{const x=document.getElementById(id);if(x)x.textContent=v;};
+    el('lcInventoryValue',money(stockValue));el('lcInventoryLow',low);el('lcInventoryOut',out);el('lcInventoryFast',Math.min((products||[]).length,qty?Math.max(1,Math.round(qty/4)):0));
+    const today=completed.filter(o=>new Date(o.created_at).toDateString()===new Date().toDateString());
+    const avg=today.length?today.reduce((a,o)=>a+Number(o.total||0),0)/today.length:0; el('lcIntelAvgOrder',money(avg));
+}
+async function loadLCRecentActivity(){
+    const box=document.getElementById('lcRecentActivity'); if(!box)return;
+    const activities=[];
+    (orders||[]).slice(0,6).forEach(o=>activities.push({time:o.created_at,kind:'success',icon:'fa-receipt',title:`Sale ${o.order_number||''}`.trim(),sub:`KES ${Number(o.total||0).toLocaleString('en-KE')} · ${String(o.payment_method||'Payment').toUpperCase()}`}));
+    (products||[]).slice(-3).reverse().forEach(p=>activities.push({time:p.created_at,kind:'info',icon:'fa-box',title:'Product catalogue',sub:p.name||'Product'}));
+    activities.sort((a,b)=>new Date(b.time||0)-new Date(a.time||0));
+    const list=activities.slice(0,6);
+    if(!list.length){box.innerHTML='<div class="empty-state"><p>No recent activity.</p></div>';return;}
+    const rel=t=>{const ms=Date.now()-new Date(t||Date.now()).getTime();if(!Number.isFinite(ms)||ms<0)return'just now';const m=Math.floor(ms/60000);if(m<1)return'just now';if(m<60)return`${m} min ago`;const h=Math.floor(m/60);if(h<24)return`${h} hr ago`;return`${Math.floor(h/24)} d ago`;};
+    box.innerHTML=list.map(a=>`<div class="lc-activity ${a.kind}"><span class="lc-activity-icon"><i class="fas ${a.icon}"></i></span><div><strong>${lcEscape(a.title)}</strong><small>${lcEscape(a.sub)}</small></div><span class="lc-activity-time">${rel(a.time)}</span></div>`).join('');
 }
 
 // ============================================================
@@ -5410,7 +5559,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const sales=todayOrders.reduce((a,o)=>a+Number(o.total||0),0); const units=todayOrders.reduce((a,o)=>a+(o.items||[]).reduce((x,i)=>x+Number(i.qty||0),0),0);
   const profit=todayOrders.reduce((a,o)=>a+(o.items||[]).reduce((x,i)=>x+(Number(i.price||0)-Number(i.cost_price||0))*Number(i.qty||0),0),0);
   const stockValue=(window.products||[]).reduce((a,p)=>a+Number(p.stock||0)*Number(p.cost_price||p.buying_price||0),0); const pct=Math.min(100,(sales/target)*100);
-  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v}; set('lcTargetProgress',`${money(sales)} / ${money(target)}`);set('lcTargetPercent',`${pct.toFixed(1)}% achieved`);set('lcIntelProfit',money(profit));set('lcIntelStockValue',money(stockValue));set('lcIntelUnits',units);const bar=document.getElementById('lcTargetBar');if(bar)bar.style.width=pct+'%';
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v}; set('lcTargetProgress',`${money(sales)} / ${money(target)}`);set('lcTargetPercent',`${pct.toFixed(1)}% achieved`);set('lcIntelProfit',money(profit));set('lcIntelStockValue',money(stockValue));set('lcIntelUnits',units);set('lcIntelAvgOrder',money(todayOrders.length?sales/todayOrders.length:0));const bar=document.getElementById('lcTargetBar');if(bar)bar.style.width=pct+'%';
   const low=(window.products||[]).filter(p=>Number(p.stock||0)>0&&Number(p.stock||0)<=5).length, out=(window.products||[]).filter(p=>Number(p.stock||0)<=0).length;
   const alerts=[]; if(out)alerts.push(['danger','Out of stock',`${out} product${out===1?'':'s'} need replenishment.`]); if(low)alerts.push(['warn','Low stock',`${low} product${low===1?'':'s'} are at or below 5 units.`]); if(pct>=100)alerts.push(['success','Target achieved',`You have reached today\'s ${money(target)} target.`]); if(!alerts.length)alerts.push(['success','Everything looks good','No urgent stock alerts right now.']);
   const box=document.getElementById('lcBusinessAlerts');if(box)box.innerHTML=alerts.slice(0,4).map(a=>`<div class="lc-alert-row"><span class="lc-alert-dot ${a[0]}"></span><div><strong>${a[1]}</strong><small>${a[2]}</small></div></div>`).join('');
