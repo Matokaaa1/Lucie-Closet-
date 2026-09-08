@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Lucie Closet POS — UPDATED PRODUCTION HARDENED BUILD — 2026-09-08 -->
+<!-- Lucie Closet POS — UPDATED PRODUCTION HARDENED BUILD — 2026-09-08 · BUILD 2 -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -5888,9 +5888,17 @@ document.addEventListener('DOMContentLoaded', function() {
       compare_price:num('productComparePrice',null),sale_price:num('productSalePrice',null),fit:val('productFit').trim()||null,occasion:val('productOccasion').trim()||null,
       care_instructions:val('productCare').trim()||null,sizes:csv('productSizes'),rating:num('productRating',0),reviews_count:num('productReviews',0),tags:csv('productTags'),variants};
     const base={name,code,category,gender:data.gender,price,stock,best_quality:data.best_quality,image_url:data.image_url};
-    try{let r;if(id)r=await sb.from('products').update(data).eq('id',Number(id));else r=await sb.from('products').insert([data]);
-      if(r.error){console.warn('Extended product fields unavailable; retrying core fields:',r.error); if(id)r=await sb.from('products').update(base).eq('id',Number(id));else r=await sb.from('products').insert([base]); if(r.error)throw r.error; showToast('Saved core fields. Some detailed fields need matching columns in products table.','warning')}
-      else showToast(id?'Product updated successfully.':'Product added successfully.','success');
+    try{
+      let r;if(id)r=await sb.from('products').update(data).eq('id',Number(id));else r=await sb.from('products').insert([data]);
+      if(r.error){
+        const msg=String(r.error.message||'');
+        const schemaMismatch=/column .* does not exist|could not find the .* column|schema cache|relation .* does not exist|invalid input syntax/i.test(msg);
+        if(!schemaMismatch) throw r.error;
+        console.warn('Extended product fields are not fully supported by the current products schema; retrying core fields only:',r.error);
+        if(id)r=await sb.from('products').update(base).eq('id',Number(id));else r=await sb.from('products').insert([base]);
+        if(r.error)throw r.error;
+        showToast('Saved core product fields. Add the missing detailed columns to Supabase to enable all product attributes.','warning');
+      }else showToast(id?'Product updated successfully.':'Product added successfully.','success');
       await loadProducts();updateStats();renderCurrentTab();closeModal('productModal');
     }catch(err){console.error(err);showToast('Could not save product: '+(err.message||'Unknown error'),'error')}
   };
@@ -5970,7 +5978,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const oldComplete=window.completeUltimateSale;
   if(typeof oldComplete==='function'&&!oldComplete.__lcFinalWrapped){
     const wrapped=async function(){
-      if(!Array.isArray(window.cart)||!window.cart.length){showToast('Add at least one product before checkout.','warning');return;}
+      if(!Array.isArray(cart)||!cart.length){showToast('Add at least one product before checkout.','warning');return;}
       const button=document.getElementById('completeSaleBtn')||document.querySelector('[onclick*="completeUltimateSale"]');
       if(button){button.dataset.originalText=button.innerHTML;button.disabled=true;button.innerHTML='<i class="fas fa-spinner fa-spin"></i> Processing transaction...';}
       try{return await oldComplete.apply(this,arguments)}
