@@ -1457,7 +1457,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                         <span>Total</span>
                         <span id="checkoutTotal">KES 0</span>
                     </div>
-                    <button id="completeSaleBtn" class="btn btn-primary btn-block" onclick="completeUltimateSale()"><i class="fas fa-check"></i> Complete Sale</button>
+                    <button type="button" id="completeSaleBtn" class="btn btn-primary btn-block" onclick="completeUltimateSale()"><i class="fas fa-check"></i> Complete Sale</button>
                 </div>
             </div>
         </div>
@@ -2638,20 +2638,16 @@ function lcEscape(value) {
 }
 
 function showLCWelcome(user) {
+    // Login feedback is a normal top-right notification, not a full-screen welcome overlay.
+    // Keep the old overlay hidden for compatibility with existing markup.
     const overlay = document.getElementById('lcWelcomeOverlay');
-    if (!overlay) return;
+    if (overlay) {
+        overlay.classList.remove('show');
+        overlay.style.display = 'none';
+    }
     const name = user?.full_name || 'Admin';
     const role = user?.role_name || 'Administrator';
-    const title = document.getElementById('lcWelcomeTitle');
-    const message = document.getElementById('lcWelcomeMessage');
-    const roleEl = document.getElementById('lcWelcomeRole');
-    if (title) title.textContent = `Welcome back, ${name}!`;
-    if (message) message.textContent = 'Your Lucie Closet workspace is ready.';
-    if (roleEl) roleEl.textContent = role;
-    overlay.classList.add('show');
-    clearTimeout(lcWelcomeTimer);
-    lcWelcomeTimer = setTimeout(() => overlay.classList.remove('show'), 4000);
-    addLCNotification('Welcome back', `${name} signed in as ${role}.`, 'success', 'fa-user-check', false);
+    addLCNotification('Welcome back', `${name} signed in as ${role}.`, 'success', 'fa-user-check', true);
 }
 
 function addLCNotification(title, text, type='info', icon='fa-bell', toast=true) {
@@ -3106,6 +3102,13 @@ function openCheckout() {
     if (mpesaForm) mpesaForm.style.display = 'none';
     if (cashForm) cashForm.style.display = 'none';
 
+    // Always initialise checkout with the active/default payment method.
+    // This prevents the M-Pesa form from remaining hidden while M-Pesa is selected.
+    selectedPayment = selectedPayment || 'mpesa';
+    if (typeof selectPayment === 'function') selectPayment(selectedPayment);
+    const completeSaleBtn = document.getElementById('completeSaleBtn');
+    if (completeSaleBtn) { completeSaleBtn.disabled = false; completeSaleBtn.innerHTML = '<i class="fas fa-check"></i> Complete Sale'; }
+
     openModal('checkoutModal');
 }
 window.openCheckout = openCheckout;
@@ -3175,12 +3178,32 @@ function generateReceipt(order) {
     const subtotal = Number(order.subtotal ?? order.total ?? 0);
     const discount = Number(order.discount ?? 0);
     const total = Number(order.total ?? 0);
-    const payment = String(order.payment_method || '');
+    const payment = String(order.payment_method || '').toLowerCase();
     const receiptNo = String(order.order_number || ('POS-' + Date.now().toString().slice(-8)));
-    const dateText = new Date(order.created_at || Date.now()).toLocaleString();
+    const dateText = new Date(order.created_at || Date.now()).toLocaleString('en-KE', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true});
     const servedBy = String(order.served_by || order.cashier || order.cashier_name || currentUser?.full_name || currentUser?.email || 'System');
-    const itemRows = items.map(i => `
-        <tr><td>${LC.escape(i.name || 'Item')}<small style="display:block;color:#9a9197;">${LC.escape(i.code || '')}</small></td><td>${Number(i.qty || 0)}</td><td>KES ${(Number(i.price || 0) * Number(i.qty || 0)).toLocaleString()}</td></tr>`).join('');
+    const customerPhone = String(order.customer_phone || order.phone || 'N/A');
+    const mpesaReceipt = String(order.mpesa_receipt_number || order.mpesa_receipt || '');
+    const paymentReference = String(order.payment_reference || order.provider_transaction_id || '');
+    const itemRows = items.map((i, idx) => `
+        <tr>
+          <td class="rcpt-no">${idx + 1}</td>
+          <td class="rcpt-product">${LC.escape(i.name || 'Item')}<small>${LC.escape(i.code || '')}</small></td>
+          <td class="rcpt-qty">${Number(i.qty || 0)}</td>
+          <td class="rcpt-price">${Number(i.price || 0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+          <td class="rcpt-amount">${(Number(i.price || 0) * Number(i.qty || 0)).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        </tr>`).join('');
+
+    const paymentLabel = payment === 'mpesa' ? 'M-PESA' : payment ? payment.toUpperCase() : 'N/A';
+    const mobileMoneyBlock = payment === 'mpesa' ? `
+      <div class="receipt-mobile-money">
+        <div class="receipt-section-title">Mobile Money Details</div>
+        <div class="receipt-detail-row"><span>Amount</span><strong>KES ${total.toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>
+        <div class="receipt-detail-row"><span>Mobile Number</span><strong>${LC.escape(customerPhone)}</strong></div>
+        ${mpesaReceipt ? `<div class="receipt-detail-row"><span>Confirmation Code</span><strong>${LC.escape(mpesaReceipt)}</strong></div>` : ''}
+        ${paymentReference && paymentReference !== mpesaReceipt ? `<div class="receipt-detail-row"><span>Payment Ref.</span><strong>${LC.escape(paymentReference)}</strong></div>` : ''}
+      </div>` : '';
+
     const receiptHtml = `
         <div class="receipt-paper">
             <div class="receipt-brand">
@@ -3188,21 +3211,35 @@ function generateReceipt(order) {
                 <h2>LUCIE CLOSET</h2>
                 <p>Women's Fashion · Style · Confidence</p>
             </div>
-            <div class="receipt-meta">
-                <div>Receipt / Order<strong>${LC.escape(receiptNo)}</strong></div>
-                <div>Date & Time<strong>${LC.escape(dateText)}</strong></div>
-                <div>Customer<strong>${LC.escape(order.customer_name || 'Walk-in Customer')}</strong></div>
-                <div>Phone<strong>${LC.escape(order.customer_phone || 'N/A')}</strong></div>
-                <div>Served By<strong>${LC.escape(servedBy)}</strong></div>
+
+            <div class="receipt-meta receipt-meta-thermal">
+                <div><span>Receipt / Bill No.</span><strong>${LC.escape(receiptNo)}</strong></div>
+                <div><span>Date & Time</span><strong>${LC.escape(dateText)}</strong></div>
+                <div><span>Customer</span><strong>${LC.escape(order.customer_name || 'Walk-in Customer')}</strong></div>
+                <div><span>Phone</span><strong>${LC.escape(customerPhone)}</strong></div>
+                <div><span>Cashier</span><strong>${LC.escape(servedBy)}</strong></div>
             </div>
-            <table class="receipt-items"><thead><tr><th>Item</th><th>Qty</th><th>Amount</th></tr></thead><tbody>${itemRows}</tbody></table>
+
+            <table class="receipt-items">
+              <thead><tr><th>No.</th><th>Product</th><th>Qty</th><th>Price</th><th>Amount</th></tr></thead>
+              <tbody>${itemRows}</tbody>
+            </table>
+
             <div class="receipt-totals">
-                <div class="receipt-total-row"><span>Subtotal</span><strong>KES ${subtotal.toLocaleString()}</strong></div>
-                <div class="receipt-total-row"><span>Discount</span><strong>KES ${discount.toLocaleString()}</strong></div>
-                <div class="receipt-total-row grand"><span>TOTAL</span><strong>KES ${total.toLocaleString()}</strong></div>
+                <div class="receipt-total-row"><span>Subtotal</span><strong>KES ${subtotal.toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>
+                ${discount > 0 ? `<div class="receipt-total-row"><span>Discount</span><strong>KES ${discount.toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>` : ''}
+                <div class="receipt-total-row grand"><span>TOTAL</span><strong>KES ${total.toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>
+                <div class="receipt-total-row"><span>Total Items</span><strong>${items.reduce((sum,i)=>sum+Number(i.qty||0),0)}</strong></div>
             </div>
-            <div class="receipt-payment"><i class="fas fa-circle-check"></i> Payment: ${LC.escape(payment)}${order.mpesa_receipt_number?`<br><strong>M-Pesa Receipt:</strong> ${LC.escape(order.mpesa_receipt_number)}`:''}${order.payment_reference?`<br><strong>PayHero Ref:</strong> ${LC.escape(order.payment_reference)}`:''}</div>
-            <div class="receipt-thanks">Thank you for shopping with Lucie Closet!<br>Miski Shopping Centre, 2nd Floor, Room S12<br><strong>We look forward to seeing you again.</strong></div>
+
+            <div class="receipt-payment"><span>Payment</span><strong>${LC.escape(paymentLabel)}</strong></div>
+            ${mobileMoneyBlock}
+
+            <div class="receipt-thanks">
+              Thank You For Shopping<br>
+              <strong>We look forward to seeing you again.</strong>
+            </div>
+            <div class="receipt-powered">Powered By <strong>CampusNexus</strong><br><strong>0790969743</strong></div>
         </div>`;
 
     const receiptContent = document.getElementById('receiptContent');
@@ -3225,6 +3262,34 @@ function printReceipt() {
         body > *:not(#lcThermalPrintRoot) { display:none!important; }
         #lcThermalPrintRoot { display:block!important; width:80mm; margin:0 auto; padding:0; color:#111; background:#fff; }
         #lcThermalPrintRoot .receipt-paper { width:80mm!important; max-width:80mm!important; margin:0!important; padding:4mm 3mm!important; border:0!important; border-radius:0!important; box-shadow:none!important; background:#fff!important; color:#111!important; font-family:"Courier New",monospace!important; font-size:10px!important; }
+        #lcThermalPrintRoot .receipt-brand{padding-bottom:5px!important;border-bottom:1px dashed #111!important;text-align:center!important}
+        #lcThermalPrintRoot .receipt-logo{display:none!important}
+        #lcThermalPrintRoot .receipt-brand h2{font-size:16px!important;margin:0!important;color:#111!important}
+        #lcThermalPrintRoot .receipt-brand p{font-size:8px!important;color:#111!important;margin:2px 0 0!important}
+        #lcThermalPrintRoot .receipt-meta{display:block!important;padding:6px 0!important;border-bottom:1px dashed #111!important}
+        #lcThermalPrintRoot .receipt-meta div{display:flex!important;justify-content:space-between!important;gap:8px!important;font-size:8px!important;color:#111!important;padding:1px 0!important}
+        #lcThermalPrintRoot .receipt-meta strong{display:block!important;text-align:right!important;font-size:8px!important;color:#111!important;margin:0!important}
+        #lcThermalPrintRoot .receipt-items{width:100%!important;border-collapse:collapse!important;margin:6px 0!important;table-layout:fixed!important}
+        #lcThermalPrintRoot .receipt-items th{font-size:7px!important;color:#111!important;padding:3px 1px!important;border-bottom:1px dashed #111!important;white-space:nowrap!important}
+        #lcThermalPrintRoot .receipt-items td{font-size:7px!important;padding:3px 1px!important;border-bottom:0!important;color:#111!important;vertical-align:top!important}
+        #lcThermalPrintRoot .receipt-items th:nth-child(1),#lcThermalPrintRoot .receipt-items td:nth-child(1){width:6%!important;text-align:left!important}
+        #lcThermalPrintRoot .receipt-items th:nth-child(2),#lcThermalPrintRoot .receipt-items td:nth-child(2){width:42%!important;text-align:left!important}
+        #lcThermalPrintRoot .receipt-items th:nth-child(3),#lcThermalPrintRoot .receipt-items td:nth-child(3){width:11%!important;text-align:center!important}
+        #lcThermalPrintRoot .receipt-items th:nth-child(4),#lcThermalPrintRoot .receipt-items td:nth-child(4){width:19%!important;text-align:right!important}
+        #lcThermalPrintRoot .receipt-items th:nth-child(5),#lcThermalPrintRoot .receipt-items td:nth-child(5){width:22%!important;text-align:right!important}
+        #lcThermalPrintRoot .receipt-product small{display:block!important;font-size:6px!important;color:#111!important}
+        #lcThermalPrintRoot .receipt-totals{border-top:1px dashed #111!important;padding-top:4px!important;margin-top:4px!important}
+        #lcThermalPrintRoot .receipt-total-row{font-size:8px!important;padding:2px 0!important;color:#111!important}
+        #lcThermalPrintRoot .receipt-total-row.grand{font-size:13px!important;font-weight:900!important;padding-top:4px!important;border-top:1px solid #111!important}
+        #lcThermalPrintRoot .receipt-payment{display:flex!important;justify-content:space-between!important;margin-top:5px!important;padding:4px 0!important;border-top:1px dashed #111!important;border-bottom:1px dashed #111!important;background:#fff!important;color:#111!important;font-size:8px!important;font-weight:700!important}
+        #lcThermalPrintRoot .receipt-mobile-money{margin-top:5px!important;padding:4px 0!important;border-bottom:1px dashed #111!important}
+        #lcThermalPrintRoot .receipt-section-title{text-align:center!important;font-size:9px!important;font-weight:900!important;margin-bottom:3px!important}
+        #lcThermalPrintRoot .receipt-detail-row{display:flex!important;justify-content:space-between!important;gap:8px!important;font-size:8px!important;padding:2px 0!important}
+        #lcThermalPrintRoot .receipt-detail-row strong{font-weight:900!important;text-align:right!important}
+        #lcThermalPrintRoot .receipt-thanks{margin-top:7px!important;padding-top:6px!important;border-top:0!important;color:#111!important;font-size:8px!important;line-height:1.4!important;text-align:center!important}
+        #lcThermalPrintRoot .receipt-powered{margin-top:5px!important;padding-top:5px!important;border-top:1px dashed #111!important;text-align:center!important;color:#111!important;font-size:7px!important;line-height:1.45!important}
+        #lcThermalPrintRoot .receipt-powered strong{font-weight:900!important}
+
         #lcThermalPrintRoot .receipt-logo { width:28px!important;height:28px!important;border-radius:50%!important;margin:0 auto 5px!important;background:#111!important;color:#fff!important;font-size:12px!important; }
         #lcThermalPrintRoot .receipt-brand h2 { font-size:16px!important; letter-spacing:.4px!important; color:#111!important; }
         #lcThermalPrintRoot .receipt-brand p { font-size:8px!important; color:#333!important; }
@@ -4404,7 +4469,7 @@ async function completeUltimateSale(){
         const cashPaid=Number(document.getElementById('cashPaid')?.value||0);const subtotal=getCartSubtotal();const discount=getCheckoutDiscount();const total=Math.max(0,subtotal-discount);
         if(!total||total<=0)throw new Error('Cart total must be greater than zero.');
         if(selectedPayment==='cash'&&cashPaid<total)throw new Error(`Insufficient cash. Balance: ${LC.money(total-cashPaid)}`);
-        let stkPhone='';if(selectedPayment==='mpesa')stkPhone=normalizeMpesaPhone(phoneSource);
+        let stkPhone='';if(selectedPayment==='mpesa'){stkPhone=normalizeMpesaPhone(phoneSource);if(!stkPhone)throw new Error('Enter the customer M-Pesa phone number before completing the sale.');}
         for(const item of cart){const product=products.find(p=>String(p.id)===String(item.id));if(!product)throw new Error(`Product ${item.name} is no longer available.`);if(Number(product.stock||0)<Number(item.qty||0))throw new Error(`Insufficient stock for ${item.name}. Available: ${product.stock}.`);}
         if(completeBtn){completeBtn.disabled=true;completeBtn.innerHTML=selectedPayment==='mpesa'?'<span class="stk-spinner"></span> Sending STK…':'<i class="fas fa-spinner fa-spin"></i> Processing…';}
         let paymentResult=null,mpesaReceipt='',paymentReference='',checkoutRequestId='',paidAt='';
@@ -4835,8 +4900,10 @@ body{background:linear-gradient(135deg,#f8f7ff 0%,#fff7fb 48%,#f4f7ff 100%)}
 .lc-notification-count{position:absolute;right:-4px;top:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:99px;background:#ec4899;color:#fff;border:2px solid var(--bg-card,#fff);font-size:10px;font-weight:800;display:grid;place-items:center}.lc-notification-count.hidden{display:none}
 .lc-notification-panel{position:fixed!important;top:76px!important;right:22px!important;bottom:auto!important;left:auto!important;width:min(390px,calc(100vw - 28px));z-index:6000;background:var(--bg-card,#fff);border:1px solid var(--border,#e8e3ed);border-radius:20px;box-shadow:0 24px 70px rgba(24,15,45,.20);overflow:hidden;display:none}.lc-notification-panel.open{display:block;animation:lcNotifIn .2s ease}@keyframes lcNotifIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 .lc-notif-head{padding:15px 17px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border,#eee)}.lc-notif-head strong{font-size:15px}.lc-notif-clear{border:0;background:transparent;color:#7c3aed;font-size:12px;font-weight:700;cursor:pointer}.lc-notif-list{max-height:430px;overflow:auto}.lc-notif-item{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border,#f0edf3);cursor:pointer}.lc-notif-item:hover{background:#faf8fd}.lc-notif-icon{width:36px;height:36px;flex:0 0 36px;border-radius:12px;display:grid;place-items:center;background:#f2eaff;color:#7c3aed}.lc-notif-item.warning .lc-notif-icon{background:#fff4df;color:#d97706}.lc-notif-item.error .lc-notif-icon{background:#ffe9ed;color:#dc2626}.lc-notif-item.success .lc-notif-icon{background:#e8fbf2;color:#059669}.lc-notif-body{min-width:0}.lc-notif-title{font-size:13px;font-weight:800}.lc-notif-text{font-size:12px;color:#777184;margin-top:3px;line-height:1.4}.lc-notif-time{font-size:10px;color:#aaa2b1;margin-top:5px}.lc-notif-empty{padding:30px 18px;text-align:center;color:#8b8493;font-size:13px}.lc-notification-pulse{animation:lcBellPulse 1.5s ease}@keyframes lcBellPulse{0%,100%{transform:scale(1)}20%{transform:scale(1.08)}40%{transform:scale(.96)}60%{transform:scale(1.04)}}
-.lc-inline-alerts{position:fixed;top:82px;left:50%;transform:translateX(-50%);z-index:5500;width:min(520px,calc(100vw - 28px));display:flex;flex-direction:column;gap:9px;pointer-events:none}.lc-inline-alert{pointer-events:auto;display:flex;align-items:flex-start;gap:11px;padding:13px 15px;border-radius:16px;background:rgba(255,255,255,.96);border:1px solid #eee7f3;box-shadow:0 18px 45px rgba(30,15,50,.16);animation:lcAlertIn .3s ease}.lc-inline-alert .lc-alert-icon{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:#f2eaff;color:#7c3aed;flex:0 0 32px}.lc-inline-alert.warning .lc-alert-icon{background:#fff4df;color:#d97706}.lc-inline-alert.error .lc-alert-icon{background:#ffe9ed;color:#dc2626}.lc-inline-alert.success .lc-alert-icon{background:#e8fbf2;color:#059669}.lc-inline-alert strong{display:block;font-size:13px}.lc-inline-alert span{display:block;margin-top:2px;color:#777184;font-size:12px;line-height:1.35}.lc-alert-close{margin-left:auto;border:0;background:transparent;color:#aaa;cursor:pointer}@keyframes lcAlertIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
-@media(max-width:650px){.lc-notification-panel{top:68px;right:14px}.lc-inline-alerts{top:70px}.lc-welcome-card{padding:30px 22px}}
+.lc-inline-alerts{position:fixed;top:76px;right:22px;left:auto;transform:none;z-index:99990;width:min(390px,calc(100vw - 28px));display:flex;flex-direction:column;gap:9px;pointer-events:none}.lc-inline-alert{pointer-events:auto;display:flex;align-items:flex-start;gap:11px;padding:13px 15px;border-radius:16px;background:rgba(255,255,255,.98);border:1px solid #d9f3e5;box-shadow:0 18px 45px rgba(30,15,50,.16);animation:lcAlertIn .3s ease}.lc-inline-alert .lc-alert-icon{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:#dcfce7;color:#16a34a;flex:0 0 32px}.lc-inline-alert.warning .lc-alert-icon{background:#fff4df;color:#d97706}.lc-inline-alert.error .lc-alert-icon{background:#ffe9ed;color:#dc2626}.lc-inline-alert.success{border-color:#bbf7d0}.lc-inline-alert.success .lc-alert-icon{background:#dcfce7;color:#16a34a}.lc-inline-alert strong{display:block;font-size:13px;color:#166534}.lc-inline-alert span{display:block;margin-top:2px;color:#777184;font-size:12px;line-height:1.35}.lc-alert-close{margin-left:auto;border:0;background:transparent;color:#aaa;cursor:pointer}@keyframes lcAlertIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+@media(max-width:650px){.lc-notification-panel{top:68px;right:14px}.lc-inline-alerts{top:68px;right:14px;left:auto;width:min(390px,calc(100vw - 28px));transform:none}.lc-welcome-card{padding:30px 22px}}
+<style id="lucie-receipt-campusnexus">
+.receipt-meta-thermal div{display:flex;justify-content:space-between;gap:12px}.receipt-meta-thermal div span{color:#81777e}.receipt-meta-thermal div strong{text-align:right}.receipt-items .rcpt-no{text-align:left}.receipt-items .rcpt-qty{text-align:center}.receipt-items .rcpt-price,.receipt-items .rcpt-amount{text-align:right}.receipt-product small{display:block;font-size:9px;color:#8a8189;margin-top:2px}.receipt-payment{display:flex;justify-content:space-between;align-items:center}.receipt-mobile-money{margin-top:10px;padding:10px 12px;border-top:1px dashed #d9d1d4;border-bottom:1px dashed #d9d1d4}.receipt-section-title{text-align:center;font-size:11px;font-weight:900;margin-bottom:5px}.receipt-detail-row{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:11px}.receipt-detail-row strong{text-align:right}.receipt-powered{text-align:center;margin-top:10px;padding-top:9px;border-top:1px dashed #d9d1d4;font-size:10px;color:#81777e;line-height:1.5}.receipt-powered strong{color:#29242a}
 </style>
 
 </head><body><h1>Lucie Closet</h1><div class="muted">Sales Report · ${start} to ${end}</div><div class="summary"><strong>Total Sales:</strong> KES ${total.toLocaleString('en-KE',{minimumFractionDigits:2})} &nbsp; <strong>Orders:</strong> ${filtered.length}</div><table><thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Payment</th><th>Total</th></tr></thead><tbody>${filtered.map(o=>`<tr><td>${LC.escape(o.order_number)}</td><td>${new Date(o.created_at).toLocaleString('en-KE')}</td><td>${LC.escape(o.customer_name||'Guest')}</td><td>${LC.escape(o.payment_method||'')}</td><td>KES ${Number(o.total||0).toLocaleString('en-KE',{minimumFractionDigits:2})}</td></tr>`).join('')}</tbody></table></body></html>`);
