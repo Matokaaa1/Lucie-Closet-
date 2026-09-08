@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Lucie Closet POS — FINAL CANONICAL BUILD — 2026-09-08 -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -296,6 +297,12 @@
         .toast.info { background: linear-gradient(135deg, #7A1F2B, #A63A4B); }
         .toast.warning { background: linear-gradient(135deg, #D97706, #F59E0B); }
 
+        
+        /* ===== MOBILE NAVIGATION / CASHIER MENU ===== */
+        .mobile-menu-btn{display:none;position:fixed;top:12px;left:12px;z-index:1500;width:44px;height:44px;border:0;border-radius:13px;background:linear-gradient(135deg,#7C3AED,#EC4899);color:#fff;box-shadow:0 10px 28px rgba(124,58,237,.28);cursor:pointer;align-items:center;justify-content:center;font-size:18px}
+        .mobile-nav-backdrop{display:none;position:fixed;inset:0;background:rgba(7,11,30,.42);backdrop-filter:blur(2px);z-index:1000}
+        .mobile-nav-backdrop.active{display:block}
+        @media(max-width:1024px){.mobile-menu-btn{display:flex}.sidebar-toggle{display:none!important}.top-bar{padding-left:58px!important}.sidebar{z-index:1200!important}}
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1024px) { .grid-2 { grid-template-columns: 1fr; } .pos-layout { grid-template-columns: 1fr; } .pos-cart { height: 380px; } }
         @media (max-width: 768px) { .sidebar { transform: translateX(-100%); width: 280px; } .sidebar.open { transform: translateX(0); } .sidebar-toggle { display: flex; } .main-content { margin-left: 0; padding: 14px; } .stats-grid { grid-template-columns: repeat(2, 1fr); } .stat-card .stat-value { font-size: 20px; } .top-bar .page-title h1 { font-size: 18px; } .user-profile .user-name, .user-profile .user-role { display: none; } .form-row { grid-template-columns: 1fr; } .pos-product-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); } .modal { padding: 20px; } }
@@ -852,6 +859,8 @@ setInterval(()=>{if(window.currentUser)window.applyRoleBasedAccess();},3000);
     </nav>
 
     <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+    <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" onclick="toggleMobileMenu()" aria-label="Open navigation menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
+    <div class="mobile-nav-backdrop" id="mobileNavBackdrop" onclick="closeMobileMenu()"></div>
 
     <!-- ===== MAIN CONTENT ===== -->
     <div class="main-content">
@@ -1168,7 +1177,7 @@ setInterval(()=>{if(window.currentUser)window.applyRoleBasedAccess();},3000);
                         <div class="form-group"><label>Business Name</label><input type="text" id="businessName" value="Lucie Closet"></div>
                         <div class="form-group"><label>Phone</label><input type="text" id="businessPhone" value="+254 794 789 345"></div>
                         <div class="form-group"><label>Email</label><input type="email" id="businessEmail" value="info@luciecloset.co.ke"></div>
-                        <div class="form-group"><label>Location</label><input type="text" id="businessLocation" value="Eastleigh 5th St, Micki Mall, Rm S12"></div>
+                        <div class="form-group"><label>Location</label><input type="text" id="businessLocation" value="Miski Shopping Centre, 2nd Floor, Room S12"></div>
                         <div class="form-group"><label>Receipt Footer</label><input type="text" id="receiptFooter" value="Thank you for shopping at Lucie Closet! 👗"></div>
                         <button type="submit" class="btn btn-primary btn-block">💾 Save Settings</button>
                     </form>
@@ -1451,7 +1460,7 @@ setInterval(()=>{if(window.currentUser)window.applyRoleBasedAccess();},3000);
     <div class="modal-overlay" id="stkPushModal">
         <div class="modal stk-modal" role="dialog" aria-modal="true" aria-labelledby="stkModalTitle">
             <div class="stk-modal-head">
-                <button class="stk-modal-close" type="button" onclick="closeModal('stkPushModal')" aria-label="Close">&times;</button>
+                <button class="stk-modal-close" type="button" onclick="requestCloseStkModal()" aria-label="Cancel M-Pesa request" title="Cancel waiting">&times;</button>
                 <div class="stk-brand"><div class="stk-brand-icon"><i class="fas fa-mobile-screen-button"></i></div><span>LUCIE CLOSET PAYMENTS</span></div>
                 <h3 id="stkModalTitle">M-Pesa payment request</h3>
                 <p>Secure STK Push · Powered by PayHero</p>
@@ -1466,7 +1475,10 @@ setInterval(()=>{if(window.currentUser)window.applyRoleBasedAccess();},3000);
                 <div class="stk-step" id="stkStepConfirm"><div class="stk-step-dot"><i class="fas fa-circle-check"></i></div><div><h4>Confirming payment</h4><p>Lucie Closet is waiting for PayHero confirmation.</p></div></div>
             </div>
             <div class="stk-modal-message" id="stkModalMessage">Please wait while we send the M-Pesa prompt.</div>
-            <div class="stk-modal-actions"><button type="button" class="btn btn-outline" onclick="closeModal('stkPushModal')">Keep waiting</button></div>
+            <div class="stk-modal-actions" id="stkModalActions">
+                <button type="button" class="btn btn-primary" id="stkRetryBtn" style="display:none" onclick="retryStkPayment()"><i class="fas fa-redo"></i> Try Again</button>
+                <button type="button" class="btn btn-outline" id="stkCloseBtn" onclick="closeStkModalSafely()">Close</button>
+            </div>
         </div>
     </div>
 
@@ -1607,6 +1619,12 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 window.showToast = showToast;
+function toggleMobileMenu(){const sidebar=document.getElementById('sidebar'),backdrop=document.getElementById('mobileNavBackdrop'),btn=document.getElementById('mobileMenuBtn');if(!sidebar)return;const open=!sidebar.classList.contains('open');sidebar.classList.toggle('open',open);backdrop?.classList.toggle('active',open);if(btn){btn.setAttribute('aria-expanded',open?'true':'false');btn.innerHTML=`<i class="fas fa-${open?'times':'bars'}"></i>`;}}
+function closeMobileMenu(){const sidebar=document.getElementById('sidebar'),backdrop=document.getElementById('mobileNavBackdrop'),btn=document.getElementById('mobileMenuBtn');sidebar?.classList.remove('open');backdrop?.classList.remove('active');if(btn){btn.setAttribute('aria-expanded','false');btn.innerHTML='<i class="fas fa-bars"></i>';}}
+window.toggleMobileMenu=toggleMobileMenu;window.closeMobileMenu=closeMobileMenu;
+document.addEventListener('click',function(e){const navItem=e.target.closest('.sidebar-menu li[data-section]');if(navItem&&window.innerWidth<=1024)closeMobileMenu();});
+window.addEventListener('resize',function(){if(window.innerWidth>1024)closeMobileMenu();});
+
 
 // ============================================================
 // STATE
@@ -3152,6 +3170,7 @@ function generateReceipt(order) {
     const payment = String(order.payment_method || '');
     const receiptNo = String(order.order_number || ('POS-' + Date.now().toString().slice(-8)));
     const dateText = new Date(order.created_at || Date.now()).toLocaleString();
+    const servedBy = String(order.served_by || order.cashier || order.cashier_name || currentUser?.full_name || currentUser?.email || 'System');
     const itemRows = items.map(i => `
         <tr><td>${LC.escape(i.name || 'Item')}<small style="display:block;color:#9a9197;">${LC.escape(i.code || '')}</small></td><td>${Number(i.qty || 0)}</td><td>KES ${(Number(i.price || 0) * Number(i.qty || 0)).toLocaleString()}</td></tr>`).join('');
     const receiptHtml = `
@@ -3166,6 +3185,7 @@ function generateReceipt(order) {
                 <div>Date & Time<strong>${LC.escape(dateText)}</strong></div>
                 <div>Customer<strong>${LC.escape(order.customer_name || 'Walk-in Customer')}</strong></div>
                 <div>Phone<strong>${LC.escape(order.customer_phone || 'N/A')}</strong></div>
+                <div>Served By<strong>${LC.escape(servedBy)}</strong></div>
             </div>
             <table class="receipt-items"><thead><tr><th>Item</th><th>Qty</th><th>Amount</th></tr></thead><tbody>${itemRows}</tbody></table>
             <div class="receipt-totals">
@@ -3173,8 +3193,8 @@ function generateReceipt(order) {
                 <div class="receipt-total-row"><span>Discount</span><strong>KES ${discount.toLocaleString()}</strong></div>
                 <div class="receipt-total-row grand"><span>TOTAL</span><strong>KES ${total.toLocaleString()}</strong></div>
             </div>
-            <div class="receipt-payment"><i class="fas fa-circle-check"></i> Payment: ${LC.escape(payment)}</div>
-            <div class="receipt-thanks">Thank you for shopping with Lucie Closet!<br>Eastleigh 5th St, Micki Mall, Rm S12<br><strong>We look forward to seeing you again.</strong></div>
+            <div class="receipt-payment"><i class="fas fa-circle-check"></i> Payment: ${LC.escape(payment)}${order.mpesa_receipt_number?`<br><strong>M-Pesa Receipt:</strong> ${LC.escape(order.mpesa_receipt_number)}`:''}${order.payment_reference?`<br><strong>PayHero Ref:</strong> ${LC.escape(order.payment_reference)}`:''}</div>
+            <div class="receipt-thanks">Thank you for shopping with Lucie Closet!<br>Miski Shopping Centre, 2nd Floor, Room S12<br><strong>We look forward to seeing you again.</strong></div>
         </div>`;
 
     const receiptContent = document.getElementById('receiptContent');
@@ -3188,15 +3208,39 @@ function printReceipt() {
     const receiptContent = document.getElementById('receiptContent');
     if (!receiptContent) return;
     const content = receiptContent.innerHTML;
-    const printWindow = window.open('', '_blank', 'width=460,height=760');
-    if (!printWindow) { showToast('Please allow pop-ups to print the receipt.', 'warning'); return; }
-    printWindow.document.write(`<!doctype html><html><head><title>Lucie Closet Receipt</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>
-        *{box-sizing:border-box}body{margin:0;padding:18px;background:#fff;font-family:Arial,sans-serif;color:#17141a}.receipt-paper{width:100%;max-width:420px;margin:auto}.receipt-brand{text-align:center;padding-bottom:16px;border-bottom:1px dashed #bbb}.receipt-logo{width:44px;height:44px;border-radius:12px;margin:0 auto 8px;background:#7C3AED;color:#fff;display:flex;align-items:center;justify-content:center}.receipt-brand h2{margin:0;font-size:20px}.receipt-brand p{margin:4px 0;color:#777;font-size:10px}.receipt-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 0;border-bottom:1px solid #ddd}.receipt-meta div{font-size:9px;color:#777}.receipt-meta strong{display:block;color:#222;font-size:10px;margin-top:2px}.receipt-items{width:100%;border-collapse:collapse;margin:10px 0}.receipt-items th{text-align:left;font-size:9px;color:#777;padding:6px 0;border-bottom:1px solid #ddd}.receipt-items td{padding:7px 0;font-size:10px;border-bottom:1px solid #eee}.receipt-items th:last-child,.receipt-items td:last-child{text-align:right}.receipt-totals{border-top:1px dashed #bbb;padding-top:8px}.receipt-total-row{display:flex;justify-content:space-between;padding:3px 0;font-size:10px}.receipt-total-row.grand{font-size:15px;font-weight:900}.receipt-payment{margin-top:10px;padding:8px;background:#f3efff;color:#5B21B6;font-size:9px}.receipt-thanks{text-align:center;margin-top:12px;padding-top:10px;border-top:1px dashed #bbb;color:#777;font-size:9px;line-height:1.5}@media print{body{padding:0}.receipt-paper{max-width:none}}
-    </style></head><body>${content}
-
-</body></html>`);
-    printWindow.document.close();
-    setTimeout(() => { printWindow.focus(); printWindow.print(); }, 250);
+    const printRoot = document.createElement('div');
+    printRoot.id = 'lcThermalPrintRoot';
+    printRoot.innerHTML = `
+      <style id="lcThermalPrintStyle">
+        @page { size: 80mm auto; margin: 0; }
+        html,body { margin:0!important; padding:0!important; background:#fff!important; }
+        body > *:not(#lcThermalPrintRoot) { display:none!important; }
+        #lcThermalPrintRoot { display:block!important; width:80mm; margin:0 auto; padding:0; color:#111; background:#fff; }
+        #lcThermalPrintRoot .receipt-paper { width:80mm!important; max-width:80mm!important; margin:0!important; padding:4mm 3mm!important; border:0!important; border-radius:0!important; box-shadow:none!important; background:#fff!important; color:#111!important; font-family:"Courier New",monospace!important; font-size:10px!important; }
+        #lcThermalPrintRoot .receipt-logo { width:28px!important;height:28px!important;border-radius:50%!important;margin:0 auto 5px!important;background:#111!important;color:#fff!important;font-size:12px!important; }
+        #lcThermalPrintRoot .receipt-brand h2 { font-size:16px!important; letter-spacing:.4px!important; color:#111!important; }
+        #lcThermalPrintRoot .receipt-brand p { font-size:8px!important; color:#333!important; }
+        #lcThermalPrintRoot .receipt-meta { display:block!important; padding:7px 0!important; border-bottom:1px dashed #111!important; }
+        #lcThermalPrintRoot .receipt-meta div { display:flex!important;justify-content:space-between!important;font-size:8px!important;color:#111!important;padding:1px 0!important; }
+        #lcThermalPrintRoot .receipt-meta strong { display:inline!important;font-size:8px!important;color:#111!important;margin:0!important; }
+        #lcThermalPrintRoot .receipt-items { width:100%!important;border-collapse:collapse!important;margin:7px 0!important; }
+        #lcThermalPrintRoot .receipt-items th { font-size:8px!important;color:#111!important;padding:4px 0!important;border-bottom:1px dashed #111!important; }
+        #lcThermalPrintRoot .receipt-items td { font-size:8px!important;padding:4px 0!important;border-bottom:0!important;color:#111!important;vertical-align:top!important; }
+        #lcThermalPrintRoot .receipt-items td small { font-size:7px!important;color:#333!important; }
+        #lcThermalPrintRoot .receipt-totals { border-top:1px dashed #111!important;padding-top:5px!important; }
+        #lcThermalPrintRoot .receipt-total-row { font-size:9px!important;padding:2px 0!important;color:#111!important; }
+        #lcThermalPrintRoot .receipt-total-row.grand { font-size:13px!important;font-weight:900!important; }
+        #lcThermalPrintRoot .receipt-payment { margin-top:6px!important;padding:5px!important;border:1px dashed #111!important;background:#fff!important;color:#111!important;font-size:8px!important; }
+        #lcThermalPrintRoot .receipt-thanks { margin-top:7px!important;padding-top:7px!important;border-top:1px dashed #111!important;color:#111!important;font-size:8px!important;line-height:1.4!important; }
+      </style>
+      ${content}`;
+    document.body.appendChild(printRoot);
+    const previousTitle = document.title; document.title = 'Lucie Closet Receipt';
+    const cleanup = () => { document.title = previousTitle; printRoot.remove(); window.removeEventListener('afterprint', cleanup); };
+    window.addEventListener('afterprint', cleanup, {once:true});
+    requestAnimationFrame(() => setTimeout(() => {
+        try { window.print(); } catch (e) { console.error('Thermal print failed:', e); cleanup(); showToast('Receipt is ready. Tap Print again and select the thermal printer.', 'warning'); }
+    }, 120));
 }
 window.printReceipt = printReceipt;
 
@@ -3386,82 +3430,6 @@ function renderProductsTable() {
 }
 window.renderProductsTable = renderProductsTable;
 
-function openProductModal(product = null) {
-    const editId = document.getElementById('editProductId');
-    const modalTitle = document.getElementById('productModalTitle');
-    const saveBtn = document.getElementById('saveProductBtn');
-    const productName = document.getElementById('productName');
-    const productCode = document.getElementById('productCode');
-    const productCategory = document.getElementById('productCategory');
-    const productGender = document.getElementById('productGender');
-    const productPrice = document.getElementById('productPrice');
-    const productStock = document.getElementById('productStock');
-    const productBestQuality = document.getElementById('productBestQuality');
-    const imagePreview = document.getElementById('imagePreview');
-    
-    if (editId) editId.value = product ? product.id : '';
-    if (modalTitle) modalTitle.textContent = product ? '✏️ Edit Product' : '📦 Add Product';
-    if (saveBtn) saveBtn.innerHTML = product ? '<i class="fas fa-save"></i> Update' : '<i class="fas fa-save"></i> Save';
-    if (productName) productName.value = product ? product.name : '';
-    if (productCode) productCode.value = product ? product.code : '';
-    if (productCategory) productCategory.value = product ? product.category : '';
-    if (productGender) productGender.value = product ? product.gender : 'unisex';
-    if (productPrice) productPrice.value = product ? product.price : '';
-    if (productStock) productStock.value = product ? product.stock : '';
-    if (productBestQuality) productBestQuality.checked = product ? product.best_quality : false;
-    if (imagePreview) imagePreview.innerHTML = product && product.image_url ? `<img src="${product.image_url}">` : '';
-
-    openModal('productModal');
-}
-window.openProductModal = openProductModal;
-
-async function saveProduct(e) {
-    e.preventDefault();
-    const id = document.getElementById('editProductId');
-    const productName = document.getElementById('productName');
-    const productCode = document.getElementById('productCode');
-    const productCategory = document.getElementById('productCategory');
-    const productGender = document.getElementById('productGender');
-    const productPrice = document.getElementById('productPrice');
-    const productStock = document.getElementById('productStock');
-    const productBestQuality = document.getElementById('productBestQuality');
-
-    if (!productName || !productCode || !productCategory || !productPrice || !productStock) return;
-
-    const name = productName.value.trim();
-    const code = productCode.value.trim();
-    const category = productCategory.value;
-    const gender = productGender ? productGender.value : 'unisex';
-    const price = parseInt(productPrice.value);
-    const stock = parseInt(productStock.value);
-    const best_quality = productBestQuality ? productBestQuality.checked : false;
-
-    if (!name || !code || !category || !price || isNaN(stock)) {
-        showToast('Please fill in all required fields', 'error');
-        return;
-    }
-
-    const productData = { name, code, category, gender, price, stock, best_quality };
-
-    try {
-        if (id && id.value) {
-            const { error } = await sb.from('products').update(productData).eq('id', parseInt(id.value));
-            if (error) throw error;
-            showToast('Product updated!', 'success');
-        } else {
-            const { error } = await sb.from('products').insert([productData]);
-            if (error) throw error;
-            showToast('Product added!', 'success');
-        }
-        await loadProducts();
-        updateStats();
-        renderCurrentTab();
-        closeModal('productModal');
-    } catch (e) {
-        showToast('Error saving product', 'error');
-    }
-}
-window.saveProduct = saveProduct;
 
 function editProduct(id) {
     const product = products.find(p => p.id === id);
@@ -3859,7 +3827,7 @@ function saveSettings(e) {
         businessName: businessName ? businessName.value : 'Lucie Closet',
         phone: businessPhone ? businessPhone.value : '+254 794 789 345',
         email: businessEmail ? businessEmail.value : 'info@luciecloset.co.ke',
-        location: businessLocation ? businessLocation.value : 'Eastleigh 5th St, Micki Mall, Rm S12',
+        location: businessLocation ? businessLocation.value : 'Miski Shopping Centre, 2nd Floor, Room S12',
         receiptFooter: receiptFooter ? receiptFooter.value : 'Thank you for shopping at Lucie Closet! 👗'
     };
     localStorage.setItem('luciecloset_settings', JSON.stringify(settings));
@@ -3890,9 +3858,34 @@ function openModal(id) {
 }
 window.openModal = openModal;
 
-function closeModal(id) {
+function hideModalElement(id) {
     const modal = document.getElementById(id);
-    if (modal) modal.classList.remove('active');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+}
+
+function closeModal(id) {
+    // The STK modal has an inline display/z-index set when payment starts.
+    // Removing only the "active" class therefore leaves it visible on mobile.
+    // Always clear the inline display and stop the local polling when it is closed.
+    if (id === 'stkPushModal') {
+        if (typeof activeStkPoll !== 'undefined' && activeStkPoll) {
+            clearTimeout(activeStkPoll);
+            activeStkPoll = null;
+        }
+        if (typeof activeStkReject === 'function') {
+            const reject = activeStkReject;
+            activeStkReject = null;
+            const err = new Error('STK payment waiting was closed by the cashier.');
+            err.code = 'STK_USER_CLOSED';
+            hideModalElement(id);
+            try { reject(err); } catch (_) {}
+            return;
+        }
+    }
+    hideModalElement(id);
 }
 window.closeModal = closeModal;
 
@@ -4193,110 +4186,6 @@ showLogin = function() {
 window.showLogin = showLogin;
 
 // ------------------------------------------------------------
-// Product save: supports optional fashion fields when present,
-// while falling back safely if the existing DB schema is older.
-// ------------------------------------------------------------
-openProductModal = function(product = null) {
-    const set = (id, value) => {
-        const el = document.getElementById(id);
-        if (el) el.value = value ?? '';
-    };
-    const check = (id, value) => {
-        const el = document.getElementById(id);
-        if (el) el.checked = !!value;
-    };
-
-    set('editProductId', product?.id || '');
-    set('productName', product?.name || '');
-    set('productCode', product?.code || '');
-    set('productCategory', product?.category || '');
-    set('productGender', product?.gender || 'unisex');
-    set('productPrice', product?.price ?? '');
-    set('productStock', product?.stock ?? '');
-    set('productCostPrice', product?.cost_price ?? product?.cost ?? '');
-    set('productSize', product?.size ?? product?.variant ?? '');
-    set('productColour', product?.colour ?? product?.color ?? '');
-    set('productReorderLevel', product?.reorder_level ?? product?.minimum_stock ?? 5);
-    set('productSupplier', product?.supplier ?? '');
-    set('productImageUrl', product?.image_url ?? '');
-    check('productBestQuality', product?.best_quality);
-
-    const title = document.getElementById('productModalTitle');
-    const saveBtn = document.getElementById('saveProductBtn');
-    if (title) title.textContent = product ? '✏️ Edit Product' : '📦 Add Product';
-    if (saveBtn) saveBtn.innerHTML = product ? '<i class="fas fa-save"></i> Update Product' : '<i class="fas fa-save"></i> Save Product';
-
-    const preview = document.getElementById('imagePreview');
-    if (preview) preview.innerHTML = product?.image_url
-        ? `<img src="${LC.escape(product.image_url)}" alt="Product image" style="max-width:100%;max-height:180px;object-fit:contain;border-radius:12px;">`
-        : '';
-
-    openModal('productModal');
-};
-window.openProductModal = openProductModal;
-
-saveProduct = async function(e) {
-    e.preventDefault();
-    if (!LC.permissionToast('manageProducts')) return;
-
-    const get = id => document.getElementById(id);
-    const name = get('productName')?.value.trim();
-    const code = get('productCode')?.value.trim();
-    const category = get('productCategory')?.value;
-    const gender = get('productGender')?.value || 'unisex';
-    const price = Number(get('productPrice')?.value);
-    const stock = Number(get('productStock')?.value);
-    const editId = get('editProductId')?.value;
-    const best_quality = !!get('productBestQuality')?.checked;
-
-    if (!name || !code || !category || !Number.isFinite(price) || price <= 0 || !Number.isInteger(stock) || stock < 0) {
-        showToast('Enter a valid product name, code, selling price and non-negative whole-number stock.', 'error');
-        return;
-    }
-
-    const optional = {
-        cost_price: Number(get('productCostPrice')?.value || 0),
-        size: get('productSize')?.value.trim() || null,
-        colour: get('productColour')?.value.trim() || null,
-        reorder_level: Number(get('productReorderLevel')?.value || 5),
-        supplier: get('productSupplier')?.value.trim() || null,
-        image_url: get('productImageUrl')?.value.trim() || null
-    };
-
-    const fullData = { name, code, category, gender, price, stock, best_quality, ...optional };
-    const baseData = { name, code, category, gender, price, stock, best_quality };
-
-    try {
-        let error;
-        if (editId) {
-            ({ error } = await sb.from('products').update(fullData).eq('id', Number(editId)));
-            if (error) {
-                ({ error } = await sb.from('products').update(baseData).eq('id', Number(editId)));
-            }
-            if (error) throw error;
-            await LC.audit('PRODUCT_UPDATED', { id: Number(editId), name, code });
-            showToast('Product updated successfully.', 'success');
-        } else {
-            ({ error } = await sb.from('products').insert([fullData]));
-            if (error) {
-                ({ error } = await sb.from('products').insert([baseData]));
-            }
-            if (error) throw error;
-            await LC.audit('PRODUCT_CREATED', { name, code });
-            showToast('Product added successfully.', 'success');
-        }
-        await loadProducts();
-        updateStats();
-        renderCurrentTab();
-        closeModal('productModal');
-    } catch (err) {
-        console.error('Product save error:', err);
-        showToast(`Could not save product: ${err.message || 'Unknown error'}`, 'error');
-    }
-};
-window.saveProduct = saveProduct;
-
-// ------------------------------------------------------------
 // Product deletion guard + audit.
 // ------------------------------------------------------------
 deleteProduct = async function(id) {
@@ -4330,6 +4219,7 @@ window.deleteProduct = deleteProduct;
 // ============================================================
 const PAYHERO_ACCOUNT_ID = '11408';
 let activeStkPoll = null;
+let activeStkReject = null;
 
 function normalizeMpesaPhone(value) {
     let phone = String(value || '').replace(/\s+/g, '').replace(/-/g, '');
@@ -4393,6 +4283,36 @@ function clearStkStatus() {
     if (box) { box.className = 'stk-status'; box.innerHTML = ''; }
 }
 
+function requestCloseStkModal() {
+    if (activeStkReject) {
+        const ok = window.confirm(
+            'Stop waiting for this M-Pesa payment?\n\n' +
+            'This closes the POS waiting screen but does NOT reverse or cancel a prompt that has already reached the customer. ' +
+            'If the customer completes the payment, check Orders before sending another STK Push.'
+        );
+        if (!ok) return;
+    }
+    closeStkModalSafely(true);
+}
+window.requestCloseStkModal = requestCloseStkModal;
+
+function closeStkModalSafely(userInitiated=false) {
+    if (activeStkPoll) { clearTimeout(activeStkPoll); activeStkPoll = null; }
+    if (activeStkReject) {
+        const reject = activeStkReject;
+        activeStkReject = null;
+        if (userInitiated) {
+            const err = new Error('STK payment waiting was closed by the cashier.');
+            err.code = 'STK_USER_CLOSED';
+            try { reject(err); } catch (_) {}
+        }
+    }
+    clearStkStatus();
+    updateStkActionButtons(false);
+    hideModalElement('stkPushModal');
+}
+window.closeStkModalSafely=closeStkModalSafely;
+
 async function payHeroInvoke(body) {
     const { data, error } = await sb.functions.invoke('payhero', { body });
     if (error) throw new Error(error.message || 'Could not contact the payment service.');
@@ -4400,332 +4320,145 @@ async function payHeroInvoke(body) {
     return data;
 }
 
-async function waitForPayHeroPayment(transactionId, timeoutMs = 90000) {
-    const started = Date.now();
-    let lastStatus = 'pending';
-
-    return await new Promise((resolve, reject) => {
-        const poll = async () => {
-            try {
-                if (Date.now() - started > timeoutMs) {
-                    activeStkPoll = null;
-                    return reject(new Error('M-Pesa payment timed out. Ask the customer to try again.'));
-                }
-
-                const data = await payHeroInvoke({
-                    action: 'status',
-                    transaction_id: transactionId
-                });
-
-                const status = String(
-                    data.status ||
-                    data.transaction_status ||
-                    data.data?.status ||
-                    ''
-                ).toLowerCase();
-
-                lastStatus = status || lastStatus;
-
-                if (['completed', 'success', 'successful', 'paid'].includes(status)) {
-                    activeStkPoll = null;
-                    return resolve(data);
-                }
-
-                if (['failed', 'cancelled', 'canceled', 'rejected', 'declined', 'expired', 'not_found'].includes(status) ||
-                    data.code === 'PAYHERO_REFERENCE_NOT_FOUND') {
-                    activeStkPoll = null;
-                    return reject(new Error(data.message || (status === 'not_found'
-                        ? 'PayHero could not find the payment reference. Please start a new M-Pesa payment.'
-                        : `M-Pesa payment ${status}.`)));
-                }
-
-                const elapsed = Math.floor((Date.now() - started) / 1000);
-                const remaining = Math.max(0, Math.ceil((timeoutMs - (Date.now() - started)) / 1000));
-                setStkStatus(
-                    'Waiting for M-Pesa payment',
-                    `Check the customer's phone and enter the M-Pesa PIN. Waiting ${remaining}s…`
-                );
-
-                activeStkPoll = setTimeout(poll, 2500);
-            } catch (err) {
-                activeStkPoll = null;
-                reject(err);
-            }
-        };
-
-        poll();
+function normalizePayHeroPayload(data) {
+    const d=data||{}, nested=d.data||d.result||d.transaction||{};
+    const codeRaw=d.result_code??d.resultCode??d.ResultCode??nested.result_code??nested.resultCode??nested.ResultCode??'';
+    const code=String(codeRaw).trim();
+    const status=String(d.status??d.transaction_status??d.transactionStatus??d.payment_status??nested.status??nested.transaction_status??'').toLowerCase().trim();
+    const message=String(d.message??d.result_desc??d.resultDesc??d.ResultDesc??d.failure_reason??nested.message??nested.result_desc??nested.resultDesc??'').toLowerCase().trim();
+    return {d,nested,code,status,message};
+}
+function classifyPayHeroFailure(data) {
+    const p=normalizePayHeroPayload(data), text=`${p.status} ${p.message}`.toLowerCase();
+    if(p.code==='1'||/insufficient(?:\s+balance|\s+funds)|balance.*insufficient|insufficient.*funds/.test(text)) return {type:'insufficient_balance',title:'Insufficient M-Pesa balance',message:'The customer does not have enough M-Pesa balance for this payment. Ask the customer to top up and try again.',code:p.code};
+    if(p.code==='1032'||/cancelled by user|canceled by user|request cancelled|request canceled|customer.*cancel/.test(text)) return {type:'cancelled',title:'Customer cancelled the M-Pesa request',message:'The customer cancelled the STK prompt. No payment was confirmed. You can send a new prompt when the customer is ready.',code:p.code};
+    if(p.code==='1037'||/timeout|timed out|no response|did not respond|expired/.test(text)) return {type:'timeout',title:'M-Pesa prompt timed out',message:'The customer did not complete the M-Pesa prompt in time. Send a new prompt when the customer is ready.',code:p.code};
+    if(p.code==='2001'||/wrong pin|incorrect pin|invalid pin/.test(text)) return {type:'wrong_pin',title:'Incorrect M-Pesa PIN',message:'The M-Pesa PIN was not accepted. Ask the customer to retry with the correct PIN.',code:p.code};
+    if(p.code==='1001'||p.code==='500.001.1001'||/subscriber.*locked|transaction.*progress|duplicate/.test(text)) return {type:'busy',title:'M-Pesa transaction already in progress',message:'There is already an M-Pesa transaction in progress for this number. Wait for it to finish before sending another prompt.',code:p.code};
+    return {type:'failed',title:'M-Pesa payment failed',message:String(data?.message||data?.result_desc||data?.resultDesc||'The M-Pesa payment was not completed. No sale was recorded.').trim(),code:p.code};
+}
+function updateStkActionButtons(errorState=false){const retry=document.getElementById('stkRetryBtn'),close=document.getElementById('stkCloseBtn');if(retry)retry.style.display=errorState?'inline-flex':'none';if(close)close.textContent=errorState?'Close':'Keep waiting';}
+function showStkFailure(dataOrError){
+    const failure=dataOrError instanceof Error?{type:'failed',title:'M-Pesa payment could not be completed',message:dataOrError.message||'Please try again.'}:classifyPayHeroFailure(dataOrError);
+    setStkStatus(failure.title,failure.message,'error'); updateStkActionButtons(true);
+    const modal=document.getElementById('stkPushModal');if(modal){modal.classList.add('active');modal.style.display='flex';modal.style.zIndex='99999';}
+    const icon=failure.type==='insufficient_balance'?'💰':failure.type==='cancelled'?'✋':failure.type==='timeout'?'⏱️':failure.type==='wrong_pin'?'🔐':'⚠️';
+    showToast(`${icon} ${failure.title}`,'error'); return failure;
+}
+function retryStkPayment(){updateStkActionButtons(false);closeStkModalSafely(false);setTimeout(()=>{if(typeof completeUltimateSale==='function')completeUltimateSale();},120);}
+window.retryStkPayment=retryStkPayment;
+async function waitForPayHeroPayment(transactionId,timeoutMs=90000){
+    const started=Date.now();
+    return await new Promise((resolve,reject)=>{
+        activeStkReject = reject;
+        const finishResolve = (value) => { activeStkReject = null; resolve(value); };
+        const finishReject = (err) => { activeStkReject = null; reject(err); };
+        const poll=async()=>{
+            try{
+                if(Date.now()-started>timeoutMs){activeStkPoll=null;const f=showStkFailure({status:'timeout',message:'The M-Pesa payment request timed out while waiting for the customer.'});return finishReject(new Error(f.message));}
+                const data=await payHeroInvoke({action:'status',transaction_id:transactionId});
+                const p=normalizePayHeroPayload(data), status=p.status, successFlag=data?.success===true||data?.data?.success===true;
+                if(['completed','success','successful','paid','complete'].includes(status)||(successFlag&&!['failed','cancelled','canceled','rejected','declined','expired','not_found'].includes(status))){activeStkPoll=null;return finishResolve(data);}
+                if(['failed','cancelled','canceled','rejected','declined','expired','not_found','error'].includes(status)||data?.code==='PAYHERO_REFERENCE_NOT_FOUND'||['1','1032','1037','2001'].includes(p.code)||/insufficient.*balance|insufficient.*funds|cancelled by user|canceled by user|request cancelled|request canceled|wrong pin|incorrect pin|timeout|timed out|no response|expired/.test(`${status} ${p.message}`)){activeStkPoll=null;const f=showStkFailure(data);return finishReject(new Error(f.message));}
+                const remaining=Math.max(0,Math.ceil((timeoutMs-(Date.now()-started))/1000));
+                setStkStatus('Waiting for M-Pesa payment',`Check the customer's phone and enter the M-Pesa PIN. Waiting ${remaining}s…`);
+                activeStkPoll=setTimeout(poll,2500);
+            }catch(err){activeStkPoll=null;finishReject(err);}
+        };poll();
     });
 }
-
-function extractPayHeroReceipt(data) {
-    return data?.receipt_number ||
-           data?.mpesa_receipt_number ||
-           data?.receipt ||
-           data?.data?.receipt_number ||
-           data?.data?.mpesa_receipt_number ||
-           '';
-}
-
-async function completeUltimateSale() {
-    // Single authoritative checkout entry point. Never silently ignore a click.
-    if (isSubmitting) return;
-    if (!Array.isArray(cart) || cart.length === 0) {
-        showToast('Add items to the cart first.', 'warning');
-        return;
-    }
-    isSubmitting = true;
-
-    const completeBtn = document.getElementById('completeSaleBtn');
-
-    try {
-        const selectedCustomer = document.getElementById('checkoutCustomer');
-        const selected = selectedCustomer?.value
-            ? (customers || []).find(c => String(c.id) === String(selectedCustomer.value))
-            : null;
-
-        const name = selected?.name ||
-            document.getElementById('checkoutName')?.value.trim() ||
-            'Walk-in Customer';
-
-        const enteredPhone = selected?.phone ||
-            document.getElementById('checkoutPhone')?.value.trim() ||
-            '';
-
-        const mpesaPhoneInput = document.getElementById('mpesaPhone');
-        const phoneSource = selectedPayment === 'mpesa'
-            ? (mpesaPhoneInput?.value.trim() || enteredPhone)
-            : enteredPhone;
-
-        const cashPaid = Number(document.getElementById('cashPaid')?.value || 0);
-        const subtotal = getCartSubtotal();
-        const discount = getCheckoutDiscount();
-        const total = Math.max(0, subtotal - discount);
-
-        if (!total || total <= 0) throw new Error('Cart total must be greater than zero.');
-
-        if (selectedPayment === 'cash' && cashPaid < total) {
-            throw new Error(`Insufficient cash. Balance: ${LC.money(total - cashPaid)}`);
+function extractPayHeroReceipt(data){return data?.receipt_number||data?.mpesa_receipt_number||data?.receipt||data?.data?.receipt_number||data?.data?.mpesa_receipt_number||data?.data?.mpesa_receipt||data?.transaction?.receipt_number||data?.transaction?.mpesa_receipt_number||'';}
+function withClientTimeout(promise,timeoutMs,message){return Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(message)),timeoutMs))]);}
+async function completeUltimateSale(){
+    if(isSubmitting)return;if(!Array.isArray(cart)||cart.length===0){showToast('Add items to the cart first.','warning');return;}
+    isSubmitting=true;const completeBtn=document.getElementById('completeSaleBtn');let paymentConfirmed=false,orderCommitted=false;
+    try{
+        const selectedCustomer=document.getElementById('checkoutCustomer');
+        const selected=selectedCustomer?.value?(customers||[]).find(c=>String(c.id)===String(selectedCustomer.value)):null;
+        const name=selected?.name||document.getElementById('checkoutName')?.value.trim()||'Walk-in Customer';
+        const enteredPhone=selected?.phone||document.getElementById('checkoutPhone')?.value.trim()||'';
+        const mpesaPhoneInput=document.getElementById('mpesaPhone');
+        const phoneSource=selectedPayment==='mpesa'?(mpesaPhoneInput?.value.trim()||enteredPhone):enteredPhone;
+        const cashPaid=Number(document.getElementById('cashPaid')?.value||0);const subtotal=getCartSubtotal();const discount=getCheckoutDiscount();const total=Math.max(0,subtotal-discount);
+        if(!total||total<=0)throw new Error('Cart total must be greater than zero.');
+        if(selectedPayment==='cash'&&cashPaid<total)throw new Error(`Insufficient cash. Balance: ${LC.money(total-cashPaid)}`);
+        let stkPhone='';if(selectedPayment==='mpesa')stkPhone=normalizeMpesaPhone(phoneSource);
+        for(const item of cart){const product=products.find(p=>String(p.id)===String(item.id));if(!product)throw new Error(`Product ${item.name} is no longer available.`);if(Number(product.stock||0)<Number(item.qty||0))throw new Error(`Insufficient stock for ${item.name}. Available: ${product.stock}.`);}
+        if(completeBtn){completeBtn.disabled=true;completeBtn.innerHTML=selectedPayment==='mpesa'?'<span class="stk-spinner"></span> Sending STK…':'<i class="fas fa-spinner fa-spin"></i> Processing…';}
+        let paymentResult=null,mpesaReceipt='',paymentReference='',checkoutRequestId='',paidAt='';
+        if(selectedPayment==='mpesa'){
+            openStkPaymentModal(total,stkPhone);updateStkActionButtons(false);setStkStatus('Sending M-Pesa prompt',`An STK prompt will be sent to ${stkPhone}. Please wait…`);
+            paymentResult=await withClientTimeout(payHeroInvoke({action:'stk_push',phone:stkPhone,amount:Number(total.toFixed(2)),order_id:`POS-${Date.now().toString().slice(-8)}`,description:'Lucie Closet POS Sale',account_id:PAYHERO_ACCOUNT_ID}),20000,'PayHero did not respond in time. Please check the payment status before trying again.');
+            if(!paymentResult.success&&!paymentResult.transaction_id&&!paymentResult.data?.transaction_id){const f=showStkFailure(paymentResult);throw new Error(f.message);}
+            const transactionId=paymentResult.transaction_id||paymentResult.data?.transaction_id;
+            paymentReference=String(paymentResult.transaction_id||paymentResult.reference||paymentResult.data?.transaction_id||paymentResult.data?.reference||'').trim();
+            checkoutRequestId=String(paymentResult.checkout_request_id||paymentResult.CheckoutRequestID||paymentResult.data?.checkout_request_id||paymentResult.data?.CheckoutRequestID||'').trim();
+            if(!transactionId)throw new Error('PayHero did not return a transaction reference.');
+            setStkStatus('M-Pesa prompt sent','Ask the customer to check the phone, enter the M-Pesa PIN, and wait for confirmation.');
+            paymentResult=await waitForPayHeroPayment(transactionId);mpesaReceipt=extractPayHeroReceipt(paymentResult);paymentConfirmed=true;paidAt=new Date().toISOString();
+            paymentReference=paymentReference||String(paymentResult?.transaction_id||paymentResult?.reference||paymentResult?.data?.transaction_id||paymentResult?.data?.reference||'').trim();
+            checkoutRequestId=checkoutRequestId||String(paymentResult?.checkout_request_id||paymentResult?.CheckoutRequestID||paymentResult?.data?.checkout_request_id||paymentResult?.data?.CheckoutRequestID||'').trim();
+            setStkStatus('Payment confirmed',`M-Pesa payment received${mpesaReceipt?` · Receipt ${mpesaReceipt}`:''}. Recording the sale…`,'success');
+            closeStkModalSafely(false);
         }
-
-        let stkPhone = '';
-        if (selectedPayment === 'mpesa') {
-            stkPhone = normalizeMpesaPhone(phoneSource);
-        }
-
-        for (const item of cart) {
-            const product = products.find(p => String(p.id) === String(item.id));
-            if (!product) throw new Error(`Product ${item.name} is no longer available.`);
-            if (Number(product.stock || 0) < Number(item.qty || 0)) {
-                throw new Error(`Insufficient stock for ${item.name}. Available: ${product.stock}.`);
-            }
-        }
-
-        if (completeBtn) {
-            completeBtn.disabled = true;
-            completeBtn.innerHTML = selectedPayment === 'mpesa'
-                ? '<span class="stk-spinner"></span> Sending STK…'
-                : '<i class="fas fa-spinner fa-spin"></i> Processing…';
-        }
-
-        // M-Pesa is confirmed BEFORE the order is marked completed or stock is deducted.
-        let paymentResult = null;
-        let mpesaReceipt = '';
-
-        if (selectedPayment === 'mpesa') {
-            // Open the payment dialog BEFORE the network request so the cashier
-            // always sees the STK workflow immediately after Complete Sale.
-            openStkPaymentModal(total, stkPhone);
-            setStkStatus(
-                'Sending M-Pesa prompt',
-                `An STK prompt will be sent to ${stkPhone}. Please wait…`
-            );
-            const stkModal = document.getElementById('stkPushModal');
-            if (stkModal) {
-                stkModal.classList.add('active');
-                stkModal.style.display = 'flex';
-                stkModal.style.zIndex = '99999';
-            }
-
-            paymentResult = await payHeroInvoke({
-                action: 'stk_push',
-                phone: stkPhone,
-                amount: Number(total.toFixed(2)),
-                order_id: `POS-${Date.now().toString().slice(-8)}`,
-                description: 'Lucie Closet POS Sale',
-                account_id: PAYHERO_ACCOUNT_ID
-            });
-
-            if (!paymentResult.success && !paymentResult.transaction_id) {
-                throw new Error(paymentResult.message || 'Could not start M-Pesa STK Push.');
-            }
-
-            const transactionId =
-                paymentResult.transaction_id ||
-                paymentResult.data?.transaction_id;
-
-            if (!transactionId) {
-                throw new Error('PayHero did not return a transaction ID.');
-            }
-
-            setStkStatus(
-                'M-Pesa prompt sent',
-                'Ask the customer to check the phone, enter the M-Pesa PIN, and wait for confirmation.'
-            );
-
-            paymentResult = await waitForPayHeroPayment(transactionId);
-            mpesaReceipt = extractPayHeroReceipt(paymentResult);
-
-            setStkStatus(
-                'Payment confirmed',
-                `M-Pesa payment received${mpesaReceipt ? ` · Receipt ${mpesaReceipt}` : ''}. Completing the sale…`,
-                'success'
-            );
-        }
-
-        const orderNumber = 'POS-' + Date.now().toString().slice(-8);
-        const items = cart.map(i => {
-            const product = products.find(p => String(p.id) === String(i.id));
-            return {
-                id: i.id,
-                name: i.name,
-                code: i.code,
-                qty: Number(i.qty),
-                price: Number(i.price),
-                cost_price: LC.costOf(product || i),
-                size: i.size || product?.size || product?.variant || null,
-                colour: i.colour || i.color || product?.colour || product?.color || null
-            };
-        });
-
-        const orderData = {
-            order_number: orderNumber,
-            customer_name: name,
-            customer_phone: selectedPayment === 'mpesa' ? stkPhone : (enteredPhone || 'N/A'),
-            customer_email: '',
+        const orderNumber='POS-'+Date.now().toString().slice(-8);
+        const items=cart.map(i=>{const product=products.find(p=>String(p.id)===String(i.id));return{id:i.id,name:i.name,code:i.code,qty:Number(i.qty),price:Number(i.price),cost_price:LC.costOf(product||i),size:i.size||product?.size||product?.variant||null,colour:i.colour||i.color||product?.colour||product?.color||null};});
+        const servedBy=currentUser?.full_name||currentUser?.email||'System';
+        // Keep the core order insert compatible with the existing orders schema. Staff fields are optional
+        // and are added separately when those columns exist, so a successful M-Pesa payment cannot be
+        // incorrectly reported as a failed sale merely because served_by/cashier is not in an older schema.
+        const createdAt=new Date().toISOString();
+        const paymentMethod=selectedPayment==='mpesa'?'mpesa':selectedPayment;
+        const orderData={
+            order_number:orderNumber,
+            customer_name:name,
+            customer_phone:selectedPayment==='mpesa'?stkPhone:(enteredPhone||'N/A'),
+            customer_email:'',
             items,
-            total: Number(total.toFixed(2)),
-            payment_method: selectedPayment === 'mpesa'
-                ? `M-Pesa STK${mpesaReceipt ? `: ${mpesaReceipt}` : ''}`
-                : selectedPayment,
-            status: 'completed',
-            created_at: new Date().toISOString()
+            total:Number(total.toFixed(2)),
+            payment_method:paymentMethod,
+            status:'completed',
+            created_at:createdAt,
+            served_by:servedBy,
+            served_by_user_id:currentUser?.id||null,
+            cashier:servedBy,
+            payment_reference:paymentReference||null,
+            mpesa_receipt_number:mpesaReceipt||null,
+            checkout_request_id:checkoutRequestId||null,
+            paid_at:paidAt||createdAt
         };
-
-        const { data: inserted, error: orderError } = await sb
-            .from('orders')
-            .insert([orderData])
-            .select()
-            .maybeSingle();
-
-        if (orderError) throw orderError;
-
-        const changed = [];
-        try {
-            for (const item of cart) {
-                const product = products.find(p => String(p.id) === String(item.id));
-                const oldStock = Number(product.stock || 0);
-                const newStock = oldStock - Number(item.qty || 0);
-
-                const { data: updatedRows, error: stockError } = await sb
-                    .from('products')
-                    .update({ stock: newStock })
-                    .eq('id', item.id)
-                    .eq('stock', oldStock)
-                    .select('id, stock');
-
-                if (stockError) throw stockError;
-                if (!updatedRows || updatedRows.length !== 1) {
-                    throw new Error(`Stock changed while processing ${item.name}. Please retry.`);
-                }
-
-                changed.push({ id: item.id, oldStock, newStock });
+        let inserted=null;
+        let orderInsertError=null;
+        try{
+            const result=await withClientTimeout(sb.from('orders').insert([orderData]).select().maybeSingle(),15000,'The payment was confirmed, but the POS could not finish recording the sale. Do not charge the customer again.');
+            inserted=result.data; orderInsertError=result.error;
+        }catch(e){orderInsertError=e;}
+        if(orderInsertError)throw orderInsertError;
+        if(!inserted)throw new Error('The payment was confirmed, but the POS did not receive the saved order. Do not charge the customer again.');
+        orderCommitted=true;
+        try{for(const item of cart){const product=products.find(p=>String(p.id)===String(item.id));const oldStock=Number(product.stock||0),newStock=oldStock-Number(item.qty||0);const {data:updatedRows,error:stockError}=await withClientTimeout(sb.from('products').update({stock:newStock}).eq('id',item.id).eq('stock',oldStock).select('id, stock'),15000,`The sale was recorded, but stock update timed out for ${item.name}.`);if(stockError)throw stockError;if(!updatedRows||updatedRows.length!==1)throw new Error(`Stock changed while processing ${item.name}. The sale was recorded; please verify stock.`);}}catch(stockError){console.warn('Stock update after sale:',stockError);showToast(stockError.message||'Sale recorded. Please verify stock levels.','warning');}
+        orderData.subtotal=subtotal;orderData.discount=discount;
+        try{const receipts=JSON.parse(localStorage.getItem('luciecloset_receipt_meta')||'{}');receipts[orderData.order_number]={subtotal,discount,mpesaReceipt,paymentReference,checkoutRequestId,servedBy,paidAt};localStorage.setItem('luciecloset_receipt_meta',JSON.stringify(receipts));}catch(_){}
+        try{await LC.audit('SALE_COMPLETED',{order_number:orderNumber,total,payment_method:selectedPayment,customer:name,cashier:currentUser?.full_name||currentUser?.email||'System',cashier_id:currentUser?.id||null,cashier_role:currentUser?.role_name||currentUser?.role||null,payment_reference:paymentReference||null,checkout_request_id:checkoutRequestId||null,mpesa_receipt:mpesaReceipt||null,items:items.map(i=>({id:i.id,qty:i.qty,total:i.price*i.qty}))});}catch(auditError){console.warn('Sale completed but audit logging failed:',auditError);}
+        if(selectedPayment==='cash')showToast(`Sale completed. Change: ${LC.money(cashPaid-total)}`,'success');else showToast(`M-Pesa payment confirmed${mpesaReceipt?` · ${mpesaReceipt}`:''}. Sale ${orderNumber} completed.`,'success');
+        try{generateReceipt(orderData);}catch(receiptError){console.warn('Sale completed but receipt generation failed:',receiptError);showToast('Sale completed, but the receipt could not be generated automatically. Open Orders and print it.','warning');}
+        cart=[];updateCartUI();closeModal('checkoutModal');clearStkStatus();updateStkActionButtons(false);
+        try{await withClientTimeout(Promise.all([loadProducts(),loadOrders(),loadCustomers()]),15000,'Dashboard refresh timed out.');updateStats();renderCurrentTab();}catch(refreshError){console.warn('Sale completed but dashboard refresh failed:',refreshError);}
+    }catch(err){
+        console.error('Checkout/PayHero error:',err);
+        if(selectedPayment==='mpesa'){
+            if(err?.code==='STK_USER_CLOSED'){
+                clearStkStatus();
+                showToast('M-Pesa waiting was cancelled. Check Orders before sending another STK Push.','warning');
+            }else if(paymentConfirmed||orderCommitted){
+                showStkFailure({status:'error',message:'Payment was received, but the sale could not be fully finalized. Do not charge the customer again. Check Orders before retrying.'});
+            }else{
+                showStkFailure(err);
             }
-        } catch (stockError) {
-            for (const c of changed.reverse()) {
-                await sb.from('products')
-                    .update({ stock: c.oldStock })
-                    .eq('id', c.id)
-                    .eq('stock', c.newStock);
-            }
-            if (inserted?.id) await sb.from('orders').delete().eq('id', inserted.id);
-            throw stockError;
-        }
-
-        orderData.subtotal = subtotal;
-        orderData.discount = discount;
-
-        try {
-            const receipts = JSON.parse(
-                localStorage.getItem('luciecloset_receipt_meta') || '{}'
-            );
-            receipts[orderData.order_number] = {
-                subtotal,
-                discount,
-                mpesaReceipt
-            };
-            localStorage.setItem(
-                'luciecloset_receipt_meta',
-                JSON.stringify(receipts)
-            );
-        } catch (_) {}
-
-        await LC.audit('SALE_COMPLETED', {
-            order_number: orderNumber,
-            total,
-            payment_method: selectedPayment,
-            customer: name,
-            cashier: currentUser?.full_name || currentUser?.email || 'System',
-            cashier_id: currentUser?.id || null,
-            cashier_role: currentUser?.role_name || currentUser?.role || null,
-            mpesa_receipt: mpesaReceipt || null,
-            items: items.map(i => ({
-                id: i.id,
-                qty: i.qty,
-                total: i.price * i.qty
-            }))
-        });
-
-        if (selectedPayment === 'cash') {
-            const change = cashPaid - total;
-            showToast(`Sale completed. Change: ${LC.money(change)}`, 'success');
-        } else {
-            showToast(
-                `M-Pesa payment confirmed${mpesaReceipt ? ` · ${mpesaReceipt}` : ''}. Sale ${orderNumber} completed.`,
-                'success'
-            );
-        }
-
-        if (selectedPayment === 'mpesa') closeModal('stkPushModal');
-        generateReceipt(orderData);
-        cart = [];
-        updateCartUI();
-        closeModal('checkoutModal');
-        clearStkStatus();
-
-        await Promise.all([loadProducts(), loadOrders(), loadCustomers()]);
-        updateStats();
-        renderCurrentTab();
-
-    } catch (err) {
-        console.error('Checkout/PayHero error:', err);
-        if (selectedPayment === 'mpesa') {
-            setStkStatus('Payment could not be completed', err.message || 'Please try the M-Pesa payment again.', 'error');
-        } else {
-            clearStkStatus();
-        }
-        showToast(err.message || 'Could not complete the sale.', 'error');
-    } finally {
-        isSubmitting = false;
-        if (completeBtn) {
-            completeBtn.disabled = false;
-            completeBtn.innerHTML = '<i class="fas fa-check"></i> Complete Sale';
-        }
-    }
-};
-window.completeUltimateSale = completeUltimateSale;
-window.completeOrder = completeUltimateSale;
-
-
+        }else{clearStkStatus();showToast(err.message||'Could not complete the sale.','error');}
+    }finally{isSubmitting=false;if(completeBtn){completeBtn.disabled=false;completeBtn.innerHTML='<i class="fas fa-check"></i> Complete Sale';}}
+}
+window.completeUltimateSale=completeUltimateSale;window.completeOrder=completeUltimateSale;
 // ------------------------------------------------------------
 // Profit/Loss: use recorded cost snapshots where available.
 // Falls back to current product cost; never silently labels the
