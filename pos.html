@@ -4449,15 +4449,49 @@ async function completeUltimateSale(){
             checkout_request_id:checkoutRequestId||null,
             paid_at:paidAt||createdAt
         };
-        let inserted=null;
+        // IMPORTANT: M-Pesa has already been confirmed at this point. Never make a
+        // successful payment depend on a SELECT/RETURNING permission or on optional
+        // staff/payment columns existing in the orders table. Insert the sale first,
+        // without .select(), then add optional metadata separately.
+        const coreOrderData={
+            order_number:orderNumber,
+            customer_name:name,
+            customer_phone:selectedPayment==='mpesa'?stkPhone:(enteredPhone||'N/A'),
+            customer_email:'',
+            items,
+            total:Number(total.toFixed(2)),
+            payment_method:paymentMethod,
+            status:'completed',
+            created_at:createdAt
+        };
         let orderInsertError=null;
         try{
-            const result=await withClientTimeout(sb.from('orders').insert([orderData]).select().maybeSingle(),15000,'The payment was confirmed, but the POS could not finish recording the sale. Do not charge the customer again.');
-            inserted=result.data; orderInsertError=result.error;
+            const result=await withClientTimeout(sb.from('orders').insert([coreOrderData]),15000,'The payment was confirmed, but the POS could not finish recording the sale. Do not charge the customer again.');
+            orderInsertError=result.error;
         }catch(e){orderInsertError=e;}
-        if(orderInsertError)throw orderInsertError;
-        if(!inserted)throw new Error('The payment was confirmed, but the POS did not receive the saved order. Do not charge the customer again.');
+        if(orderInsertError){
+            console.error('[Lucie Closet] Order insert failed AFTER payment confirmation:',orderInsertError);
+            throw new Error(`Payment confirmed, but sale recording failed: ${orderInsertError.message||orderInsertError}. DO NOT CHARGE AGAIN.`);
+        }
         orderCommitted=true;
+
+        // Optional audit/payment metadata must never turn a completed sale into a
+        // failed checkout. These columns may differ between database versions.
+        const optionalOrderFields={
+            served_by:servedBy,
+            served_by_user_id:currentUser?.id||null,
+            cashier:servedBy,
+            payment_reference:paymentReference||null,
+            mpesa_receipt_number:mpesaReceipt||null,
+            checkout_request_id:checkoutRequestId||null,
+            paid_at:paidAt||createdAt
+        };
+        try{
+            const metaResult=await withClientTimeout(sb.from('orders').update(optionalOrderFields).eq('order_number',orderNumber),10000,'optional metadata timeout');
+            if(metaResult.error) console.warn('[Lucie Closet] Optional order payment/staff metadata was not saved:',metaResult.error);
+        }catch(metaError){
+            console.warn('[Lucie Closet] Optional order payment/staff metadata update failed; sale remains completed:',metaError);
+        }
         try{for(const item of cart){const product=products.find(p=>String(p.id)===String(item.id));const oldStock=Number(product.stock||0),newStock=oldStock-Number(item.qty||0);const {data:updatedRows,error:stockError}=await withClientTimeout(sb.from('products').update({stock:newStock}).eq('id',item.id).eq('stock',oldStock).select('id, stock'),15000,`The sale was recorded, but stock update timed out for ${item.name}.`);if(stockError)throw stockError;if(!updatedRows||updatedRows.length!==1)throw new Error(`Stock changed while processing ${item.name}. The sale was recorded; please verify stock.`);}}catch(stockError){console.warn('Stock update after sale:',stockError);showToast(stockError.message||'Sale recorded. Please verify stock levels.','warning');}
         orderData.subtotal=subtotal;orderData.discount=discount;
         try{const receipts=JSON.parse(localStorage.getItem('luciecloset_receipt_meta')||'{}');receipts[orderData.order_number]={subtotal,discount,mpesaReceipt,paymentReference,checkoutRequestId,servedBy,paidAt};localStorage.setItem('luciecloset_receipt_meta',JSON.stringify(receipts));}catch(_){}
@@ -4473,7 +4507,7 @@ async function completeUltimateSale(){
                 clearStkStatus();
                 showToast('M-Pesa waiting was cancelled. Check Orders before sending another STK Push.','warning');
             }else if(paymentConfirmed||orderCommitted){
-                showStkFailure({status:'error',message:'Payment was received, but the sale could not be fully finalized. Do not charge the customer again. Check Orders before retrying.'});
+                showStkFailure({status:'error',message:'M-Pesa payment was already received. The sale could not be fully finalized. DO NOT charge the customer again. Check Orders first; if the sale is missing, record it as a paid sale using the existing M-Pesa reference.'});
             }else{
                 showStkFailure(err);
             }
