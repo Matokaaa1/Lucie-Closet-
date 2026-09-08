@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Lucie Closet POS — FINAL CANONICAL BUILD — 2026-09-08 -->
+<!-- Lucie Closet POS — UPDATED PRODUCTION HARDENED BUILD — 2026-09-08 -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -801,6 +801,14 @@ setInterval(()=>{if(window.currentUser)window.applyRoleBasedAccess();},3000);
 #toast-container,.toast-container,.toasts,.toast-stack{position:fixed !important;top:76px !important;right:24px !important;bottom:auto !important;left:auto !important;z-index:100000 !important;width:min(380px,calc(100vw - 32px)) !important;}
 .toast.success,.toast.toast-success,.alert-success{background:#16a34a !important;color:#fff !important;border-color:#15803d !important;}
 @media(max-width:600px){#toast-container,.toast-container,.toasts,.toast-stack{top:64px !important;right:16px !important;width:calc(100vw - 32px) !important;}}
+</style>
+<style id="lucie-production-hardening">
+/* Production hardening: accessibility, narrow screens, safe touch targets and predictable overlays. */
+button,input,select,textarea{touch-action:manipulation}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(168,85,247,.28);outline-offset:2px}
+[aria-hidden="true"]{pointer-events:none}
+@media(max-width:360px){.stats-grid{grid-template-columns:1fr!important}.pos-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.product-media{height:104px!important}.pos-cart{height:460px!important}.cart-item{gap:6px}.cart-item .item-total{min-width:50px;font-size:12px}.btn{padding-left:11px;padding-right:11px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
@@ -4212,6 +4220,10 @@ window.deleteProduct = deleteProduct;
 // Safer checkout. Validates stock, records cost snapshots and
 // uses conditional stock updates to reduce race conditions.
 // ------------------------------------------------------------
+// SECURITY NOTE: prices, totals and stock shown in the browser are UX data.
+// For a production deployment, the Supabase Edge Function/RPC must re-read
+// product prices and stock and perform the final sale atomically. Never place
+// PayHero secrets or service-role keys in this HTML file.
 // ============================================================
 // PAYHERO M-PESA STK PUSH CHECKOUT
 // The browser calls the Supabase Edge Function named "payhero".
@@ -4350,21 +4362,31 @@ window.retryStkPayment=retryStkPayment;
 async function waitForPayHeroPayment(transactionId,timeoutMs=90000){
     const started=Date.now();
     return await new Promise((resolve,reject)=>{
-        activeStkReject = reject;
-        const finishResolve = (value) => { activeStkReject = null; resolve(value); };
-        const finishReject = (err) => { activeStkReject = null; reject(err); };
+        activeStkReject=reject;
+        let transientFailures=0;
+        const finishResolve=value=>{activeStkReject=null;resolve(value)};
+        const finishReject=err=>{activeStkReject=null;reject(err)};
         const poll=async()=>{
             try{
                 if(Date.now()-started>timeoutMs){activeStkPoll=null;const f=showStkFailure({status:'timeout',message:'The M-Pesa payment request timed out while waiting for the customer.'});return finishReject(new Error(f.message));}
                 const data=await payHeroInvoke({action:'status',transaction_id:transactionId});
-                const p=normalizePayHeroPayload(data), status=p.status, successFlag=data?.success===true||data?.data?.success===true;
-                if(['completed','success','successful','paid','complete'].includes(status)||(successFlag&&!['failed','cancelled','canceled','rejected','declined','expired','not_found'].includes(status))){activeStkPoll=null;return finishResolve(data);}
-                if(['failed','cancelled','canceled','rejected','declined','expired','not_found','error'].includes(status)||data?.code==='PAYHERO_REFERENCE_NOT_FOUND'||['1','1032','1037','2001'].includes(p.code)||/insufficient.*balance|insufficient.*funds|cancelled by user|canceled by user|request cancelled|request canceled|wrong pin|incorrect pin|timeout|timed out|no response|expired/.test(`${status} ${p.message}`)){activeStkPoll=null;const f=showStkFailure(data);return finishReject(new Error(f.message));}
+                transientFailures=0;
+                const p=normalizePayHeroPayload(data),status=p.status,successFlag=data?.success===true||data?.data?.success===true;
+                if(['completed','success','successful','paid','complete'].includes(status)||(successFlag&&!['failed','cancelled','canceled','rejected','declined','expired','not_found'].includes(status))){activeStkPoll=null;return finishResolve(data)}
+                if(['failed','cancelled','canceled','rejected','declined','expired','not_found','error'].includes(status)||data?.code==='PAYHERO_REFERENCE_NOT_FOUND'||['1','1032','1037','2001'].includes(p.code)||/insufficient.*balance|insufficient.*funds|cancelled by user|canceled by user|request cancelled|request canceled|wrong pin|incorrect pin|timeout|timed out|no response|expired/.test(`${status} ${p.message}`)){activeStkPoll=null;const f=showStkFailure(data);return finishReject(new Error(f.message))}
                 const remaining=Math.max(0,Math.ceil((timeoutMs-(Date.now()-started))/1000));
                 setStkStatus('Waiting for M-Pesa payment',`Check the customer's phone and enter the M-Pesa PIN. Waiting ${remaining}s…`);
                 activeStkPoll=setTimeout(poll,2500);
-            }catch(err){activeStkPoll=null;finishReject(err);}
-        };poll();
+            }catch(err){
+                transientFailures++;
+                if(Date.now()-started>timeoutMs){activeStkPoll=null;return finishReject(err)}
+                const remaining=Math.max(0,Math.ceil((timeoutMs-(Date.now()-started))/1000));
+                if(transientFailures>=3){setStkStatus('Reconnecting to payment service',`Payment status is temporarily unavailable. Retrying… ${remaining}s remaining.`)}
+                else{setStkStatus('Checking payment status',`Waiting for PayHero confirmation… ${remaining}s remaining.`)}
+                activeStkPoll=setTimeout(poll,Math.min(5000,2500+transientFailures*500));
+            }
+        };
+        poll();
     });
 }
 function extractPayHeroReceipt(data){return data?.receipt_number||data?.mpesa_receipt_number||data?.receipt||data?.data?.receipt_number||data?.data?.mpesa_receipt_number||data?.data?.mpesa_receipt||data?.transaction?.receipt_number||data?.transaction?.mpesa_receipt_number||'';}
@@ -5778,16 +5800,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }catch(e){console.error(e);showToast('Could not save edited photo: '+(e.message||e),'error');}finally{btn.disabled=false;}
   };
 
-  // Replace the product modal opener so editing immediately shows the real gallery.
-  const originalOpenProductModal=window.openProductModal;
-  window.openProductModal=async function(product=null){
-    originalOpenProductModal(product);
-    const id=product?.id||document.getElementById('editProductId')?.value;
-    const hint=document.getElementById('productImageHint');if(hint)hint.textContent=product?'Choose from Gallery, set a main photo, edit a photo, or upload more photos.':'Save the product first, then attach photos from the gallery.';
-    if(id)await refreshProductImageEditor(Number(id));
-    else {const box=document.getElementById('imageGallery');if(box)box.innerHTML='<div style="grid-column:1/-1;padding:18px;border:1px dashed var(--border);border-radius:13px;color:var(--text-muted);font-size:12px;text-align:center">New product: save it first, then you can add unlimited gallery photos.</div>'}
-  };
-
   // Make POS navigation land on the product catalogue, not the bottom of the page.
   const oldNav=window.navigateTo;
   window.navigateTo=function(section){
@@ -5849,11 +5861,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const preview=q('imagePreview'); if(preview) preview.innerHTML=product?.image_url?`<img src="${LC.escape(product.image_url)}" alt="Product image" style="max-width:100%;max-height:180px;object-fit:contain;border-radius:12px;">`:'';
     if(q('productModalTitle'))q('productModalTitle').textContent=product?'✏️ Edit Product':'📦 Add Product';
     if(q('saveProductBtn'))q('saveProductBtn').innerHTML=product?'<i class="fas fa-save"></i> Update Product':'<i class="fas fa-save"></i> Save Product';
+    const hint=q('productImageHint');
+    if(hint) hint.textContent=product?'Choose from Gallery, set a main photo, edit a photo, or upload more photos.':'Save the product first, then attach photos from the gallery.';
     openModal('productModal');
-    // The final editor override also refreshes the real Supabase gallery.
     const productId = product?.id || q('editProductId')?.value;
     if(productId && typeof window.refreshProductImageEditor === 'function'){
       Promise.resolve(window.refreshProductImageEditor(Number(productId))).catch(err=>console.warn('Gallery refresh:',err));
+    } else {
+      const box=q('imageGallery');
+      if(box) box.innerHTML='<div style="grid-column:1/-1;padding:18px;border:1px dashed var(--border);border-radius:13px;color:var(--text-muted);font-size:12px;text-align:center">New product: save it first, then you can add unlimited gallery photos.</div>';
     }
   };
 
@@ -5864,7 +5880,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if(!name||!code||!category||!Number.isFinite(price)||price<0||!Number.isFinite(stock)||stock<0){showToast('Complete the required product fields.','error');return}
     const num=(id,def=null)=>{const n=Number(val(id));return Number.isFinite(n)&&val(id)!==''?n:def};
     const csv=id=>val(id).split(',').map(x=>x.trim()).filter(Boolean);
-    const variants=JSON.parse(val('variantsData')||'[]');
+    let variants=[]; try { variants=JSON.parse(val('variantsData')||'[]'); if(!Array.isArray(variants)) variants=[]; } catch(_) { showToast('Variant data is invalid. Please review the variants and try again.','error'); return; }
     const data={name,code,category,gender:val('productGender')||'unisex',price,stock,best_quality:!!q('productBestQuality')?.checked,
       cost_price:num('productCostPrice',0),reorder_level:num('productReorderLevel',5),colour:val('productColour').trim()||null,size:val('productSize').trim()||null,
       supplier:val('productSupplier').trim()||null,barcode:val('productBarcode').trim()||null,material:val('productMaterial').trim()||null,tax:num('productTax',0),
@@ -5878,6 +5894,96 @@ document.addEventListener('DOMContentLoaded', function() {
       await loadProducts();updateStats();renderCurrentTab();closeModal('productModal');
     }catch(err){console.error(err);showToast('Could not save product: '+(err.message||'Unknown error'),'error')}
   };
+})();
+</script>
+
+<style id="lucie-final-pos-controls">
+/* Final POS controls: scanner-friendly search, safer product entry, and visible transaction state. */
+#posSearch{font-variant-numeric:tabular-nums}
+.lc-pos-scan-hint{display:inline-flex;align-items:center;gap:6px;margin-left:8px;font-size:11px;color:var(--text-muted)}
+.lc-tx-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;background:#ecfdf5;color:#047857;font-size:11px;font-weight:800}
+@media(max-width:650px){.lc-pos-scan-hint{display:none}}
+</style>
+<script id="lucie-final-pos-controls-script">
+(function(){
+  'use strict';
+  const norm=v=>String(v??'').trim().toLowerCase().replace(/\s+/g,'');
+  const productList=()=>Array.isArray(window.products)?window.products:[];
+  const findExactProduct=query=>{
+    const q=norm(query); if(!q)return null;
+    return productList().find(p=>[p.barcode,p.code,p.sku].some(v=>norm(v)===q))||null;
+  };
+
+  // Barcode scanners behave like a keyboard: they type the code and press Enter.
+  // Exact matches are added immediately; ordinary searches keep their normal behaviour.
+  function bindScanner(){
+    const input=document.getElementById('posSearch');
+    if(!input||input.__lcScannerBound)return;
+    input.__lcScannerBound=true;
+    input.setAttribute('inputmode','search');
+    input.addEventListener('keydown',function(e){
+      if(e.key!=='Enter')return;
+      const product=findExactProduct(input.value);
+      if(!product)return;
+      e.preventDefault();
+      if(Number(product.stock||0)<=0){showToast(`${product.name||'Product'} is out of stock.`,'warning');return;}
+      addToCart(product.id);
+      input.value='';
+      if(typeof renderPOSProducts==='function')renderPOSProducts();
+      input.focus({preventScroll:true});
+    });
+    const parent=input.parentElement;
+    if(parent&&!parent.querySelector('.lc-pos-scan-hint')){
+      const hint=document.createElement('span');hint.className='lc-pos-scan-hint';hint.innerHTML='<i class="fas fa-barcode"></i> Scan + Enter';parent.appendChild(hint);
+    }
+  }
+  document.addEventListener('DOMContentLoaded',bindScanner);
+  setTimeout(bindScanner,500);
+  setTimeout(bindScanner,1500);
+  window.focusBarcode=function(){
+    const input=document.getElementById('posSearch');
+    if(input){input.focus({preventScroll:true});input.select();}
+    if(typeof showToast==='function')showToast('Scanner ready — scan a barcode or enter SKU and press Enter.','info');
+  };
+
+  // Client-side duplicate SKU/barcode warning. Database UNIQUE constraints should still be used in production.
+  function duplicateValue(field,value,ignoreId){
+    const v=norm(value); if(!v)return false;
+    return productList().some(p=>String(p.id)!==String(ignoreId||'')&&norm(p[field])===v);
+  }
+  function bindProductValidation(){
+    const form=document.getElementById('productForm');
+    if(!form||form.__lcValidationBound)return;
+    form.__lcValidationBound=true;
+    form.addEventListener('submit',function(e){
+      const id=document.getElementById('editProductId')?.value||'';
+      const code=document.getElementById('productCode')?.value||'';
+      const barcode=document.getElementById('productBarcode')?.value||'';
+      if(duplicateValue('code',code,id)){e.preventDefault();showToast('That product code/SKU already exists. Use a unique code.','error');return;}
+      if(duplicateValue('barcode',barcode,id)){e.preventDefault();showToast('That barcode is already assigned to another product.','error');}
+    },true);
+  }
+  document.addEventListener('DOMContentLoaded',bindProductValidation);
+  setTimeout(bindProductValidation,800);
+
+  // Make the transaction state explicit before payment starts.
+  const oldComplete=window.completeUltimateSale;
+  if(typeof oldComplete==='function'&&!oldComplete.__lcFinalWrapped){
+    const wrapped=async function(){
+      if(!Array.isArray(window.cart)||!window.cart.length){showToast('Add at least one product before checkout.','warning');return;}
+      const button=document.getElementById('completeSaleBtn')||document.querySelector('[onclick*="completeUltimateSale"]');
+      if(button){button.dataset.originalText=button.innerHTML;button.disabled=true;button.innerHTML='<i class="fas fa-spinner fa-spin"></i> Processing transaction...';}
+      try{return await oldComplete.apply(this,arguments)}
+      finally{if(button){button.disabled=false;button.innerHTML=button.dataset.originalText||'<i class="fas fa-check"></i> Complete Sale';}}
+    };
+    wrapped.__lcFinalWrapped=true;
+    window.completeUltimateSale=wrapped;
+  }
+
+  // Prevent accidental browser refresh while an STK payment is visibly pending.
+  window.addEventListener('beforeunload',function(e){
+    if(window.activeStkPoll||window.__lcPaymentPending){e.preventDefault();e.returnValue='';}
+  });
 })();
 </script>
 </body>
