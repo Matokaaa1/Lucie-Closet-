@@ -3654,8 +3654,13 @@ window.renderProductsTable = renderProductsTable;
 
 
 function editProduct(id) {
-    const product = products.find(p => p.id === id);
-    if (product) openProductModal(product);
+    const product = (Array.isArray(products) ? products : []).find(p => String(p?.id) === String(id));
+    if (product) {
+        openProductModal(product);
+    } else {
+        console.warn('[Lucie Closet] Product not found for edit:', id);
+        showToast('Could not open this product for editing.', 'error');
+    }
 }
 window.editProduct = editProduct;
 
@@ -4031,7 +4036,7 @@ function populateAuditFilters(){const as=[...new Set(auditLogCache.map(x=>x.acti
 function getFilteredAuditLogs(){const q=String(document.getElementById('auditSearch')?.value||'').toLowerCase().trim(),a=document.getElementById('auditActionFilter')?.value||'',u=document.getElementById('auditUserFilter')?.value||'',dt=document.getElementById('auditDateFilter')?.value||'all',now=Date.now();return auditLogCache.filter(l=>{const t=new Date(l.timestamp).getTime(),h=`${l.user||''} ${l.action||''} ${l.details||''}`.toLowerCase();if(q&&!h.includes(q))return false;if(a&&l.action!==a)return false;if(u&&l.user!==u)return false;if(dt==='today'&&new Date(t).toDateString()!==new Date().toDateString())return false;if(dt!=='all'&&dt!=='today'&&(!Number.isFinite(t)||now-t>Number(dt)*86400000))return false;return true})}
 function renderAuditLogs(){const logs=getFilteredAuditLogs(), sales=auditLogCache.filter(l=>String(l.action).toUpperCase()==='SALE_COMPLETED'), value=sales.reduce((n,l)=>n+Number(l.detailsObj?.total||0),0), users=new Set(auditLogCache.map(l=>l.user_id||l.user).filter(Boolean)).size,stats=document.getElementById('auditStats');if(stats)stats.innerHTML=`<div class="audit-stat"><span class="audit-stat-icon purple"><i class="fas fa-list"></i></span><div><small>Total Events</small><strong>${auditLogCache.length}</strong></div></div><div class="audit-stat"><span class="audit-stat-icon success"><i class="fas fa-shopping-bag"></i></span><div><small>Sales Recorded</small><strong>${sales.length}</strong></div></div><div class="audit-stat"><span class="audit-stat-icon warning"><i class="fas fa-coins"></i></span><div><small>Sales Value</small><strong>KES ${value.toLocaleString('en-KE',{minimumFractionDigits:2})}</strong></div></div><div class="audit-stat"><span class="audit-stat-icon"><i class="fas fa-user-shield"></i></span><div><small>Staff in Log</small><strong>${users}</strong></div></div>`;if(!logs.length){document.getElementById('auditTable').innerHTML='<div class="empty-state"><i class="fas fa-search"></i><p>No audit events match your filters.</p></div>';return}document.getElementById('auditTable').innerHTML=`<div class="table-wrapper audit-table-wrap"><table class="data-table audit-data-table"><thead><tr><th>Time</th><th>User / Role</th><th>Action</th><th>Activity Details</th></tr></thead><tbody>${logs.map(l=>{const d=l.detailsObj||{},who=auditSafe(l.user||'System'),role=d.role||d.cashier_role||l.role_name||l.role||(l.user_id?'Staff account':'System');return`<tr><td class="audit-time"><strong>${new Date(l.timestamp).toLocaleDateString('en-GB')}</strong><span>${new Date(l.timestamp).toLocaleTimeString('en-GB')}</span></td><td><div class="audit-user"><span class="audit-avatar">${auditSafe((who.trim()[0]||'S').toUpperCase())}</span><div><strong>${who}</strong><small>${auditSafe(role)}</small></div></div></td><td><span class="audit-action ${auditClass(l.action)}">${auditSafe(l.action||'SYSTEM_EVENT')}</span></td><td>${auditPretty(l.details)}</td></tr>`}).join('')}</tbody></table></div><div class="audit-footer">Showing <strong>${logs.length}</strong> of <strong>${auditLogCache.length}</strong> recorded events</div>`}
 function filterAuditLogs(){renderAuditLogs()}
-function exportAuditCSV(){const rows=[['Timestamp','User','User ID','Role','Action','Details'],...getFilteredAuditLogs().map(l=>[l.timestamp,l.user||'System',l.user_id||'',l.role_name||'',l.action||'',typeof l.details==='string'?l.details:JSON.stringify(l.details||{})])];const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n'),b=new Blob([csv],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`lucie-closet-audit-${new Date().toISOString().slice(0,10)}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+function exportAuditCSV(){const rows=[['Timestamp','User','User ID','Role','Action','Details'],...getFilteredAuditLogs().map(l=>[l.created_at||l.timestamp||'',l.user||'System',l.user_id||'',l.role_name||'',l.action||'',l.description||l.details||''])];const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\\n'),b=new Blob([csv],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`lucie-closet-audit-${new Date().toISOString().slice(0,10)}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
 window.loadAuditLogs=loadAuditLogs;window.filterAuditLogs=filterAuditLogs;window.exportAuditCSV=exportAuditCSV;
 
 // ============================================================
@@ -4300,23 +4305,45 @@ LC.isLowStock = function(product) {
 };
 
 LC.audit = async function(action, details = {}) {
-    const entry = {
-        timestamp: new Date().toISOString(),
-        user: currentUser?.full_name || currentUser?.email || 'System',
-        user_id: currentUser?.id || null,
+    const now = new Date().toISOString();
+    const displayUser = currentUser?.full_name || currentUser?.email || 'System';
+    const rawUserId = currentUser?.id;
+    const numericUserId = Number(rawUserId);
+    const dbEntry = {
+        user_id: Number.isFinite(numericUserId) && numericUserId > 0 ? numericUserId : null,
+        action: String(action || 'UNKNOWN'),
+        entity_type: details?.entity_type || 'system',
+        entity_id: Number.isFinite(Number(details?.entity_id)) ? Number(details.entity_id) : null,
+        description: typeof details === 'string' ? details : JSON.stringify({
+            ...details,
+            user: displayUser,
+            role: currentUser?.role_name || currentUser?.role || null
+        }),
+        old_data: details?.old_data ?? null,
+        new_data: details?.new_data ?? null,
+        ip_address: null,
+        created_at: now
+    };
+    const localEntry = {
+        timestamp: now,
+        user: displayUser,
+        user_id: rawUserId || null,
         role_name: currentUser?.role_name || currentUser?.role || null,
-        action,
+        action: dbEntry.action,
         details: typeof details === 'string' ? details : JSON.stringify(details)
     };
 
     try {
-        const { error } = await sb.from('audit_logs').insert([entry]);
+        const { error } = await sb.from('audit_logs').insert([dbEntry]);
         if (!error) return;
-    } catch (_) {}
+        console.warn('[Lucie Closet] Database audit log failed; using local fallback:', error);
+    } catch (err) {
+        console.warn('[Lucie Closet] Database audit log failed; using local fallback:', err);
+    }
 
     try {
         const logs = JSON.parse(localStorage.getItem('luciecloset_audit') || '[]');
-        logs.unshift(entry);
+        logs.unshift(localEntry);
         localStorage.setItem('luciecloset_audit', JSON.stringify(logs.slice(0, 500)));
     } catch (_) {}
 };
