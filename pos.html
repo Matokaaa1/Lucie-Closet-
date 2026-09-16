@@ -1571,7 +1571,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                         <span>Total</span>
                         <span id="checkoutTotal">KES 0</span>
                     </div>
-                    <button type="button" id="completeSaleBtn" class="btn btn-primary btn-block" onclick="completeUltimateSale()"><i class="fas fa-check"></i> Complete Sale</button>
+                    <button type="button" id="completeSaleBtn" class="btn btn-primary btn-block lc-complete-sale-btn" onclick="handleCompleteSaleClick(event)"><i class="fas fa-check"></i> Complete Sale</button>
                 </div>
             </div>
         </div>
@@ -4729,6 +4729,31 @@ async function completeUltimateSale(){
     }finally{isSubmitting=false;if(completeBtn){completeBtn.disabled=false;completeBtn.innerHTML='<i class="fas fa-check"></i> Complete Sale';}}
 }
 window.completeUltimateSale=completeUltimateSale;window.completeOrder=completeUltimateSale;
+
+// BUILD 9: explicit checkout click bridge. This avoids relying solely on an inline
+// handler and gives the cashier visible feedback if checkout is not initialized.
+window.handleCompleteSaleClick = async function(event){
+    if(event){event.preventDefault();event.stopPropagation();}
+    const btn=document.getElementById('completeSaleBtn');
+    if(btn?.disabled) return false;
+    if(!Array.isArray(cart)||!cart.length){
+        if(typeof showToast==='function') showToast('Add at least one product before completing the sale.','warning');
+        return false;
+    }
+    if(typeof window.completeUltimateSale!=='function'){
+        console.error('[Lucie Closet] completeUltimateSale is not available.');
+        if(typeof showToast==='function') showToast('Checkout is not ready. Please refresh the POS and try again.','error');
+        return false;
+    }
+    try{
+        await window.completeUltimateSale();
+    }catch(error){
+        console.error('[Lucie Closet] Complete Sale click error:',error);
+        if(typeof showToast==='function') showToast(error?.message||'Could not complete the sale.','error');
+    }
+    return false;
+};
+
 // ------------------------------------------------------------
 // Profit/Loss: use recorded cost snapshots where available.
 // Falls back to current product cost; never silently labels the
@@ -5034,6 +5059,9 @@ body{background:linear-gradient(135deg,#f8f7ff 0%,#fff7fb 48%,#f4f7ff 100%)}
 .ultra-search{flex:1;max-width:680px;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #eadcff;border-radius:15px;padding:0 12px;box-shadow:0 8px 25px rgba(45,32,80,.06)}
 .ultra-search i{color:#8b5cf6}.ultra-search input{border:0!important;box-shadow:none!important;flex:1;background:transparent!important}.ultra-search kbd{font-size:10px;background:#f5f3ff;color:#6d28d9;padding:4px 7px;border-radius:7px}
 .pos-quick-actions{display:flex;gap:7px;flex-wrap:wrap}.mini-count{background:#ec4899;color:#fff;border-radius:20px;padding:1px 6px;font-size:9px}
+/* BUILD 9 — Complete Sale reliability */
+.lc-complete-sale-btn{position:relative!important;z-index:50!important;pointer-events:auto!important;touch-action:manipulation!important;cursor:pointer!important;}
+.lc-complete-sale-btn:disabled{pointer-events:auto!important;cursor:wait!important;}
 .checkout-breakdown{padding:12px 0;border-top:1px dashed #ddd6fe;border-bottom:1px dashed #ddd6fe;margin:12px 0}.checkout-breakdown>div{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:#64748b}.checkout-breakdown .discount-line{color:#db2777}.held-sales-list{display:grid;gap:10px}.held-sale{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:1px solid #eadcff;border-radius:14px;background:linear-gradient(135deg,#fff,#faf7ff)}.held-sale-info strong{display:block;color:#1e1b4b}.held-sale-info span{font-size:12px;color:#64748b}.held-sale-actions{display:flex;gap:7px}
 @media(max-width:900px){.ultra-pos-toolbar{align-items:stretch;flex-direction:column}.ultra-search{max-width:none}.pos-quick-actions{width:100%}.pos-quick-actions .btn{flex:1}}
 
@@ -6224,19 +6252,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('DOMContentLoaded',bindProductValidation);
   setTimeout(bindProductValidation,800);
 
-  // Make the transaction state explicit before payment starts.
-  const oldComplete=window.completeUltimateSale;
-  if(typeof oldComplete==='function'&&!oldComplete.__lcFinalWrapped){
-    const wrapped=async function(){
-      if(!Array.isArray(cart)||!cart.length){showToast('Add at least one product before checkout.','warning');return;}
-      const button=document.getElementById('completeSaleBtn')||document.querySelector('[onclick*="completeUltimateSale"]');
-      if(button){button.dataset.originalText=button.innerHTML;button.disabled=true;button.innerHTML='<i class="fas fa-spinner fa-spin"></i> Processing transaction...';}
-      try{return await oldComplete.apply(this,arguments)}
-      finally{if(button){button.disabled=false;button.innerHTML=button.dataset.originalText||'<i class="fas fa-check"></i> Complete Sale';}}
-    };
-    wrapped.__lcFinalWrapped=true;
-    window.completeUltimateSale=wrapped;
-  }
+  // BUILD 9: the checkout button now calls the explicit bridge above.
 
   // Prevent accidental browser refresh while an STK payment is visibly pending.
   window.addEventListener('beforeunload',function(e){
