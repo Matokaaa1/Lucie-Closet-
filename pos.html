@@ -469,12 +469,6 @@ body:before{background-image:linear-gradient(rgba(91,33,182,.018) 1px,transparen
 @media(max-width:650px){.main-content{padding:10px 12px 28px}.stats-grid.lc-modern-kpis{grid-template-columns:1fr 1fr}.lc-payment-layout{grid-template-columns:1fr;height:auto}.lc-fashion-card h3{font-size:20px}.lc-chart-toolbar{margin-top:8px}.lc-modern-chart-wrap{height:230px!important}}
 [data-theme="dark"] .top-bar,[data-theme="dark"] .stat-card,[data-theme="dark"] .card,[data-theme="dark"] .lc-intel-card,[data-theme="dark"] .lc-fashion-card{background:#17203a!important;border-color:#293452!important;color:#f1f5f9}.dark .lc-chart-tab{background:#1b2440;color:#cbd5e1;border-color:#303b5a}
 
-
-.lc-social-settings{margin-top:14px}
-#socialMediaForm input{min-height:42px}
-#socialMediaForm .form-group label{display:flex;align-items:center;gap:6px}
-#socialMediaStatus{min-height:18px}
-
 </style>
 
 <style id="lucie-ultra-modern">
@@ -924,7 +918,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     <!-- ===== SECURE LOGIN SCREEN ===== -->
     <div class="auth-screen" id="loginScreen" style="display:flex;">
       <div class="auth-card">
-        <div class="auth-brand"><div class="auth-logo"><i class="fas fa-crown"></i></div><h1>Lucie Closet</h1><p>Professional POS & Business Management</p></div>
+        <div class="auth-brand"><div class="auth-logo"><i class="fas fa-crown"></i></div><h1>Lucie Closet</h1><p id="authSub">Professional POS & Business Management</p></div>
         <div class="login-tabs"><button class="login-tab active" id="emailTab" type="button" onclick="showLoginPane('emailPane')">Email Login</button><button class="login-tab" id="pinTab" type="button" onclick="showLoginPane('pinPane')">PIN Login</button></div>
         <div id="loginAlert" class="login-alert"></div>
         <div id="pinPane" class="hidden"><div class="form-group"><label>Staff Email / Username</label><input id="pinEmail" type="text" placeholder="admin or staff email"></div><div class="pin-dots" id="pinDots"><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span></div><input id="pinInput" type="password" inputmode="numeric" maxlength="6" class="hidden"><div class="pin-keypad"><button type="button" onclick="pinKey('1')">1</button><button type="button" onclick="pinKey('2')">2</button><button type="button" onclick="pinKey('3')">3</button><button type="button" onclick="pinKey('4')">4</button><button type="button" onclick="pinKey('5')">5</button><button type="button" onclick="pinKey('6')">6</button><button type="button" onclick="pinKey('7')">7</button><button type="button" onclick="pinKey('8')">8</button><button type="button" onclick="pinKey('9')">9</button><button type="button" onclick="pinClear()">⌫</button><button type="button" onclick="pinKey('0')">0</button><button type="button" id="pinEnter" onclick="handleLogin(event)">✓</button></div></div>
@@ -1311,30 +1305,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                         <div class="form-group"><label>Location</label><input type="text" id="businessLocation" value="Miski Shopping Centre, 2nd Floor, Room S12"></div>
                         <div class="form-group"><label>Receipt Footer</label><input type="text" id="receiptFooter" value="Thank you for shopping at Lucie Closet! 👗"></div>
                         <button type="submit" class="btn btn-primary btn-block">💾 Save Settings</button>
-                    </form>
-                </div>
-                <div class="card">
-                    <div class="card-header"><h3>📱 Social Media</h3></div>
-                    <form id="socialMediaForm" onsubmit="saveSocialMediaSettings(event)">
-                        <p style="font-size:12px;color:var(--text-muted);margin:-6px 0 14px;">
-                            These links are published to the Lucie Closet ecommerce website. Update them here without editing the website code.
-                        </p>
-                        <div class="form-row">
-                            <div class="form-group"><label>Instagram</label><input id="socialInstagram" type="text" placeholder="@luciecloset or full URL"></div>
-                            <div class="form-group"><label>Facebook</label><input id="socialFacebook" type="text" placeholder="facebook.com/luciecloset or full URL"></div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group"><label>TikTok</label><input id="socialTiktok" type="text" placeholder="@luciecloset or full URL"></div>
-                            <div class="form-group"><label>X / Twitter</label><input id="socialX" type="text" placeholder="@luciecloset or full URL"></div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group"><label>YouTube</label><input id="socialYoutube" type="text" placeholder="@LucieCloset or full URL"></div>
-                            <div class="form-group"><label>WhatsApp Number</label><input id="socialWhatsapp" type="text" placeholder="2547XXXXXXXX"></div>
-                        </div>
-                        <div style="display:flex;gap:10px;align-items:center;">
-                            <button type="submit" class="btn btn-primary">💾 Save Social Media</button>
-                            <span id="socialMediaStatus" style="font-size:12px;color:var(--text-muted);"></span>
-                        </div>
                     </form>
                 </div>
                 <div class="card">
@@ -1730,6 +1700,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
+    <div id="dashboardScreen" aria-hidden="true" style="display:block;width:0;height:0;overflow:hidden;position:absolute;left:-99999px"></div>
+    <!-- Runtime support elements: kept in DOM because several modules update these IDs dynamically. -->
+    <div id="errorMessage" class="hidden" role="status" aria-live="polite"></div>
+    <canvas id="categoryChart" class="hidden" aria-hidden="true"></canvas>
+    <span id="costCoverage" class="hidden"></span>
+    <span id="countCompleted" class="hidden">0</span>
+    
 
     
 
@@ -4072,131 +4049,6 @@ function renderAuditLogs(){const logs=getFilteredAuditLogs(), sales=auditLogCach
 function filterAuditLogs(){renderAuditLogs()}
 function exportAuditCSV(){const rows=[['Timestamp','User','User ID','Role','Action','Details'],...getFilteredAuditLogs().map(l=>[l.created_at||l.timestamp||'',l.user||'System',l.user_id||'',l.role_name||'',l.action||'',l.description||l.details||''])];const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\\n'),b=new Blob([csv],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`lucie-closet-audit-${new Date().toISOString().slice(0,10)}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
 window.loadAuditLogs=loadAuditLogs;window.filterAuditLogs=filterAuditLogs;window.exportAuditCSV=exportAuditCSV;
-
-// ============================================================
-// SOCIAL MEDIA SETTINGS — ADMIN MANAGED
-// Stored in Supabase site_settings.social_media and consumed by
-// the public Lucie Closet ecommerce website.
-// ============================================================
-const LC_SOCIAL_PLATFORMS = ['instagram','facebook','tiktok','x','youtube','whatsapp'];
-
-function lcNormalizeSocialValue(value, platform) {
-    const v = String(value || '').trim();
-    if (!v) return '';
-    if (/^https?:\/\//i.test(v)) return v;
-    if (platform === 'whatsapp') {
-        const digits = v.replace(/\D/g, '');
-        return digits ? `https://wa.me/${digits}` : '';
-    }
-    if (platform === 'instagram') return `https://instagram.com/${v.replace(/^@/, '')}`;
-    if (platform === 'facebook') return `https://facebook.com/${v.replace(/^@/, '')}`;
-    if (platform === 'tiktok') return `https://tiktok.com/@${v.replace(/^@/, '')}`;
-    if (platform === 'x') return `https://x.com/${v.replace(/^@/, '')}`;
-    if (platform === 'youtube') return v.startsWith('@') ? `https://youtube.com/${v}` : `https://youtube.com/@${v.replace(/^@/, '')}`;
-    return v;
-}
-
-function lcSocialFieldMap() {
-    return {
-        instagram: 'socialInstagram',
-        facebook: 'socialFacebook',
-        tiktok: 'socialTiktok',
-        x: 'socialX',
-        youtube: 'socialYoutube',
-        whatsapp: 'socialWhatsapp'
-    };
-}
-
-async function loadSocialMediaSettings() {
-    try {
-        const { data, error } = await sb
-            .from('site_settings')
-            .select('social_media')
-            .eq('id', 1)
-            .maybeSingle();
-
-        if (error) throw error;
-
-        const social = data?.social_media || {};
-        const map = lcSocialFieldMap();
-
-        Object.entries(map).forEach(([platform, id]) => {
-            const el = document.getElementById(id);
-            if (el) el.value = social[platform] || '';
-        });
-    } catch (error) {
-        console.warn('Social media settings could not be loaded:', error);
-        const local = JSON.parse(localStorage.getItem('luciecloset_social_media') || '{}');
-        const map = lcSocialFieldMap();
-        Object.entries(map).forEach(([platform, id]) => {
-            const el = document.getElementById(id);
-            if (el) el.value = local[platform] || '';
-        });
-    }
-}
-
-async function saveSocialMediaSettings(event) {
-    if (event) event.preventDefault();
-
-    const status = document.getElementById('socialMediaStatus');
-    const map = lcSocialFieldMap();
-    const social = {};
-
-    Object.entries(map).forEach(([platform, id]) => {
-        const el = document.getElementById(id);
-        social[platform] = el ? el.value.trim() : '';
-    });
-
-    // Keep the browser fallback, but Supabase is the authoritative store.
-    localStorage.setItem('luciecloset_social_media', JSON.stringify(social));
-
-    try {
-        if (!sb) throw new Error('Supabase client is unavailable.');
-
-        const { error } = await sb.from('site_settings').upsert({
-            id: 1,
-            social_media: social,
-            updated_at: new Date().toISOString()
-        }, { onConflict: 'id' });
-
-        if (error) throw error;
-
-        if (status) {
-            status.textContent = 'Saved and published successfully.';
-            status.style.color = '#059669';
-        }
-        showToast('Social media links saved and published.', 'success');
-
-        // If the public site is open in the same browser/tab context,
-        // it can consume the same normalized settings.
-        window.LUCIE_SOCIAL_SETTINGS = social;
-    } catch (error) {
-        console.error('Social media save failed:', error);
-        if (status) {
-            status.textContent = `Could not publish: ${error.message || 'database error'}`;
-            status.style.color = '#DC2626';
-        }
-        showToast('Social media could not be published. Check Supabase permissions.', 'error');
-    }
-}
-
-window.loadSocialMediaSettings = loadSocialMediaSettings;
-window.saveSocialMediaSettings = saveSocialMediaSettings;
-
-// Load settings whenever the admin Settings section is opened.
-const _lcOriginalShowSection = window.showSection;
-setTimeout(() => {
-    if (typeof window.showSection === 'function' && !window.__lcSocialSectionHooked) {
-        const original = window.showSection;
-        window.showSection = function(section, ...args) {
-            const result = original.call(this, section, ...args);
-            if (section === 'settings') loadSocialMediaSettings();
-            return result;
-        };
-        window.__lcSocialSectionHooked = true;
-    }
-    loadSocialMediaSettings();
-}, 0);
 
 // ============================================================
 // SETTINGS
