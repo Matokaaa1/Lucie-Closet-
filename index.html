@@ -485,7 +485,7 @@
     <a href="#" class="logo" onclick="filterProducts('all');return false;">
       <i class="fas fa-crown"></i><div><span class="brand-text">Lucie Closet</span><span class="brand-sub">Premium Fashion</span></div>
     </a>
-    <div class="header-search"><input type="search" id="searchInput" name="product-search" placeholder="Search for dresses, tops, sweaters, suits..." autocomplete="off" autocapitalize="none" spellcheck="false" oninput="renderProducts()"><button type="button" onclick="document.getElementById('searchInput').focus()"><i class="fas fa-search"></i></button></div>
+    <div class="header-search"><input type="search" id="searchInput" name="product-search" placeholder="Search for dresses, tops, sweaters, suits..." autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="search" oninput="renderProducts()"><button type="button" onclick="document.getElementById('searchInput').focus()"><i class="fas fa-search"></i></button></div>
     <nav class="nav-links">
       <a class="active" href="#" onclick="filterProducts('all');return false;">Home</a><a href="#products" onclick="filterProducts('dress');return false;">Dresses</a><a href="#products" onclick="filterProducts('top');return false;">Tops</a><a href="#products" onclick="filterProducts('sweater');return false;">Sweaters</a><a href="#products" onclick="filterProducts('suit');return false;">Suits</a><a href="#products" onclick="filterProducts('best');return false;" style="color:#e2a900"><i class="fas fa-star"></i> Best Quality</a>
     </nav>
@@ -1423,6 +1423,56 @@ function restoreCart(){ try{ const v=JSON.parse(localStorage.getItem('lucieclose
       if(input){input.value=t;sendChat();}
     });
   });
+})();
+</script>
+
+
+<script>
+/* ============================================================
+   LUCIE CLOSET SEARCH AUTOFILL PROTECTION
+   Prevent browsers/password managers from inserting an email
+   address into the product search field.
+   ============================================================ */
+(function () {
+  function protectProductSearch() {
+    const search = document.getElementById('searchInput');
+    if (!search || search.dataset.emailGuardInstalled === '1') return;
+
+    search.dataset.emailGuardInstalled = '1';
+    search.setAttribute('autocomplete', 'off');
+    search.setAttribute('name', 'product-search');
+    search.setAttribute('autocapitalize', 'none');
+    search.setAttribute('autocorrect', 'off');
+    search.setAttribute('spellcheck', 'false');
+    search.setAttribute('inputmode', 'search');
+
+    const looksLikeEmail = value =>
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+
+    const clearEmailAutofill = () => {
+      if (looksLikeEmail(search.value)) {
+        search.value = '';
+        if (typeof window.renderProducts === 'function') {
+          window.renderProducts();
+        }
+      }
+    };
+
+    clearEmailAutofill();
+    search.addEventListener('focus', clearEmailAutofill);
+    search.addEventListener('input', clearEmailAutofill);
+
+    // Some password managers populate fields shortly after page load.
+    setTimeout(clearEmailAutofill, 250);
+    setTimeout(clearEmailAutofill, 1000);
+    setTimeout(clearEmailAutofill, 2500);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', protectProductSearch);
+  } else {
+    protectProductSearch();
+  }
 })();
 </script>
 
