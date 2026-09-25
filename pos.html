@@ -822,10 +822,10 @@ body.lc-cashier .page-actions [data-admin-only],body.lc-cashier [data-admin-only
 (function(){
 'use strict';
 const roleMap={
- admin:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
- Administrator:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
- Owner:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
- Manager:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','quotations','gallery'],
+ admin:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery','socialMediaManagerSection'],
+ Administrator:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery','socialMediaManagerSection'],
+ Owner:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery','socialMediaManagerSection'],
+ Manager:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','quotations','gallery','socialMediaManagerSection'],
  Accountant:['dashboard','orders','customers','reports','profit'],
  'Stock Manager':['dashboard','products','inventory','gallery'],
  Cashier:['dashboard','pos','orders','customers']
@@ -964,7 +964,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <li data-section="compliance"><i class="fas fa-shield-alt"></i> eTIMS & Compliance</li>
             <li data-section="businessHub"><i class="fas fa-layer-group"></i> Business Hub <span class="badge">PRO</span></li>
             <li data-section="settings"><i class="fas fa-cog"></i> Settings</li>
-            <li data-section="socialMediaManagerSection"><i class="fas fa-share-nodes"></i> Social Media</li>
+            <li data-section="socialMediaManagerSection" id="socialMediaNavItem"><i class="fas fa-share-nodes"></i> Social Media</li>
             <li class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</li>
         </ul>
     </nav>
@@ -2729,7 +2729,8 @@ function navigateTo(section) {
         'accounting': 'accountingSection',
         'branches': 'branchesSection',
         'compliance': 'complianceSection',
-        'businessHub': 'businessHubSection'
+        'businessHub': 'businessHubSection',
+        'socialMediaManagerSection': 'socialMediaManagerSection'
     };
 
     const target = document.getElementById(sectionMap[section]);
@@ -2761,13 +2762,18 @@ function navigateTo(section) {
         'accounting': '🧮 Accounting',
         'branches': '🏪 Branches',
         'compliance': '🛡️ eTIMS & Compliance',
-        'businessHub': '🚀 Business Hub PRO'
+        'businessHub': '🚀 Business Hub PRO',
+        'socialMediaManagerSection': '📣 Social Media'
     };
 
     const pageTitle = document.getElementById('pageTitle');
     if (pageTitle) pageTitle.textContent = titles[section] || section;
     
     renderCurrentTab();
+    if(section === 'socialMediaManagerSection') {
+        try { if(typeof refreshSocialPublishManager === 'function') refreshSocialPublishManager(); } catch(e) { console.warn('[Lucie Closet] Social Media refresh skipped:', e); }
+        try { if(typeof loadSocialMediaSettings === 'function') loadSocialMediaSettings(); } catch(e) {}
+    }
     resetSessionTimer();
     console.log('Tab rendered successfully:', section, 'Target:', sectionMap[section]);
     } catch (error) {
@@ -4377,10 +4383,10 @@ window.LC = LC;
 
 LC.roles = {
     admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
-    Admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
-    Owner: ['dashboard','pos','orders','products','inventory','customers','reports','profit','audit','settings','gallery'],
-    Administrator: ['dashboard','pos','orders','products','inventory','customers','reports','profit','audit','settings','gallery'],
-    Manager: ['dashboard','pos','orders','products','inventory','customers','reports','profit','gallery'],
+    Admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery','socialMediaManagerSection'],
+    Owner: ['dashboard','pos','orders','products','inventory','customers','reports','profit','audit','settings','gallery','socialMediaManagerSection'],
+    Administrator: ['dashboard','pos','orders','products','inventory','customers','reports','profit','audit','settings','gallery','socialMediaManagerSection'],
+    Manager: ['dashboard','pos','orders','products','inventory','customers','reports','profit','gallery','socialMediaManagerSection'],
     Accountant: ['dashboard','orders','customers','reports','profit'],
     'Stock Manager': ['dashboard','products','inventory','gallery'],
     Cashier: ['dashboard','pos','orders','customers']
@@ -5875,8 +5881,8 @@ document.addEventListener('DOMContentLoaded', function() {
     admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
     Admin:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
     Owner:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
-    Administrator:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
-    Manager:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','gallery'],
+    Administrator:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery','socialMediaManagerSection'],
+    Manager:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','gallery','socialMediaManagerSection'],
     Accountant:['dashboard','orders','customers','reports','profit'],
     'Stock Manager':['dashboard','products','inventory','suppliers','purchases','gallery'],
     Cashier:['dashboard','pos','orders','customers'],
@@ -6590,6 +6596,44 @@ document.addEventListener('DOMContentLoaded', function() {
   };
   window.loadSocialMediaSettings=load;
   document.addEventListener('DOMContentLoaded',load);
+})();
+</script>
+<script id="lucie-social-media-tab-final-enforcement">
+(function(){
+  'use strict';
+  const SOCIAL_SECTION='socialMediaManagerSection';
+  const PRIVILEGED=/^(admin|administrator|owner|manager)$/i;
+  function getRole(){
+    const u=window.currentUser||{};
+    return String(u.role_name||u.role||'').trim();
+  }
+  function enforce(){
+    const item=document.getElementById('socialMediaNavItem');
+    if(!item) return;
+    if(PRIVILEGED.test(getRole())){
+      item.style.display='flex';
+      item.removeAttribute('hidden');
+      item.setAttribute('aria-label','Social Media');
+    }
+  }
+  function bind(){
+    const item=document.getElementById('socialMediaNavItem');
+    if(item && !item.dataset.socialBound){
+      item.dataset.socialBound='1';
+      item.addEventListener('click',function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        if(typeof window.navigateTo==='function') window.navigateTo(SOCIAL_SECTION);
+      },true);
+    }
+    enforce();
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    bind();
+    [250,750,1500,3000].forEach(t=>setTimeout(bind,t));
+  });
+  window.addEventListener('load',bind);
+  window.LC_ENFORCE_SOCIAL_MEDIA_TAB=enforce;
 })();
 </script>
 </body>
