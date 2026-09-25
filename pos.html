@@ -1524,9 +1524,37 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     <input type="hidden" id="imageGalleryData" value="[]">
                 </div>
 
+                <!-- SOCIAL PUBLISHING -->
+                <div class="lc-social-publish-card" id="productSocialPublishCard">
+                    <div class="lc-social-publish-head">
+                        <div>
+                            <h4><i class="fas fa-share-nodes"></i> Publish Product to Social Media</h4>
+                            <p>Save the product first, then publish or queue the same product content for your connected social accounts.</p>
+                        </div>
+                        <span class="lc-social-live-badge"><i class="fas fa-circle"></i> Website Live</span>
+                    </div>
+                    <div class="lc-social-targets">
+                        <label><input type="checkbox" id="publishWebsite" checked disabled> <i class="fas fa-globe"></i> Website</label>
+                        <label><input type="checkbox" id="publishFacebook"> <i class="fab fa-facebook"></i> Facebook</label>
+                        <label><input type="checkbox" id="publishInstagram"> <i class="fab fa-instagram"></i> Instagram</label>
+                        <label><input type="checkbox" id="publishTiktok"> <i class="fab fa-tiktok"></i> TikTok</label>
+                        <label><input type="checkbox" id="publishYoutube"> <i class="fab fa-youtube"></i> YouTube</label>
+                        <label><input type="checkbox" id="publishX"> <i class="fab fa-x-twitter"></i> X</label>
+                    </div>
+                    <div class="form-group" style="margin-top:12px">
+                        <label>Social Caption</label>
+                        <textarea id="productSocialCaption" rows="4" placeholder="New arrival ✨\n\nShop this piece at Lucie Closet.\n\n#LucieCloset #NewArrival #Fashion"></textarea>
+                    </div>
+                    <div class="lc-social-publish-actions">
+                        <button type="button" class="btn btn-outline" onclick="generateProductSocialCaption()"><i class="fas fa-wand-magic-sparkles"></i> Generate Caption</button>
+                        <button type="button" class="btn btn-secondary" onclick="queueProductSocialPublish()"><i class="fas fa-clock"></i> Queue Selected</button>
+                    </div>
+                    <div id="productSocialPublishStatus" class="lc-social-publish-status" aria-live="polite"></div>
+                </div>
+
                 <div class="modal-actions">
                     <button type="button" class="btn btn-outline" onclick="closeModal('productModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="saveProductBtn"><i class="fas fa-save"></i> Save</button>
+                    <button type="submit" class="btn btn-primary" id="saveProductBtn"><i class="fas fa-save"></i> Save & Publish Options</button>
                 </div>
             </form>
         </div>
@@ -6193,6 +6221,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
 
+  // ============================================================
+  // PRODUCT SOCIAL PUBLISHING — WEBSITE + SOCIAL QUEUE
+  // ============================================================
+  function lcProductSocialStatus(message, type='success'){
+    const el=document.getElementById('productSocialPublishStatus');
+    if(el){el.textContent=message;el.className='lc-social-publish-status '+type;}
+  }
+  function lcSocialSelectedTargets(){
+    return ['facebook','instagram','tiktok','youtube','x'].filter(p=>document.getElementById('publish'+p.charAt(0).toUpperCase()+p.slice(1))?.checked);
+  }
+  window.generateProductSocialCaption=function(){
+    const name=val('productName').trim()||'New arrival';
+    const price=Number(val('productSalePrice')||val('productPrice')||0);
+    const category=val('productCategory').trim();
+    const tags=val('productTags').split(',').map(x=>x.trim()).filter(Boolean).slice(0,5);
+    const caption=`✨ NEW ARRIVAL ✨\n\n${name}${category?' · '+category:''}\n${price?'KSh '+price.toLocaleString('en-KE'):''}\n\nAvailable now at Lucie Closet. Shop online today.\n\n#LucieCloset #Fashion #NewArrival${tags.map(t=>' #'+t.replace(/[^a-z0-9]/gi,'')).join('')}`;
+    const el=document.getElementById('productSocialCaption'); if(el)el.value=caption;
+  };
+  window.queueProductSocialPublish=async function(){
+    const id=val('editProductId');
+    if(!id){lcProductSocialStatus('Save the product first, then select the social platforms and queue the publication.','warning');return;}
+    const targets=lcSocialSelectedTargets();
+    if(!targets.length){lcProductSocialStatus('Select at least one social platform. Website publishing is automatic.','warning');return;}
+    const product=(Array.isArray(products)?products:[]).find(p=>String(p.id)===String(id))||{};
+    const caption=document.getElementById('productSocialCaption')?.value.trim()||'';
+    const payload={product_id:Number(id),product_name:product.name||val('productName'),caption,targets,status:'queued',created_at:new Date().toISOString()};
+    const key='luciecloset_social_publish_queue';
+    let local=[];try{local=JSON.parse(localStorage.getItem(key)||'[]')}catch(_){local=[]}
+    local.unshift(payload);localStorage.setItem(key,JSON.stringify(local.slice(0,200)));
+    // Store the queue when the optional Supabase table exists. This does not fake a social post.
+    try{
+      if(window.sb?.from){
+        const r=await window.sb.from('social_publish_queue').insert([payload]);
+        if(r.error && !/relation .* does not exist|schema cache/i.test(String(r.error.message||''))) throw r.error;
+      }
+    }catch(err){console.warn('[Lucie Closet] Social queue database save:',err)}
+    lcProductSocialStatus(`Queued for ${targets.map(x=>x==='x'?'X':x[0].toUpperCase()+x.slice(1)).join(', ')}. Website is already live from the product record.`,'success');
+    showToast('Social publication queued. Connect platform APIs to publish automatically.','info');
+  };
+
   window.saveProduct=async function(e){
     e.preventDefault(); if(!LC.permissionToast('manageProducts'))return;
     const id=val('editProductId'); const name=val('productName').trim(), code=val('productCode').trim(), category=val('productCategory');
@@ -6219,12 +6287,28 @@ document.addEventListener('DOMContentLoaded', function() {
         if(r.error)throw r.error;
         showToast('Saved core product fields. Add the missing detailed columns to Supabase to enable all product attributes.','warning');
       }else showToast(id?'Product updated successfully.':'Product added successfully.','success');
-      await loadProducts();updateStats();renderCurrentTab();closeModal('productModal');
+      // Keep the saved product id available so the social publishing controls can queue this exact product.
+      if(!id && Array.isArray(r.data) && r.data[0]?.id) { const edit=document.getElementById('editProductId'); if(edit) edit.value=r.data[0].id; }
+      await loadProducts();updateStats();renderCurrentTab();
+      if(!id){
+        const latest=Array.isArray(products)?products.find(p=>String(p.code||'')===String(code||'')):null;
+        const edit=document.getElementById('editProductId'); if(edit && latest?.id) edit.value=latest.id;
+      }
+      if(!document.getElementById('productSocialCaption')?.value) generateProductSocialCaption();
+      // Do not close immediately: the administrator can now choose social targets and queue the publication.
+      const btn=document.getElementById('saveProductBtn'); if(btn) btn.innerHTML='<i class="fas fa-check"></i> Product Saved';
+      lcProductSocialStatus('Product saved. Choose the social platforms above and click “Queue Selected”.','success');
+      if(typeof renderCurrentTab==='function') setTimeout(()=>{},0);
     }catch(err){console.error(err);showToast('Could not save product: '+(err.message||'Unknown error'),'error')}
   };
 })();
 </script>
 
+
+<style id="lc-social-publishing-ui">
+.lc-social-publish-card{margin-top:18px;padding:18px;border:1px solid rgba(124,58,237,.22);border-radius:16px;background:linear-gradient(135deg,rgba(124,58,237,.06),rgba(236,72,153,.05));}
+.lc-social-publish-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.lc-social-publish-head h4{margin:0 0 5px;font-size:15px}.lc-social-publish-head h4 i{color:#9333ea;margin-right:7px}.lc-social-publish-head p{margin:0;color:var(--text-muted);font-size:12px;line-height:1.5}.lc-social-live-badge{white-space:nowrap;font-size:11px;font-weight:800;color:#047857;background:#ecfdf5;padding:6px 9px;border-radius:999px}.lc-social-live-badge i{font-size:7px;margin-right:4px}.lc-social-targets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:14px}.lc-social-targets label{display:flex;align-items:center;gap:7px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);font-size:12px;cursor:pointer}.lc-social-targets input{accent-color:#9333ea}.lc-social-targets i{width:16px;text-align:center}.lc-social-publish-actions{display:flex;gap:8px;flex-wrap:wrap}.lc-social-publish-status{margin-top:10px;font-size:12px;min-height:18px}.lc-social-publish-status.success{color:#047857}.lc-social-publish-status.warning{color:#a16207}.lc-social-publish-status.error{color:#b91c1c}@media(max-width:700px){.lc-social-publish-head{flex-direction:column}.lc-social-targets{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
 <style id="lucie-final-pos-controls">
 /* Final POS controls: scanner-friendly search, safer product entry, and visible transaction state. */
 #posSearch{font-variant-numeric:tabular-nums}
