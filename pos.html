@@ -964,6 +964,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <li data-section="compliance"><i class="fas fa-shield-alt"></i> eTIMS & Compliance</li>
             <li data-section="businessHub"><i class="fas fa-layer-group"></i> Business Hub <span class="badge">PRO</span></li>
             <li data-section="settings"><i class="fas fa-cog"></i> Settings</li>
+            <li data-section="socialMediaManagerSection"><i class="fas fa-share-nodes"></i> Social Media</li>
             <li class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</li>
         </ul>
     </nav>
@@ -1348,6 +1349,40 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <span id="socialMediaStatus" style="font-size:13px"></span>
       </div>
     </form>
+  </div>
+</section>
+
+<section id="socialMediaManagerSection" class="section-page">
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="fas fa-share-nodes"></i> Social Media Manager</h3>
+      <button type="button" class="btn btn-outline btn-sm" onclick="refreshSocialPublishManager()"><i class="fas fa-rotate"></i> Refresh</button>
+    </div>
+    <p style="color:var(--text-muted);font-size:13px;margin-top:-8px">Manage connected platforms, prepare product posts, queue publications and review posting history. Actual platform publishing requires the official platform API connection.</p>
+    <div id="socialConnectionsGrid" class="lc-social-connections-grid"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3><i class="fas fa-bullhorn"></i> Create Social Post</h3></div>
+    <form id="socialManagerPostForm" onsubmit="createSocialManagerPost(event)">
+      <div class="form-row">
+        <div class="form-group"><label>Product</label><select id="socialManagerProduct"><option value="">Select product</option></select></div>
+        <div class="form-group"><label>Publish Status</label><select id="socialManagerStatus"><option value="queued">Queue for publishing</option><option value="draft">Save as draft</option></select></div>
+      </div>
+      <div class="form-group"><label>Platforms</label><div id="socialManagerPlatforms" class="lc-social-manager-platforms"></div></div>
+      <div class="form-group"><label>Caption</label><textarea id="socialManagerCaption" rows="6" placeholder="Write your social media caption..."></textarea></div>
+      <div class="form-group"><label>Product Image URL</label><input id="socialManagerImage" type="url" placeholder="Product image URL" autocomplete="off"></div>
+      <div class="lc-social-manager-actions">
+        <button type="button" class="btn btn-outline" onclick="generateSocialManagerCaption()"><i class="fas fa-wand-magic-sparkles"></i> Generate Caption</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Queue Post</button>
+      </div>
+      <div id="socialManagerStatus" class="lc-social-publish-status" aria-live="polite"></div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3><i class="fas fa-clock-rotate-left"></i> Posting History</h3></div>
+    <div id="socialPostingHistory" class="lc-social-history"></div>
   </div>
 </section>
 
@@ -3658,57 +3693,7 @@ function openGalleryImage(url,name){
     if(!w)return;
     w.document.write(`<!doctype html><title>${String(name||'Product').replace(/</g,'&lt;')}</title><body style="margin:0;background:#faf7ff;display:grid;place-items:center;min-height:100vh"><img src="${String(url).replace(/"/g,'&quot;')}" alt="" style="max-width:94vw;max-height:94vh;object-fit:contain;background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.15)">
 
-<script id="lucie-admin-social-settings">
-(function(){
-  const platforms=['instagram','facebook','tiktok','x','youtube','whatsapp'];
-  const ids={instagram:'socialInstagram',facebook:'socialFacebook',tiktok:'socialTiktok',x:'socialX',youtube:'socialYoutube',whatsapp:'socialWhatsapp'};
-  function normalize(v,p){
-    v=String(v||'').trim(); if(!v)return '';
-    if(/^https?:\/\//i.test(v))return v;
-    if(p==='whatsapp'){const d=v.replace(/\D/g,'');return d?'https://wa.me/'+d:'';}
-    if(p==='instagram')return 'https://instagram.com/'+v.replace(/^@/,'');
-    if(p==='facebook')return 'https://facebook.com/'+v.replace(/^@/,'');
-    if(p==='tiktok')return 'https://tiktok.com/@'+v.replace(/^@/,'');
-    if(p==='x')return 'https://x.com/'+v.replace(/^@/,'');
-    if(p==='youtube')return v.startsWith('@')?'https://youtube.com/'+v:'https://youtube.com/@'+v.replace(/^@/,'');
-    return v;
-  }
-  async function load(){
-    try{
-      const client=window.sb||window.supabase;
-      if(!client||!client.from)return;
-      const {data,error}=await client.from('site_settings').select('social_media').eq('id',1).maybeSingle();
-      if(error)throw error;
-      const s=data&&data.social_media?data.social_media:{};
-      platforms.forEach(p=>{const el=document.getElementById(ids[p]);if(el)el.value=s[p]||'';});
-    }catch(e){console.warn('Social settings load failed',e);}
-  }
-  window.saveSocialMediaSettings=async function(ev){
-    if(ev)ev.preventDefault();
-    const status=document.getElementById('socialMediaStatus');
-    const raw={};
-    platforms.forEach(p=>{raw[p]=document.getElementById(ids[p])?.value.trim()||'';});
-    const social={};
-    platforms.forEach(p=>{social[p]=normalize(raw[p],p);});
-    try{
-      if(status){status.textContent='Saving…';status.style.color='';}
-      const client=window.sb||window.supabase;
-      if(!client||!client.from)throw new Error('Supabase is not initialized');
-      const {error}=await client.from('site_settings').upsert({
-        id:1,social_media:social,updated_at:new Date().toISOString()
-      },{onConflict:'id'});
-      if(error)throw error;
-      localStorage.setItem('luciecloset_social_media',JSON.stringify(social));
-      if(status){status.textContent='Social links saved successfully.';status.style.color='#16a34a';}
-    }catch(e){
-      console.error(e);
-      if(status){status.textContent='Could not save. Check your admin permissions/RLS policy.';status.style.color='#dc2626';}
-    }
-  };
-  window.loadSocialMediaSettings=load;
-  document.addEventListener('DOMContentLoaded',load);
-})();
-</script>
+
 
 </body>`);
     w.document.close();
@@ -6464,6 +6449,120 @@ document.addEventListener('DOMContentLoaded', function() {
   window.addEventListener('beforeunload',function(e){
     if(window.activeStkPoll||window.__lcPaymentPending){e.preventDefault();e.returnValue='';}
   });
+})();
+</script>
+
+<script id="lucie-social-media-manager">
+(function(){
+  const KEY='luciecloset_social_publish_history';
+  const platforms=['facebook','instagram','tiktok','youtube','x'];
+  const labels={facebook:'Facebook',instagram:'Instagram',tiktok:'TikTok',youtube:'YouTube',x:'X'};
+  const icons={facebook:'fab fa-facebook',instagram:'fab fa-instagram',tiktok:'fab fa-tiktok',youtube:'fab fa-youtube',x:'fab fa-x-twitter'};
+  function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+  function getSocial(){try{return JSON.parse(localStorage.getItem('luciecloset_social_media')||'{}')}catch(_){return {}}}
+  function getHistory(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(_){return []}}
+  function saveHistory(a){localStorage.setItem(KEY,JSON.stringify(a.slice(0,200)))}
+  function connected(p){return !!getSocial()[p]}
+  function renderConnections(){
+    const el=document.getElementById('socialConnectionsGrid'); if(!el)return;
+    el.innerHTML=platforms.map(p=>`<div class="lc-social-connection ${connected(p)?'connected':'not-connected'}"><div class="lc-social-connection-icon"><i class="${icons[p]}"></i></div><div><strong>${labels[p]}</strong><span>${connected(p)?'Configured':'Not configured'}</span></div><span class="lc-social-dot"></span></div>`).join('')+
+      `<div class="lc-social-connection ${getSocial().whatsapp?'connected':'not-connected'}"><div class="lc-social-connection-icon"><i class="fab fa-whatsapp"></i></div><div><strong>WhatsApp</strong><span>${getSocial().whatsapp?'Configured':'Not configured'}</span></div><span class="lc-social-dot"></span></div>`;
+  }
+  function renderPlatforms(){
+    const el=document.getElementById('socialManagerPlatforms'); if(!el)return;
+    el.innerHTML=platforms.map(p=>`<label><input type="checkbox" name="managerPlatform" value="${p}" ${connected(p)?'':'disabled'}><i class="${icons[p]}"></i>${labels[p]}${connected(p)?'':' (not configured)'}</label>`).join('');
+  }
+  function renderProducts(){
+    const el=document.getElementById('socialManagerProduct'); if(!el)return;
+    const current=el.value;
+    el.innerHTML='<option value="">Select product</option>'+(Array.isArray(window.products)?window.products.map(p=>`<option value="${esc(p.id)}">${esc(p.name||'Unnamed product')} — ${esc(p.code||'')}</option>`).join(''):'');
+    if(current)el.value=current;
+  }
+  function renderHistory(){
+    const el=document.getElementById('socialPostingHistory'); if(!el)return;
+    const h=getHistory();
+    if(!h.length){el.innerHTML='<div class="empty-state"><i class="fas fa-share-nodes"></i><p>No social posts have been queued yet.</p></div>';return;}
+    el.innerHTML=`<div class="table-wrapper"><table class="data-table"><thead><tr><th>Date</th><th>Product</th><th>Platforms</th><th>Status</th><th>Caption</th></tr></thead><tbody>${h.map(x=>`<tr><td>${esc(new Date(x.created_at).toLocaleString('en-KE'))}</td><td>${esc(x.product_name||'')}</td><td>${(x.targets||[]).map(p=>`<span class="lc-mini-platform"><i class="${icons[p]||'fas fa-share-nodes'}"></i>${labels[p]||p}</span>`).join(' ')}</td><td><span class="lc-history-status ${esc(x.status||'queued')}">${esc(x.status||'queued')}</span></td><td title="${esc(x.caption||'')}">${esc((x.caption||'').slice(0,100))}${(x.caption||'').length>100?'…':''}</td></tr>`).join('')}</tbody></table></div>`;
+  }
+  window.generateSocialManagerCaption=function(){
+    const id=document.getElementById('socialManagerProduct')?.value; const p=(Array.isArray(window.products)?window.products:[]).find(x=>String(x.id)===String(id));
+    if(!p){const st=document.getElementById('socialManagerStatus');if(st)st.textContent='Select a product first.';return;}
+    const price=Number(p.sale_price||p.price||0); const cat=p.category?` · ${p.category}`:'';
+    const caption=`✨ NEW ARRIVAL ✨\n\n${p.name||'New arrival'}${cat}\n${price?'KSh '+price.toLocaleString('en-KE'):''}\n\nAvailable now at Lucie Closet. Shop online today.\n\n#LucieCloset #Fashion #NewArrival`;
+    const el=document.getElementById('socialManagerCaption');if(el)el.value=caption;
+    const img=document.getElementById('socialManagerImage');if(img&&p.image_url)img.value=p.image_url;
+  };
+  window.createSocialManagerPost=async function(ev){
+    ev.preventDefault();
+    const id=document.getElementById('socialManagerProduct')?.value;
+    const p=(Array.isArray(window.products)?window.products:[]).find(x=>String(x.id)===String(id));
+    const targets=[...document.querySelectorAll('input[name="managerPlatform"]:checked')].map(x=>x.value);
+    const caption=document.getElementById('socialManagerCaption')?.value.trim()||'';
+    const statusEl=document.getElementById('socialManagerStatus');
+    if(!p){if(statusEl)statusEl.textContent='Select a product first.';return;}
+    if(!targets.length){if(statusEl)statusEl.textContent='Configure at least one social account and select a platform.';return;}
+    const post={product_id:p.id,product_name:p.name||'',caption,image_url:document.getElementById('socialManagerImage')?.value.trim()||p.image_url||'',targets,status:document.getElementById('socialManagerStatus')?.value||'queued',created_at:new Date().toISOString()};
+    const h=getHistory();h.unshift(post);saveHistory(h);
+    try{if(window.sb?.from){const r=await window.sb.from('social_publish_queue').insert([post]);if(r.error&&!/relation .* does not exist|schema cache/i.test(String(r.error.message||'')))throw r.error;}}catch(e){console.warn('Social queue DB save:',e)}
+    if(statusEl){statusEl.textContent=`Post ${post.status==='draft'?'saved as draft':'queued'} for ${targets.map(x=>labels[x]).join(', ')}. Actual publishing occurs after the official platform API is connected.`;statusEl.className='lc-social-publish-status success';}
+    renderHistory(); showToast('Social post saved to the publishing queue.','success');
+  };
+  window.refreshSocialPublishManager=function(){renderConnections();renderPlatforms();renderProducts();renderHistory();};
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(window.refreshSocialPublishManager,300));
+})();
+</script>
+<style id="lc-social-manager-ui">
+.lc-social-connections-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}.lc-social-connection{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--border);border-radius:13px;background:var(--bg-card)}.lc-social-connection-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:rgba(124,58,237,.09);font-size:16px}.lc-social-connection div:nth-child(2){display:flex;flex-direction:column;gap:2px}.lc-social-connection span:not(.lc-social-dot){font-size:11px;color:var(--text-muted)}.lc-social-dot{margin-left:auto;width:9px;height:9px;border-radius:50%;background:#d1d5db}.lc-social-connection.connected .lc-social-dot{background:#16a34a;box-shadow:0 0 0 4px rgba(22,163,74,.1)}.lc-social-manager-platforms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.lc-social-manager-platforms label{display:flex;align-items:center;gap:7px;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:12px}.lc-social-manager-platforms input{accent-color:#9333ea}.lc-social-manager-actions{display:flex;gap:8px;flex-wrap:wrap}.lc-mini-platform{display:inline-flex;align-items:center;gap:4px;margin:2px 5px 2px 0;font-size:11px}.lc-history-status{display:inline-block;padding:4px 8px;border-radius:999px;background:#f3f4f6;font-size:11px;font-weight:700}.lc-history-status.queued{background:#fef3c7;color:#92400e}.lc-history-status.draft{background:#e5e7eb;color:#374151}.lc-history-status.published{background:#dcfce7;color:#166534}.lc-history-status.failed{background:#fee2e2;color:#991b1b}@media(max-width:800px){.lc-social-connections-grid,.lc-social-manager-platforms{grid-template-columns:repeat(2,minmax(0,1fr))}} @media(max-width:520px){.lc-social-connections-grid,.lc-social-manager-platforms{grid-template-columns:1fr}}
+</style>
+<script id="lucie-admin-social-settings">
+(function(){
+  const platforms=['instagram','facebook','tiktok','x','youtube','whatsapp'];
+  const ids={instagram:'socialInstagram',facebook:'socialFacebook',tiktok:'socialTiktok',x:'socialX',youtube:'socialYoutube',whatsapp:'socialWhatsapp'};
+  function normalize(v,p){
+    v=String(v||'').trim(); if(!v)return '';
+    if(/^https?:\/\//i.test(v))return v;
+    if(p==='whatsapp'){const d=v.replace(/\D/g,'');return d?'https://wa.me/'+d:'';}
+    if(p==='instagram')return 'https://instagram.com/'+v.replace(/^@/,'');
+    if(p==='facebook')return 'https://facebook.com/'+v.replace(/^@/,'');
+    if(p==='tiktok')return 'https://tiktok.com/@'+v.replace(/^@/,'');
+    if(p==='x')return 'https://x.com/'+v.replace(/^@/,'');
+    if(p==='youtube')return v.startsWith('@')?'https://youtube.com/'+v:'https://youtube.com/@'+v.replace(/^@/,'');
+    return v;
+  }
+  async function load(){
+    try{
+      const client=window.sb||window.supabase;
+      if(!client||!client.from)return;
+      const {data,error}=await client.from('site_settings').select('social_media').eq('id',1).maybeSingle();
+      if(error)throw error;
+      const s=data&&data.social_media?data.social_media:{};
+      platforms.forEach(p=>{const el=document.getElementById(ids[p]);if(el)el.value=s[p]||'';});
+    }catch(e){console.warn('Social settings load failed',e);}
+  }
+  window.saveSocialMediaSettings=async function(ev){
+    if(ev)ev.preventDefault();
+    const status=document.getElementById('socialMediaStatus');
+    const raw={};
+    platforms.forEach(p=>{raw[p]=document.getElementById(ids[p])?.value.trim()||'';});
+    const social={};
+    platforms.forEach(p=>{social[p]=normalize(raw[p],p);});
+    try{
+      if(status){status.textContent='Saving…';status.style.color='';}
+      const client=window.sb||window.supabase;
+      if(!client||!client.from)throw new Error('Supabase is not initialized');
+      const {error}=await client.from('site_settings').upsert({
+        id:1,social_media:social,updated_at:new Date().toISOString()
+      },{onConflict:'id'});
+      if(error)throw error;
+      localStorage.setItem('luciecloset_social_media',JSON.stringify(social));
+      if(status){status.textContent='Social links saved successfully.';status.style.color='#16a34a';}
+    }catch(e){
+      console.error(e);
+      if(status){status.textContent='Could not save. Check your admin permissions/RLS policy.';status.style.color='#dc2626';}
+    }
+  };
+  window.loadSocialMediaSettings=load;
+  document.addEventListener('DOMContentLoaded',load);
 })();
 </script>
 </body>
