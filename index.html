@@ -431,6 +431,52 @@
   .product-card .btn-outline{font-size:12px!important;padding:9px 7px!important}
 }
 @media(max-width:420px){.product-grid{grid-template-columns:1fr 1fr!important}.product-card .product-name{font-size:13px!important}}
+
+/* ============================================================
+   PRODUCT VIEW + CUSTOMER CHAT POLISH
+   ============================================================ */
+#productViewModal{z-index:99990;overscroll-behavior:contain}
+#productViewModal .auth-modal-content{position:relative;max-height:92vh;overflow:auto;border-radius:22px}
+#productViewModal .modal-header{position:sticky;top:0;z-index:5;background:inherit;padding:4px 0 14px}
+#productViewModal .close-modal{
+  width:42px;height:42px;min-width:42px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:#f6f2fa;color:#4b4050;border:1px solid #eadff0;
+  cursor:pointer;pointer-events:auto;transition:.2s ease;
+}
+#productViewModal .close-modal:hover{background:var(--primary);color:#fff;transform:rotate(90deg)}
+#lcChatLauncher{
+  position:fixed;right:22px;bottom:22px;width:58px;height:58px;border:0;border-radius:50%;
+  background:linear-gradient(135deg,var(--primary),var(--pink));color:#fff;
+  box-shadow:0 12px 30px rgba(95,35,130,.28);z-index:99995;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:21px;
+}
+#lcChatLauncher:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(95,35,130,.34)}
+#lcChatPanel{
+  position:fixed;right:22px;bottom:92px;width:min(360px,calc(100vw - 28px));
+  background:#fff;border:1px solid #eadff0;border-radius:20px;overflow:hidden;
+  box-shadow:0 20px 60px rgba(28,18,38,.2);z-index:99996;display:none;
+}
+#lcChatPanel.open{display:block}
+#lcChatHead{padding:16px 17px;background:linear-gradient(135deg,#171737,#3a1747);color:#fff;display:flex;justify-content:space-between;align-items:center}
+#lcChatHead strong{font-size:15px}
+#lcChatClose{background:transparent;border:0;color:#fff;font-size:20px;cursor:pointer}
+#lcChatMessages{height:230px;overflow:auto;padding:14px;background:#faf8fc}
+.lc-chat-msg{max-width:85%;padding:9px 11px;border-radius:13px;margin-bottom:9px;font-size:13px;line-height:1.45}
+.lc-chat-msg.bot{background:#fff;border:1px solid #eee5f1;color:#423746}
+.lc-chat-msg.user{margin-left:auto;background:#f0dafa;color:#3c174b}
+#lcChatQuick{display:flex;gap:7px;flex-wrap:wrap;padding:10px 12px;border-top:1px solid #eee5f1}
+#lcChatQuick button{border:1px solid #dfcbe8;background:#fff;color:#6f248c;border-radius:999px;padding:7px 9px;font-size:11px;cursor:pointer}
+#lcChatInputRow{display:flex;gap:7px;padding:10px;border-top:1px solid #eee5f1}
+#lcChatInput{flex:1;border:1px solid #ded4e2;border-radius:12px;padding:10px 11px;outline:none}
+#lcChatSend{width:42px;border:0;border-radius:12px;background:var(--primary);color:#fff;cursor:pointer}
+@media(max-width:600px){
+  #lcChatLauncher{right:15px;bottom:15px}
+  #lcChatPanel{right:14px;bottom:82px}
+  #productViewModal{padding:10px}
+  #productViewModal .auth-modal-content{width:100%!important;max-height:94vh}
+}
+
 </style>
 </head>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
 <body>
@@ -500,6 +546,31 @@
 <button class="btn-primary" onclick="placeOrder()"><i class="fas fa-check"></i> Place Order · <span id="paymentTotal">KSh 0</span></button>
 </div>
 </div>
+
+<!-- Lucie Closet customer chat -->
+<button id="lcChatLauncher" type="button" aria-label="Open Lucie Closet chat" title="Chat with Lucie Closet">
+  <i class="fas fa-comments"></i>
+</button>
+<section id="lcChatPanel" aria-hidden="true" aria-label="Lucie Closet customer chat">
+  <div id="lcChatHead">
+    <div><strong><i class="fas fa-sparkles"></i> Lucie Closet</strong><div style="font-size:11px;opacity:.8;margin-top:3px">Customer support</div></div>
+    <button id="lcChatClose" type="button" aria-label="Close chat">&times;</button>
+  </div>
+  <div id="lcChatMessages">
+    <div class="lc-chat-msg bot">Hi! How can we help you today?</div>
+  </div>
+  <div id="lcChatQuick">
+    <button type="button" data-chat="I need help choosing a product.">Product help</button>
+    <button type="button" data-chat="I want to ask about delivery.">Delivery</button>
+    <button type="button" data-chat="I want to ask about payment.">Payment</button>
+    <button type="button" data-chat="I want to contact Lucie Closet on WhatsApp.">WhatsApp</button>
+  </div>
+  <div id="lcChatInputRow">
+    <input id="lcChatInput" type="text" placeholder="Type your message..." autocomplete="off">
+    <button id="lcChatSend" type="button" aria-label="Send message"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</section>
+
 <div aria-hidden="true" class="auth-modal" id="productViewModal">
 <div class="auth-modal-content" style="max-width:920px;width:94%;">
 <div class="modal-header">
@@ -1275,5 +1346,85 @@ function restoreCart(){ try{ const v=JSON.parse(localStorage.getItem('lucieclose
     checkAuth();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
     loadProducts();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
   </script>
-\n<script id="lucie-complete-functionality">\n(function(){\n  'use strict';\n  function ready(fn){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fn); else fn(); }\n  ready(function(){\n    // Catalog sorting without changing the existing Supabase product model.\n    const section=document.getElementById('products');\n    const cats=document.querySelector('.lc-categories');\n    if(section && cats && !document.getElementById('lcCatalogTools')){\n      const tools=document.createElement('div');\n      tools.id='lcCatalogTools';\n      tools.className='lc-catalog-tools';\n      tools.innerHTML='<span class="lc-results-note">Browse the live Lucie Closet catalogue</span><label for="lcSort">Sort <select id="lcSort" class="lc-sort" aria-label="Sort products"><option value="featured">Featured</option><option value="newest">Newest</option><option value="price-low">Price: Low to High</option><option value="price-high">Price: High to Low</option><option value="name">Name: A–Z</option></select></label>';\n      cats.insertAdjacentElement('afterend',tools);\n      const sort=document.getElementById('lcSort');\n      sort.addEventListener('change',function(){\n        try{\n          if(!Array.isArray(window.products) && typeof products==='undefined') return;\n          const arr=(typeof products!=='undefined'?products:window.products);\n          if(!Array.isArray(arr)) return;\n          const mode=sort.value;\n          if(mode==='price-low') arr.sort((a,b)=>Number(a.sale_price??a.price??0)-Number(b.sale_price??b.price??0));\n          else if(mode==='price-high') arr.sort((a,b)=>Number(b.sale_price??b.price??0)-Number(a.sale_price??a.price??0));\n          else if(mode==='name') arr.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));\n          else if(mode==='newest') arr.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));\n          if(typeof window.renderProducts==='function') window.renderProducts();\n        }catch(e){console.warn('Catalogue sorting unavailable:',e);}\n      });\n    }\n\n    // Remove dead social placeholders and add accessible labels.\n    ['socialFacebook','socialInstagram','socialTiktok','socialYoutube','footFacebook','footInstagram','footTiktok','footYoutube','footX','footWhatsapp'].forEach(id=>{\n      const el=document.getElementById(id);\n      if(el && !el.getAttribute('aria-label')) el.setAttribute('aria-label',id.replace(/^social|^foot/,'')+' — Lucie Closet');\n    });\n\n    // Prevent placeholder '#' social/footer links from navigating if a platform has not been configured.\n    document.addEventListener('click',function(e){\n      const a=e.target.closest('a[href="#"]');\n      if(a && (a.id||'').match(/^(social|foot)/i)){ e.preventDefault(); }\n    });\n\n    // Global keyboard close for open storefront overlays/modals.\n    document.addEventListener('keydown',function(e){\n      if(e.key!=='Escape') return;\n      try{ if(typeof window.closePaymentModal==='function') window.closePaymentModal(); }catch(_){}\n      try{ if(typeof window.closeProductView==='function') window.closeProductView(); }catch(_){}\n      try{ if(typeof window.closeAuthModal==='function') window.closeAuthModal(); }catch(_){}\n      const sidebar=document.getElementById('cartSidebar');\n      if(sidebar && sidebar.classList.contains('open') && typeof window.toggleCart==='function') window.toggleCart();\n    });\n\n    // Make broken product/social images fail gracefully instead of showing broken-image icons.\n    document.addEventListener('error',function(e){\n      const img=e.target;\n      if(!(img instanceof HTMLImageElement)) return;\n      if(img.dataset.lcFallbackApplied) return;\n      img.dataset.lcFallbackApplied='1';\n      img.alt=img.alt||'Lucie Closet product image';\n      img.style.objectFit='cover';\n      img.style.background='#f7f4fb';\n      if(img.dataset.socialIndex!==undefined) img.style.visibility='hidden';\n    },true);\n  });\n})();\n</script>\n</body>
+\n<script id="lucie-complete-functionality">\n(function(){\n  'use strict';\n  function ready(fn){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fn); else fn(); }\n  ready(function(){\n    // Catalog sorting without changing the existing Supabase product model.\n    const section=document.getElementById('products');\n    const cats=document.querySelector('.lc-categories');\n    if(section && cats && !document.getElementById('lcCatalogTools')){\n      const tools=document.createElement('div');\n      tools.id='lcCatalogTools';\n      tools.className='lc-catalog-tools';\n      tools.innerHTML='<span class="lc-results-note">Browse the live Lucie Closet catalogue</span><label for="lcSort">Sort <select id="lcSort" class="lc-sort" aria-label="Sort products"><option value="featured">Featured</option><option value="newest">Newest</option><option value="price-low">Price: Low to High</option><option value="price-high">Price: High to Low</option><option value="name">Name: A–Z</option></select></label>';\n      cats.insertAdjacentElement('afterend',tools);\n      const sort=document.getElementById('lcSort');\n      sort.addEventListener('change',function(){\n        try{\n          if(!Array.isArray(window.products) && typeof products==='undefined') return;\n          const arr=(typeof products!=='undefined'?products:window.products);\n          if(!Array.isArray(arr)) return;\n          const mode=sort.value;\n          if(mode==='price-low') arr.sort((a,b)=>Number(a.sale_price??a.price??0)-Number(b.sale_price??b.price??0));\n          else if(mode==='price-high') arr.sort((a,b)=>Number(b.sale_price??b.price??0)-Number(a.sale_price??a.price??0));\n          else if(mode==='name') arr.sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));\n          else if(mode==='newest') arr.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));\n          if(typeof window.renderProducts==='function') window.renderProducts();\n        }catch(e){console.warn('Catalogue sorting unavailable:',e);}\n      });\n    }\n\n    // Remove dead social placeholders and add accessible labels.\n    ['socialFacebook','socialInstagram','socialTiktok','socialYoutube','footFacebook','footInstagram','footTiktok','footYoutube','footX','footWhatsapp'].forEach(id=>{\n      const el=document.getElementById(id);\n      if(el && !el.getAttribute('aria-label')) el.setAttribute('aria-label',id.replace(/^social|^foot/,'')+' — Lucie Closet');\n    });\n\n    // Prevent placeholder '#' social/footer links from navigating if a platform has not been configured.\n    document.addEventListener('click',function(e){\n      const a=e.target.closest('a[href="#"]');\n      if(a && (a.id||'').match(/^(social|foot)/i)){ e.preventDefault(); }\n    });\n\n    // Global keyboard close for open storefront overlays/modals.\n    document.addEventListener('keydown',function(e){\n      if(e.key!=='Escape') return;\n      try{ if(typeof window.closePaymentModal==='function') window.closePaymentModal(); }catch(_){}\n      try{ if(typeof window.closeProductView==='function') window.closeProductView(); }catch(_){}\n      try{ if(typeof window.closeAuthModal==='function') window.closeAuthModal(); }catch(_){}\n      const sidebar=document.getElementById('cartSidebar');\n      if(sidebar && sidebar.classList.contains('open') && typeof window.toggleCart==='function') window.toggleCart();\n    });\n\n    // Make broken product/social images fail gracefully instead of showing broken-image icons.\n    document.addEventListener('error',function(e){\n      const img=e.target;\n      if(!(img instanceof HTMLImageElement)) return;\n      if(img.dataset.lcFallbackApplied) return;\n      img.dataset.lcFallbackApplied='1';\n      img.alt=img.alt||'Lucie Closet product image';\n      img.style.objectFit='cover';\n      img.style.background='#f7f4fb';\n      if(img.dataset.socialIndex!==undefined) img.style.visibility='hidden';\n    },true);\n  });\n})();\n</script>\n
+<script>
+(function(){
+  function q(id){ return document.getElementById(id); }
+
+  // Robust product-view closing: button, backdrop, Escape and scroll restoration.
+  window.closeProductView = function(){
+    const modal=q('productViewModal');
+    if(!modal) return;
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden','true');
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow='';
+  };
+  window.openProductView = window.openProductView || function(){};
+
+  document.addEventListener('click',function(e){
+    const modal=q('productViewModal');
+    if(!modal) return;
+    if(e.target.closest('#productViewModal .close-modal')){
+      e.preventDefault();
+      e.stopPropagation();
+      window.closeProductView();
+      return;
+    }
+    if(e.target===modal) window.closeProductView();
+  }, true);
+
+  // Customer chat: lightweight on-site support with WhatsApp handoff.
+  const launcher=q('lcChatLauncher'), panel=q('lcChatPanel'), close=q('lcChatClose');
+  const messages=q('lcChatMessages'), input=q('lcChatInput'), send=q('lcChatSend');
+  function chatOpen(){
+    if(!panel) return;
+    panel.classList.add('open'); panel.setAttribute('aria-hidden','false');
+    setTimeout(()=>input?.focus(),80);
+  }
+  function chatClose(){
+    if(!panel) return;
+    panel.classList.remove('open'); panel.setAttribute('aria-hidden','true');
+  }
+  function addMsg(text,type){
+    if(!messages) return;
+    const el=document.createElement('div');
+    el.className='lc-chat-msg '+(type||'user');
+    el.textContent=text;
+    messages.appendChild(el);
+    messages.scrollTop=messages.scrollHeight;
+  }
+  function sendChat(){
+    const text=(input?.value||'').trim();
+    if(!text) return;
+    addMsg(text,'user');
+    input.value='';
+    const lower=text.toLowerCase();
+    if(lower.includes('whatsapp') || lower.includes('contact')){
+      addMsg('You can continue the conversation with our team on WhatsApp.', 'bot');
+      const wa=document.createElement('a');
+      const configured=(localStorage.getItem('lc_social_whatsapp')||localStorage.getItem('socialWhatsapp')||'').replace(/\D/g,''); wa.href=configured ? ('https://wa.me/'+configured) : '#';
+      wa.target='_blank'; wa.rel='noopener';
+      wa.textContent=configured ? 'Open WhatsApp' : 'WhatsApp is not configured';
+      wa.style.cssText='display:inline-block;margin:2px 0 8px;padding:9px 12px;border-radius:10px;background:#25D366;color:#fff;text-decoration:none;font-size:12px;';
+      messages.appendChild(wa);
+      messages.scrollTop=messages.scrollHeight;
+    }else{
+      addMsg('Thanks for your message. For a direct response from the Lucie Closet team, please continue with WhatsApp.', 'bot');
+    }
+  }
+  launcher?.addEventListener('click',chatOpen);
+  close?.addEventListener('click',chatClose);
+  send?.addEventListener('click',sendChat);
+  input?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendChat();}});
+  document.querySelectorAll('#lcChatQuick button').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const t=btn.getAttribute('data-chat')||'';
+      if(input){input.value=t;sendChat();}
+    });
+  });
+})();
+</script>
+
+</body>
 </html>
