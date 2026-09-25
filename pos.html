@@ -1324,6 +1324,33 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                 </div>
             </div>
         </section>
+<section id="socialMediaSettingsSection" class="section-page">
+  <div class="card">
+    <div class="card-header"><h3><i class="fas fa-share-nodes"></i> Social Media Settings</h3></div>
+    <p style="color:var(--text-muted);font-size:13px;margin-top:-8px">
+      Enter the real Lucie Closet social profile links or handles. Only configured accounts are shown on the public website.
+    </p>
+    <form id="socialMediaForm" onsubmit="saveSocialMediaSettings(event)">
+      <div class="form-row">
+        <div class="form-group"><label>Instagram</label><input id="socialInstagram" type="text" autocomplete="off" placeholder="@luciecloset or full URL"></div>
+        <div class="form-group"><label>Facebook</label><input id="socialFacebook" type="text" autocomplete="off" placeholder="facebook.com/your-page or full URL"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>TikTok</label><input id="socialTiktok" type="text" autocomplete="off" placeholder="@luciecloset or full URL"></div>
+        <div class="form-group"><label>YouTube</label><input id="socialYoutube" type="text" autocomplete="off" placeholder="@LucieCloset or full URL"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>X / Twitter</label><input id="socialX" type="text" autocomplete="off" placeholder="@luciecloset or full URL"></div>
+        <div class="form-group"><label>WhatsApp</label><input id="socialWhatsapp" type="text" autocomplete="off" placeholder="2547XXXXXXXX or full wa.me link"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Social Links</button>
+        <span id="socialMediaStatus" style="font-size:13px"></span>
+      </div>
+    </form>
+  </div>
+</section>
+
 
 
         <!-- ===== SUPPLIERS ===== -->
@@ -3630,6 +3657,59 @@ function openGalleryImage(url,name){
     const w=window.open('','_blank','width=900,height=900');
     if(!w)return;
     w.document.write(`<!doctype html><title>${String(name||'Product').replace(/</g,'&lt;')}</title><body style="margin:0;background:#faf7ff;display:grid;place-items:center;min-height:100vh"><img src="${String(url).replace(/"/g,'&quot;')}" alt="" style="max-width:94vw;max-height:94vh;object-fit:contain;background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.15)">
+
+<script id="lucie-admin-social-settings">
+(function(){
+  const platforms=['instagram','facebook','tiktok','x','youtube','whatsapp'];
+  const ids={instagram:'socialInstagram',facebook:'socialFacebook',tiktok:'socialTiktok',x:'socialX',youtube:'socialYoutube',whatsapp:'socialWhatsapp'};
+  function normalize(v,p){
+    v=String(v||'').trim(); if(!v)return '';
+    if(/^https?:\/\//i.test(v))return v;
+    if(p==='whatsapp'){const d=v.replace(/\D/g,'');return d?'https://wa.me/'+d:'';}
+    if(p==='instagram')return 'https://instagram.com/'+v.replace(/^@/,'');
+    if(p==='facebook')return 'https://facebook.com/'+v.replace(/^@/,'');
+    if(p==='tiktok')return 'https://tiktok.com/@'+v.replace(/^@/,'');
+    if(p==='x')return 'https://x.com/'+v.replace(/^@/,'');
+    if(p==='youtube')return v.startsWith('@')?'https://youtube.com/'+v:'https://youtube.com/@'+v.replace(/^@/,'');
+    return v;
+  }
+  async function load(){
+    try{
+      const client=window.sb||window.supabase;
+      if(!client||!client.from)return;
+      const {data,error}=await client.from('site_settings').select('social_media').eq('id',1).maybeSingle();
+      if(error)throw error;
+      const s=data&&data.social_media?data.social_media:{};
+      platforms.forEach(p=>{const el=document.getElementById(ids[p]);if(el)el.value=s[p]||'';});
+    }catch(e){console.warn('Social settings load failed',e);}
+  }
+  window.saveSocialMediaSettings=async function(ev){
+    if(ev)ev.preventDefault();
+    const status=document.getElementById('socialMediaStatus');
+    const raw={};
+    platforms.forEach(p=>{raw[p]=document.getElementById(ids[p])?.value.trim()||'';});
+    const social={};
+    platforms.forEach(p=>{social[p]=normalize(raw[p],p);});
+    try{
+      if(status){status.textContent='Saving…';status.style.color='';}
+      const client=window.sb||window.supabase;
+      if(!client||!client.from)throw new Error('Supabase is not initialized');
+      const {error}=await client.from('site_settings').upsert({
+        id:1,social_media:social,updated_at:new Date().toISOString()
+      },{onConflict:'id'});
+      if(error)throw error;
+      localStorage.setItem('luciecloset_social_media',JSON.stringify(social));
+      if(status){status.textContent='Social links saved successfully.';status.style.color='#16a34a';}
+    }catch(e){
+      console.error(e);
+      if(status){status.textContent='Could not save. Check your admin permissions/RLS policy.';status.style.color='#dc2626';}
+    }
+  };
+  window.loadSocialMediaSettings=load;
+  document.addEventListener('DOMContentLoaded',load);
+})();
+</script>
+
 </body>`);
     w.document.close();
 }
