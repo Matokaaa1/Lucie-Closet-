@@ -4382,7 +4382,7 @@ const LC = window.LC || {};
 window.LC = LC;
 
 LC.roles = {
-    admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
+    admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery','socialMediaManagerSection'],
     Admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery','socialMediaManagerSection'],
     Owner: ['dashboard','pos','orders','products','inventory','customers','reports','profit','audit','settings','gallery','socialMediaManagerSection'],
     Administrator: ['dashboard','pos','orders','products','inventory','customers','reports','profit','audit','settings','gallery','socialMediaManagerSection'],
@@ -5878,9 +5878,9 @@ document.addEventListener('DOMContentLoaded', function() {
 (function(){
   'use strict';
   const roleSections={
-    admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
-    Admin:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
-    Owner:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery'],
+    admin: ['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery','socialMediaManagerSection'],
+    Admin:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery','socialMediaManagerSection'],
+    Owner:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery','socialMediaManagerSection'],
     Administrator:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','users','settings','quotations','accounting','branches','compliance','businessHub','gallery','socialMediaManagerSection'],
     Manager:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','gallery','socialMediaManagerSection'],
     Accountant:['dashboard','orders','customers','reports','profit'],
@@ -6634,6 +6634,26 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   window.addEventListener('load',bind);
   window.LC_ENFORCE_SOCIAL_MEDIA_TAB=enforce;
+})();
+</script>
+<script id="lucie-social-media-visibility-fix">
+(function(){
+  'use strict';
+  function showSocial(){
+    const item=document.getElementById('socialMediaNavItem');
+    if(!item) return;
+    const u=window.currentUser||{};
+    const role=String(u.role_name||u.role||'').trim().toLowerCase();
+    const privileged=['admin','administrator','owner','manager'];
+    if(privileged.includes(role)){
+      item.style.setProperty('display','flex','important');
+      item.hidden=false;
+      item.removeAttribute('hidden');
+      item.setAttribute('aria-label','Social Media');
+    }
+  }
+  document.addEventListener('DOMContentLoaded',function(){showSocial(); setTimeout(showSocial,300); setTimeout(showSocial,1200);});
+  setInterval(showSocial,2000);
 })();
 </script>
 </body>
