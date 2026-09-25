@@ -6545,8 +6545,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const raw={};
     platforms.forEach(p=>{raw[p]=document.getElementById(ids[p])?.value.trim()||'';});
     const social={};
-    platforms.forEach(p=>{social[p]=normalize(raw[p],p);});
-    try{
+    platforms.forEach(p=>{social[p]=normalize(raw[p],p);}); 
+    try{  
       if(status){status.textContent='Saving…';status.style.color='';}
       const client=window.sb||window.supabase;
       if(!client||!client.from)throw new Error('Supabase is not initialized');
@@ -6566,4 +6566,4 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 </body>
-</html>
+</html>    
