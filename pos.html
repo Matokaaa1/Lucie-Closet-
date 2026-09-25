@@ -1122,7 +1122,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                                     <button class="btn btn-sm btn-soft" type="button" onclick="holdCurrentSale()"><i class="fas fa-pause"></i> Hold</button>
                                     <button class="btn btn-sm btn-soft" type="button" onclick="openHeldSales()"><i class="fas fa-clock"></i> Held <span id="heldSaleCount" class="mini-count">0</span></button>
                                     <button class="btn btn-sm btn-soft" type="button" onclick="clearCart()"><i class="fas fa-eraser"></i> Clear</button>
-                                    <button id="posQuickCheckout" class="btn btn-sm btn-primary pos-quick-checkout" type="button" onclick="openCheckout()" style="display:none"><i class="fas fa-credit-card"></i> Checkout <span id="posQuickCheckoutTotal">KES 0</span></button>
+                                    <button id="posQuickCheckout" class="btn btn-sm btn-primary pos-quick-checkout" type="button" onclick="handleCheckoutClick(event)" style="display:none"><i class="fas fa-credit-card"></i> Checkout <span id="posQuickCheckoutTotal">KES 0</span></button>
                                 </div>
                             </div>
                             <div class="shared-catalog-note" style="margin:12px 15px 0;padding:10px 12px;border:1px solid rgba(122,31,43,.10);border-radius:12px;background:linear-gradient(135deg,#fff7fb,#f8f5ff);font-size:11px;color:#6b5d65;display:flex;align-items:center;gap:8px;"><i class="fas fa-images" style="color:#7a1f2b"></i><span><strong>Lucie Closet Collection:</strong> all supplied product photos have been added to the catalogue. Prices and stock can be edited from Products.</span></div>
@@ -1145,7 +1145,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                                 </div>
                                 <div class="cart-actions">
                                     <button class="btn btn-outline" onclick="clearCart()"><i class="fas fa-trash-alt"></i> Clear</button>
-                                    <button class="btn btn-primary" onclick="openCheckout()"><i class="fas fa-credit-card"></i> Checkout</button>
+                                    <button class="btn btn-primary" onclick="handleCheckoutClick(event)"><i class="fas fa-credit-card"></i> Checkout</button>
                                 </div>
                             </div>
                         </div>
@@ -3362,6 +3362,20 @@ function openCheckout() {
 }
 window.openCheckout = openCheckout;
 
+// Explicit global bridge for all POS Checkout buttons.
+// Keeps inline onclick handlers reliable even when the page has been extended
+// with additional modules such as Social Media Manager.
+window.handleCheckoutClick = function(event){
+    if(event){ event.preventDefault(); event.stopPropagation(); }
+    try {
+        return openCheckout();
+    } catch (error) {
+        console.error('[Lucie Closet] Checkout open error:', error);
+        if(typeof showToast === 'function') showToast(error?.message || 'Could not open Checkout.', 'error');
+        return false;
+    }
+};
+
 function selectPayment(method) {
     clearStkStatus();
     selectedPayment = method;
@@ -4185,7 +4199,20 @@ window.savePaymentSettings = savePaymentSettings;
 // ============================================================
 function openModal(id) {
     const modal = document.getElementById(id);
-    if (modal) modal.classList.add('active');
+    if (!modal) {
+        console.error('[Lucie Closet] Modal not found:', id);
+        if (typeof showToast === 'function') showToast('Checkout window could not be opened. Please refresh the POS.', 'error');
+        return false;
+    }
+
+    // closeModal()/hideModalElement() intentionally sets inline display:none.
+    // Always restore the modal when it is opened again. This fixes Checkout
+    // working once and then becoming unresponsive after the modal is closed.
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+    modal.removeAttribute('hidden');
+    return true;
 }
 window.openModal = openModal;
 
@@ -6545,8 +6572,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const raw={};
     platforms.forEach(p=>{raw[p]=document.getElementById(ids[p])?.value.trim()||'';});
     const social={};
-    platforms.forEach(p=>{social[p]=normalize(raw[p],p);}); 
-    try{  
+    platforms.forEach(p=>{social[p]=normalize(raw[p],p);});
+    try{
       if(status){status.textContent='Saving…';status.style.color='';}
       const client=window.sb||window.supabase;
       if(!client||!client.from)throw new Error('Supabase is not initialized');
@@ -6566,4 +6593,4 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 </body>
-</html>    
+</html>
