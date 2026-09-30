@@ -1367,7 +1367,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     <form id="socialManagerPostForm" onsubmit="createSocialManagerPost(event)">
       <div class="form-row">
         <div class="form-group"><label>Product</label><select id="socialManagerProduct"><option value="">Select product</option></select></div>
-        <div class="form-group"><label>Publish Status</label><select id="socialManagerStatus"><option value="queued">Queue for publishing</option><option value="draft">Save as draft</option></select></div>
+        <div class="form-group"><label>Publish Status</label><select id="socialManagerPublishStatus"><option value="queued">Queue for publishing</option><option value="draft">Save as draft</option></select></div>
       </div>
       <div class="form-group"><label>Platforms</label><div id="socialManagerPlatforms" class="lc-social-manager-platforms"></div></div>
       <div class="form-group"><label>Caption</label><textarea id="socialManagerCaption" rows="6" placeholder="Write your social media caption..."></textarea></div>
@@ -5147,7 +5147,7 @@ exportReport = function(format) {
     if (!print) { showToast('Please allow pop-ups to print the report.', 'warning'); return; }
     const total = filtered.reduce((s,o)=>s+Number(o.total||0),0);
     print.document.write(`<html><head><title>Lucie Closet Sales Report</title><style>body{font-family:Arial,sans-serif;padding:32px;color:#222}h1{margin-bottom:4px}.muted{color:#666}.summary{margin:20px 0;padding:16px;border:1px solid #ddd;border-radius:10px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:9px;border-bottom:1px solid #ddd;text-align:left}th{background:#f5f5f5}</style>
-<style id="lucie-pro-enhancements">
+<style id="lucie-pro-enhancements-style">
 /* ===== LUCIE CLOSET PRO UX ENHANCEMENTS ===== */
 :root{
   --pro-focus:rgba(122,31,43,.14);
@@ -6534,7 +6534,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusEl=document.getElementById('socialManagerStatus');
     if(!p){if(statusEl)statusEl.textContent='Select a product first.';return;}
     if(!targets.length){if(statusEl)statusEl.textContent='Configure at least one social account and select a platform.';return;}
-    const post={product_id:p.id,product_name:p.name||'',caption,image_url:document.getElementById('socialManagerImage')?.value.trim()||p.image_url||'',targets,status:document.getElementById('socialManagerStatus')?.value||'queued',created_at:new Date().toISOString()};
+    const post={product_id:p.id,product_name:p.name||'',caption,image_url:document.getElementById('socialManagerImage')?.value.trim()||p.image_url||'',targets,status:document.getElementById('socialManagerPublishStatus')?.value||'queued',created_at:new Date().toISOString()};
     const h=getHistory();h.unshift(post);saveHistory(h);
     try{if(window.sb?.from){const r=await window.sb.from('social_publish_queue').insert([post]);if(r.error&&!/relation .* does not exist|schema cache/i.test(String(r.error.message||'')))throw r.error;}}catch(e){console.warn('Social queue DB save:',e)}
     if(statusEl){statusEl.textContent=`Post ${post.status==='draft'?'saved as draft':'queued'} for ${targets.map(x=>labels[x]).join(', ')}. Actual publishing occurs after the official platform API is connected.`;statusEl.className='lc-social-publish-status success';}
