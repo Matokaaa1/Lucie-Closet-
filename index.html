@@ -479,6 +479,8 @@
 <div class="form-group"><label>Full Name</label><input id="customerName" placeholder="John Doe" type="text"/></div>
 <div class="form-group"><label>Phone Number</label><input id="customerPhone" placeholder="0712345678" type="tel"/></div>
 <div class="form-group"><label>Email (optional)</label><input id="customerEmail" placeholder="john@example.com" type="email"/></div>
+<div class="form-group"><label>Delivery Address</label><textarea id="customerAddress" placeholder="House/Building, Street, Area, Town" style="width:100%;min-height:78px;resize:vertical;padding:11px;border:1px solid #ddd;border-radius:8px;"></textarea></div>
+<div class="form-group"><label>Delivery Notes (optional)</label><input id="deliveryNotes" placeholder="Gate, landmark, preferred delivery time" type="text"/></div>
 <div class="payment-methods">
 <div class="method active" data-method="mpesa" onclick="selectPayment('mpesa')"><i class="fas fa-mobile-alt"></i> M-Pesa</div>
 <div class="method" data-method="card" onclick="selectPayment('card')"><i class="fas fa-credit-card"></i> Card</div>
@@ -1245,16 +1247,21 @@ function restoreCart(){ try{ const v=JSON.parse(localStorage.getItem('lucieclose
       const nameEl=document.getElementById('customerName');
       const phoneEl=document.getElementById('customerPhone');
       const emailEl=document.getElementById('customerEmail');
+      const addressEl=document.getElementById('customerAddress');
+      const notesEl=document.getElementById('deliveryNotes');
       const submitBtn=document.querySelector('#paymentModal .btn-primary[onclick="placeOrder()"]');
       const originalButtonHTML=submitBtn?.innerHTML||'';
 
       const name=(nameEl?.value||'').trim();
       const phone=(phoneEl?.value||'').replace(/\s+/g,'');
       const email=(emailEl?.value||'').trim();
+      const address=(addressEl?.value||'').trim();
+      const deliveryNotes=(notesEl?.value||'').trim();
 
       if(name.length<2){showToast('Please enter your full name.','error');nameEl?.focus();return;}
       if(!/^(?:07\d{8}|01\d{8}|254\d{9})$/.test(phone)){showToast('Enter a valid Kenyan phone number.','error');phoneEl?.focus();return;}
       if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showToast('Please enter a valid email address.','error');emailEl?.focus();return;}
+      if(address.length<5){showToast('Please enter your delivery address.','error');addressEl?.focus();return;}
 
       orderSubmitting=true;
       orderSubmittingStartedAt=Date.now();
@@ -1298,9 +1305,12 @@ function restoreCart(){ try{ const v=JSON.parse(localStorage.getItem('lucieclose
         const paymentMethod=['mpesa','card','bank','cash'].includes(selectedPayment)?selectedPayment:'mpesa';
         const orderData={
           order_number:orderNumber,
+          user_id:currentUser?.id||null,
           customer_name:name,
           customer_email:email||null,
           customer_phone:phone,
+          address,
+          delivery_notes:deliveryNotes,
           items:orderItems,
           total,
           payment_method:paymentMethod,
@@ -1349,6 +1359,8 @@ function restoreCart(){ try{ const v=JSON.parse(localStorage.getItem('lucieclose
         if(nameEl)nameEl.value='';
         if(phoneEl)phoneEl.value='';
         if(emailEl)emailEl.value='';
+        if(addressEl)addressEl.value='';
+        if(notesEl)notesEl.value='';
       } catch(e) {
         console.error('Order placement failed:',e);
         showToast(e?.message||'We could not place your order. Please try again.','error');
