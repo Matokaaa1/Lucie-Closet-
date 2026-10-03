@@ -22,7 +22,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
 
     <!-- Chart.js for charts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">loadDeliveryRates();
+</script>
     
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -794,7 +795,6 @@ body:not(.authenticated) #sidebarToggle{display:none!important;}
   }
 }
 </style>
-
     <!-- Lucie Closet Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%236b21a8'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='Georgia,serif' font-size='34' font-weight='700' fill='white'%3ELC%3C/text%3E%3C/svg%3E">
     <meta name="theme-color" content="#6b21a8">
@@ -829,7 +829,7 @@ const roleMap={
  Manager:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','quotations','gallery','socialMediaManagerSection'],
  Accountant:['dashboard','orders','customers','reports','profit'],
  'Stock Manager':['dashboard','products','inventory','gallery'],
- Cashier:['dashboard','pos','orders','customers','shifts','myActivity']
+ Cashier:['dashboard','pos','orders','customers']
 };
 function canonicalRole(){const u=window.currentUser||{};const raw=String(u.role_name||u.role||'Cashier').trim();return Object.keys(roleMap).find(k=>k.toLowerCase()===raw.toLowerCase())||'Cashier';}
 function allowed(section){return roleMap[canonicalRole()]?.includes(section)||false;}
@@ -1002,7 +1002,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <!-- ===== DASHBOARD · ULTRA MODERN ===== -->
         <section id="dashboardSection" class="section-page active">
             <div id="greetingContainer"></div>
-<div class="quick-actions">
+
+            <div class="quick-actions">
                 <button class="quick-action" onclick="navigateTo('pos')"><i class="fas fa-cash-register"></i> New Sale</button>
                 <button class="quick-action" onclick="openProductModal()"><i class="fas fa-plus"></i> Add Product</button>
                 <button class="quick-action" onclick="openCustomerModal()"><i class="fas fa-user-plus"></i> Add Customer</button>
@@ -1165,7 +1166,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                     <button class="filter-btn active" data-filter="all">All <span class="count" id="countAll">0</span></button>
                     <button class="filter-btn" data-filter="pending">⏳ Pending <span class="count" id="countPending">0</span></button>
                     <button class="filter-btn" data-filter="processing">📦 Processing <span class="count" id="countProcessing">0</span></button>
-                    <button class="filter-btn" data-filter="shipped">🚚 Shipped <span class="count" id="countShipped">0</span></button>
+                    <button class="filter-btn" data-filter="ready">🟢 Ready <span class="count" id="countReady">0</span></button>
+                    <button class="filter-btn" data-filter="dispatched">🚚 Dispatched <span class="count" id="countDispatched">0</span></button>
+                    
                     <button class="filter-btn" data-filter="delivered">✅ Delivered <span class="count" id="countDelivered">0</span></button>
                     <button class="filter-btn" data-filter="cancelled">❌ Cancelled <span class="count" id="countCancelled">0</span></button>
                 </div>
@@ -1299,6 +1302,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             <div class="grid-2">
                 <div class="card">
                     <div class="card-header"><h3>🏢 Business Settings</h3></div>
+                    <div class="form-group" style="margin-bottom:16px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--bg);"><label style="font-weight:800;">🚚 Default Online Delivery Fee (KES)</label><input type="number" id="onlineDeliveryFee" min="0" step="1" value="200" placeholder="200"><small style="display:block;margin-top:5px;color:var(--text-muted);">Fallback used only when a customer's town does not have a specific delivery rate.</small></div>
+<div class="form-group" style="margin-bottom:16px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--bg);"><label style="font-weight:800;display:block;margin-bottom:8px;">📍 Delivery Fee by Town / City</label><div id="deliveryRatesAdmin" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;"><div style="color:var(--text-muted);font-size:12px;">Loading delivery rates…</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"><button type="button" class="btn btn-secondary" onclick="addDeliveryRateRow()">＋ Add Town</button><button type="button" class="btn btn-primary" onclick="saveDeliveryRates()">💾 Save Town Rates</button></div><small style="display:block;margin-top:7px;color:var(--text-muted);">Customers are charged according to the town selected at checkout. Each order keeps the fee that was charged when it was placed.</small></div>
+<div class="form-group" style="margin-bottom:16px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--bg);"><label style="font-weight:800;display:block;margin-bottom:8px;">📍 GPS Distance Delivery Pricing</label><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;"><input type="text" id="deliveryDispatchAddress" placeholder="Dispatch location"><input type="number" id="deliveryDispatchLat" step="0.000001" placeholder="Dispatch latitude"><input type="number" id="deliveryDispatchLng" step="0.000001" placeholder="Dispatch longitude"></div><div id="deliveryZonesAdmin" style="display:grid;gap:8px;margin-top:10px;"><div style="color:var(--text-muted);font-size:12px;">Loading distance zones…</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"><button type="button" class="btn btn-secondary" onclick="addDeliveryZoneRow()">＋ Add Distance Zone</button><button type="button" class="btn btn-primary" onclick="saveDeliveryZones()">💾 Save GPS Zones</button></div><small style="display:block;margin-top:7px;color:var(--text-muted);">When GPS coordinates are available, the customer is charged by distance from the dispatch location. Town rates remain the fallback when GPS is unavailable.</small></div>
                     <form id="settingsForm" onsubmit="saveSettings(event)">
                         <div class="form-group"><label>Business Name</label><input type="text" id="businessName" value="Lucie Closet"></div>
                         <div class="form-group"><label>Phone</label><input type="text" id="businessPhone" value="+254 794 789 345"></div>
@@ -1367,7 +1373,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     <form id="socialManagerPostForm" onsubmit="createSocialManagerPost(event)">
       <div class="form-row">
         <div class="form-group"><label>Product</label><select id="socialManagerProduct"><option value="">Select product</option></select></div>
-        <div class="form-group"><label>Publish Status</label><select id="socialManagerPublishStatus"><option value="queued">Queue for publishing</option><option value="draft">Save as draft</option></select></div>
+        <div class="form-group"><label>Publish Status</label><select id="socialManagerStatus"><option value="queued">Queue for publishing</option><option value="draft">Save as draft</option></select></div>
       </div>
       <div class="form-group"><label>Platforms</label><div id="socialManagerPlatforms" class="lc-social-manager-platforms"></div></div>
       <div class="form-group"><label>Caption</label><textarea id="socialManagerCaption" rows="6" placeholder="Write your social media caption..."></textarea></div>
@@ -1664,7 +1670,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                         <span>Total</span>
                         <span id="checkoutTotal">KES 0</span>
                     </div>
-                    <button type="button" id="completeSaleBtn" class="btn btn-primary btn-block lc-complete-sale-btn"><i class="fas fa-check"></i> Complete Sale</button>
+                    <button type="button" id="completeSaleBtn" class="btn btn-primary btn-block lc-complete-sale-btn" onclick="handleCompleteSaleClick(event)"><i class="fas fa-check"></i> Complete Sale</button>
                 </div>
             </div>
         </div>
@@ -1872,8 +1878,6 @@ let isInitialized = false;
 // ============================================================
 let pinValue = '';
 let isSubmitting = false;
-let isSubmittingSince = 0;
-const CHECKOUT_LOCK_MAX_MS = 5 * 60 * 1000;
 let currentMethod = 'pin';
 let sessionTimer = null;
 let sessionTimeout = 30;
@@ -3593,67 +3597,24 @@ window.printReceipt = printReceipt;
 // ============================================================
 function renderOrders(filter = 'all') {
     let filtered = [...orders];
-
-    if (filter !== 'all') {
-        filtered = filtered.filter(o => o.status === filter);
-    }
-
-    const countAll = document.getElementById('countAll');
-    const countPending = document.getElementById('countPending');
-    const countCompleted = document.getElementById('countCompleted');
-    const countCancelled = document.getElementById('countCancelled');
-    const orderCount = document.getElementById('orderCount');
-    const ordersContainer = document.getElementById('ordersContainer');
-    
-    if (countAll) countAll.textContent = orders.length;
-    if (countPending) countPending.textContent = orders.filter(o => o.status === 'pending').length;
-    if (countCompleted) countCompleted.textContent = orders.filter(o => o.status === 'completed').length;
-    if (countCancelled) countCancelled.textContent = orders.filter(o => o.status === 'cancelled').length;
-    if (orderCount) orderCount.textContent = filtered.length;
-
-    if (!ordersContainer) return;
-
-    if (!filtered.length) {
-        ordersContainer.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No orders found</p></div>';
-        return;
-    }
-
-    ordersContainer.innerHTML = `
-        <div class="table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Order #</th>
-                        <th>Customer</th>
-                        <th>Items</th>
-                        <th>Total</th>
-                        <th>Payment</th>
-                        <th>Status</th>
-                        <th>Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${filtered.map(o => `
-                        <tr>
-                            <td><strong>${o.order_number}</strong></td>
-                            <td>${o.customer_name || 'Guest'}</td>
-                            <td>${o.items ? o.items.reduce((s,i) => s + i.qty, 0) : 0} items</td>
-                            <td><strong>KES ${o.total}</strong></td>
-                            <td>${o.payment_method || 'N/A'}</td>
-                            <td><span class="status-badge ${o.status || 'pending'}">${o.status || 'pending'}</span></td>
-                            <td style="font-size:12px;color:var(--text-muted);">${new Date(o.created_at).toLocaleDateString()}</td>
-                            <td>
-                                <button class="btn btn-sm btn-primary" onclick="viewOrder(${o.id})"><i class="fas fa-eye"></i></button>
-                                ${o.status !== 'completed' ? `<button class="btn btn-sm btn-success" onclick="updateOrderStatus(${o.id},'completed')"><i class="fas fa-check"></i></button>` : ''}
-                                ${o.status !== 'cancelled' && o.status !== 'completed' ? `<button class="btn btn-sm btn-danger" onclick="updateOrderStatus(${o.id},'cancelled')"><i class="fas fa-times"></i></button>` : ''}
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
+    if (filter !== 'all') filtered = filtered.filter(o => String(o.status || 'pending').toLowerCase() === filter);
+    const counts = {
+        all: orders.length, pending: orders.filter(o=>String(o.status||'').toLowerCase()==='pending').length,
+        processing: orders.filter(o=>String(o.status||'').toLowerCase()==='processing').length,
+        ready: orders.filter(o=>String(o.status||'').toLowerCase()==='ready').length,
+        dispatched: orders.filter(o=>String(o.status||'').toLowerCase()==='dispatched').length,
+        delivered: orders.filter(o=>['delivered','completed'].includes(String(o.status||'').toLowerCase())).length,
+        cancelled: orders.filter(o=>String(o.status||'').toLowerCase()==='cancelled').length
+    };
+    Object.entries(counts).forEach(([k,v])=>{const el=document.getElementById(k==='all'?'countAll':'count'+k.charAt(0).toUpperCase()+k.slice(1));if(el)el.textContent=v;});
+    const orderCount=document.getElementById('orderCount'),ordersContainer=document.getElementById('ordersContainer');
+    if(orderCount)orderCount.textContent=filtered.length; if(!ordersContainer)return;
+    if(!filtered.length){ordersContainer.innerHTML='<div class="empty-state"><i class="fas fa-inbox"></i><p>No orders found</p></div>';return;}
+    const stages=[['pending','Pending'],['processing','Processing'],['ready','Ready for Dispatch'],['dispatched','Dispatched'],['delivered','Delivered'],['cancelled','Cancelled']];
+    ordersContainer.innerHTML='<div class="table-wrapper"><table class="data-table"><thead><tr><th>Order #</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status / Delivery Stage</th><th>Date</th><th>Actions</th></tr></thead><tbody>'+filtered.map(o=>{
+      const st=String(o.status||'pending').toLowerCase();
+      return '<tr><td><strong>'+String(o.order_number||'')+'</strong></td><td>'+String(o.customer_name||'Guest')+'</td><td>'+ (o.items?o.items.reduce((x,i)=>x+Number(i.qty||0),0):0)+' items</td><td><strong>KES '+Number(o.total||0).toLocaleString()+'</strong><div style="font-size:11px;color:var(--text-muted)">Delivery: KES '+Number(o.delivery_fee||0).toLocaleString()+'</div></td><td>'+String(o.payment_method||'N/A')+'</td><td><select class="order-stage-select" onchange="updateOrderStatus('+o.id+',this.value)">'+stages.map(x=>'<option value="'+x[0]+'" '+(st===x[0]?'selected':'')+'>'+x[1]+'</option>').join('')+'</select></td><td style="font-size:12px;color:var(--text-muted);">'+new Date(o.created_at).toLocaleDateString()+'</td><td><button class="btn btn-sm btn-primary" onclick="viewOrder('+o.id+')"><i class="fas fa-eye"></i></button></td></tr>';
+    }).join('')+'</tbody></table></div>';
 }
 window.renderOrders = renderOrders;
 
@@ -3678,9 +3639,11 @@ window.viewOrder = viewOrder;
 
 async function updateOrderStatus(id, status) {
     try {
-        const { error } = await sb.from('orders').update({ status }).eq('id', id);
+        const order=orders.find(o=>String(o.id)===String(id));
+        const previous=String(order?.status||'pending').toLowerCase();
+        const { error } = await sb.from('orders').update({ status, updated_at:new Date().toISOString() }).eq('id', id);
         if (error) throw error;
-        showToast(`Order ${status}`, 'success');
+        showToast(`Order ${status}`, 'success'); if(order && previous!==String(status).toLowerCase()) console.info('[Lucie Closet] Customer delivery notification ready for',order.order_number,status);
         await loadOrders();
         const activeFilter = document.querySelector('.filter-btn.active');
         renderOrders(activeFilter ? activeFilter.dataset.filter : 'all');
@@ -4168,7 +4131,57 @@ window.loadAuditLogs=loadAuditLogs;window.filterAuditLogs=filterAuditLogs;window
 // ============================================================
 // SETTINGS
 // ============================================================
-function saveSettings(e) {
+const DEFAULT_DELIVERY_TOWNS=['Nairobi','Nakuru','Mombasa','Kisumu','Eldoret','Thika','Nyeri','Naivasha','Kitale','Machakos','Malindi','Kakamega','Kericho','Embu','Meru','Nanyuki','Bungoma','Kisii','Homa Bay','Migori','Narok','Bomet',"Murang'a",'Kiambu','Ruiru','Limuru','Ngong','Kajiado','Voi','Kilifi'];
+async function loadDeliveryRates(){
+ const box=document.getElementById('deliveryRatesAdmin'); if(!box) return [];
+ let rows=[];
+ try{const r=await sb.from('delivery_rates').select('town,fee,active').order('town'); if(!r.error&&r.data) rows=r.data;}catch(_){rows=[];}
+ if(!rows.length) rows=DEFAULT_DELIVERY_TOWNS.map(t=>({town:t,fee:'',active:true}));
+ box.innerHTML=rows.map((r,i)=>`<div class="delivery-rate-row" style="display:grid;grid-template-columns:1fr 95px 30px;gap:6px;align-items:center;"><input class="delivery-town" value="${String(r.town||'').replace(/"/g,'&quot;')}" placeholder="Town / City"><input class="delivery-fee" type="number" min="0" step="1" value="${r.fee==null?'':Number(r.fee)}" placeholder="Fee"><button type="button" class="btn btn-sm btn-outline" onclick="this.closest('.delivery-rate-row').remove()" title="Remove">×</button></div>`).join('');
+ return rows;
+}
+function addDeliveryRateRow(){const box=document.getElementById('deliveryRatesAdmin');if(!box)return;const d=document.createElement('div');d.className='delivery-rate-row';d.style.cssText='display:grid;grid-template-columns:1fr 95px 30px;gap:6px;align-items:center;margin-top:8px;';d.innerHTML=`<input class="delivery-town" placeholder="Town / City"><input class="delivery-fee" type="number" min="0" step="1" placeholder="Fee"><button type="button" class="btn btn-sm btn-outline" onclick="this.closest('.delivery-rate-row').remove()">×</button>`;box.appendChild(d);}
+async function saveDeliveryRates(){
+ const rows=[...document.querySelectorAll('#deliveryRatesAdmin .delivery-rate-row')].map(r=>({town:r.querySelector('.delivery-town')?.value.trim(),fee:Number(r.querySelector('.delivery-fee')?.value),active:true})).filter(r=>r.town&&Number.isFinite(r.fee)&&r.fee>=0);
+ if(!rows.length){showToast('Add at least one town and delivery fee.','warning');return;}
+ try{const {error}=await sb.from('delivery_rates').upsert(rows,{onConflict:'town'});if(error)throw error;showToast('Town delivery rates saved.','success');await loadDeliveryRates();}catch(e){console.error(e);showToast('Could not save town rates. Run the delivery-rates SQL migration first.','error');}
+}
+window.loadDeliveryRates=loadDeliveryRates;
+
+async function loadDeliveryZones(){
+ const box=document.getElementById('deliveryZonesAdmin'); if(!box) return [];
+ let rows=[]; try{const r=await sb.from('delivery_zones').select('id,name,min_km,max_km,fee,active').order('min_km'); if(!r.error&&r.data) rows=r.data;}catch(_){}
+ if(!rows.length) rows=[{name:'0–5 km',min_km:0,max_km:5,fee:100,active:true},{name:'5–15 km',min_km:5,max_km:15,fee:150,active:true},{name:'15–30 km',min_km:15,max_km:30,fee:250,active:true},{name:'30–60 km',min_km:30,max_km:60,fee:350,active:true},{name:'60+ km',min_km:60,max_km:null,fee:500,active:true}];
+ box.innerHTML=rows.map(r=>`<div class="delivery-zone-row" style="display:grid;grid-template-columns:1.2fr 90px 90px 95px 32px;gap:6px;align-items:center;"><input class="zone-name" value="${String(r.name||'').replace(/"/g,'&quot;')}" placeholder="Zone name"><input class="zone-min" type="number" min="0" step="0.1" value="${r.min_km??0}" placeholder="Min km"><input class="zone-max" type="number" min="0" step="0.1" value="${r.max_km==null?'':r.max_km}" placeholder="Max km"><input class="zone-fee" type="number" min="0" step="1" value="${r.fee??0}" placeholder="Fee"><button type="button" class="btn btn-sm btn-outline" onclick="this.closest('.delivery-zone-row').remove()">×</button></div>`).join('');
+ return rows;
+}
+function addDeliveryZoneRow(){const box=document.getElementById('deliveryZonesAdmin');if(!box)return;const d=document.createElement('div');d.className='delivery-zone-row';d.style.cssText='display:grid;grid-template-columns:1.2fr 90px 90px 95px 32px;gap:6px;align-items:center;margin-top:8px;';d.innerHTML=`<input class="zone-name" placeholder="Zone name"><input class="zone-min" type="number" min="0" step="0.1" placeholder="Min km"><input class="zone-max" type="number" min="0" step="0.1" placeholder="Max km"><input class="zone-fee" type="number" min="0" step="1" placeholder="Fee"><button type="button" class="btn btn-sm btn-outline" onclick="this.closest('.delivery-zone-row').remove()">×</button>`;box.appendChild(d);}
+async function saveDeliveryZones(){
+ const zones=[...document.querySelectorAll('#deliveryZonesAdmin .delivery-zone-row')].map(r=>({name:r.querySelector('.zone-name')?.value.trim()||'Distance Zone',min_km:Number(r.querySelector('.zone-min')?.value),max_km:r.querySelector('.zone-max')?.value===''?null:Number(r.querySelector('.zone-max')?.value),fee:Number(r.querySelector('.zone-fee')?.value),active:true})).filter(z=>Number.isFinite(z.min_km)&&z.min_km>=0&&(z.max_km===null||(Number.isFinite(z.max_km)&&z.max_km>z.min_km))&&Number.isFinite(z.fee)&&z.fee>=0);
+ if(!zones.length){showToast('Add at least one valid distance zone.','warning');return;}
+ const lat=Number(document.getElementById('deliveryDispatchLat')?.value),lng=Number(document.getElementById('deliveryDispatchLng')?.value);
+ if(!Number.isFinite(lat)||!Number.isFinite(lng)){showToast('Enter valid dispatch latitude and longitude.','warning');return;}
+ try{const settings=[{setting_key:'delivery_dispatch_address',setting_value:document.getElementById('deliveryDispatchAddress')?.value.trim()||'Lucie Closet Dispatch'},{setting_key:'delivery_dispatch_lat',setting_value:String(lat)},{setting_key:'delivery_dispatch_lng',setting_value:String(lng)}];let r=await sb.from('store_settings').upsert(settings,{onConflict:'setting_key'});if(r.error)throw r.error;await sb.from('delivery_zones').delete().neq('id',0);r=await sb.from('delivery_zones').insert(zones);if(r.error)throw r.error;showToast('GPS delivery zones saved.','success');await loadDeliveryZones();}catch(e){console.error(e);showToast('Could not save GPS zones. Run the distance-delivery SQL migration first.','error');}
+}
+async function loadDeliveryZoneSettings(){try{const r=await sb.from('store_settings').select('setting_key,setting_value').in('setting_key',['delivery_dispatch_address','delivery_dispatch_lat','delivery_dispatch_lng']);if(!r.error&&r.data){const m=Object.fromEntries(r.data.map(x=>[x.setting_key,x.setting_value]));document.getElementById('deliveryDispatchAddress').value=m.delivery_dispatch_address||'';document.getElementById('deliveryDispatchLat').value=m.delivery_dispatch_lat||'-1.27299';document.getElementById('deliveryDispatchLng').value=m.delivery_dispatch_lng||'36.85136';}}catch(_){} await loadDeliveryZones();}
+window.loadDeliveryZones=loadDeliveryZones;window.addDeliveryZoneRow=addDeliveryZoneRow;window.saveDeliveryZones=saveDeliveryZones;window.loadDeliveryZoneSettings=loadDeliveryZoneSettings;window.addDeliveryRateRow=addDeliveryRateRow;window.saveDeliveryRates=saveDeliveryRates;
+
+async function loadOnlineDeliveryFeeSetting(){
+    const input=document.getElementById('onlineDeliveryFee');
+    if(!input) return 200;
+    let fee=200;
+    try{
+        const {data,error}=await sb.from('store_settings').select('setting_value').eq('setting_key','online_delivery_fee').maybeSingle();
+        if(!error && data && data.setting_value!==undefined) fee=Math.max(0,Number(data.setting_value)||0);
+        else { const local=JSON.parse(localStorage.getItem('luciecloset_settings')||'{}'); fee=Math.max(0,Number(local.onlineDeliveryFee??200)||0); }
+    }catch(_){ const local=JSON.parse(localStorage.getItem('luciecloset_settings')||'{}'); fee=Math.max(0,Number(local.onlineDeliveryFee??200)||0); }
+    input.value=fee;
+    return fee;
+}
+window.loadOnlineDeliveryFeeSetting=loadOnlineDeliveryFeeSetting;
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{loadDeliveryZoneSettings();loadDeliveryRates();},500);},{once:true}); else setTimeout(()=>{loadDeliveryZoneSettings();loadDeliveryRates();},500);
+
+async function saveSettings(e) {
     e.preventDefault();
     const businessName = document.getElementById('businessName');
     const businessPhone = document.getElementById('businessPhone');
@@ -4181,10 +4194,18 @@ function saveSettings(e) {
         phone: businessPhone ? businessPhone.value : '+254 794 789 345',
         email: businessEmail ? businessEmail.value : 'info@luciecloset.co.ke',
         location: businessLocation ? businessLocation.value : 'Miski Shopping Centre, 2nd Floor, Room S12',
-        receiptFooter: receiptFooter ? receiptFooter.value : 'Thank you for shopping at Lucie Closet! 👗'
+        receiptFooter: receiptFooter ? receiptFooter.value : 'Thank you for shopping at Lucie Closet! 👗',
+        onlineDeliveryFee: Math.max(0, Number(document.getElementById('onlineDeliveryFee')?.value || 200))
     };
     localStorage.setItem('luciecloset_settings', JSON.stringify(settings));
-    showToast('Settings saved!', 'success');
+    try {
+        const { error } = await sb.from('store_settings').upsert({ setting_key:'online_delivery_fee', setting_value:String(settings.onlineDeliveryFee), updated_at:new Date().toISOString() }, { onConflict:'setting_key' });
+        if (error) throw error;
+        showToast('Settings and online delivery fee saved!', 'success');
+    } catch (err) {
+        console.warn('[Lucie Closet] Delivery fee could not be synced to store_settings:', err);
+        showToast('Settings saved locally. Run the store_settings SQL migration to sync delivery fee online.', 'warning');
+    }
 }
 window.saveSettings = saveSettings;
 
@@ -4772,28 +4793,8 @@ async function waitForPayHeroPayment(transactionId,timeoutMs=90000){
 function extractPayHeroReceipt(data){return data?.receipt_number||data?.mpesa_receipt_number||data?.receipt||data?.data?.receipt_number||data?.data?.mpesa_receipt_number||data?.data?.mpesa_receipt||data?.transaction?.receipt_number||data?.transaction?.mpesa_receipt_number||'';}
 function withClientTimeout(promise,timeoutMs,message){return Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(message)),timeoutMs))]);}
 async function completeUltimateSale(){
-    const now = Date.now();
-    const lockAge = isSubmittingSince ? now - isSubmittingSince : 0;
-    console.log('[Lucie Closet] completeUltimateSale lock check', {isSubmitting, lockAge});
-
-    // Prevent accidental double-submission, but never allow a stale lock to
-    // permanently disable checkout after an interrupted/failed attempt.
-    if(isSubmitting){
-        if(isSubmittingSince && lockAge < CHECKOUT_LOCK_MAX_MS){
-            console.warn('[Lucie Closet] Duplicate Complete Sale blocked while an active sale is processing.', {lockAge});
-            if(typeof showToast === 'function') showToast('A sale is already being processed. Please wait.','warning');
-            return;
-        }
-        console.warn('[Lucie Closet] Recovering stale Complete Sale lock.', {lockAge});
-        isSubmitting = false;
-        isSubmittingSince = 0;
-    }
-
-    if(!Array.isArray(cart)||cart.length===0){showToast('Add items to the cart first.','warning');return;}
-    isSubmitting=true;
-    isSubmittingSince=Date.now();
-    console.log('[Lucie Closet] Complete Sale lock acquired.', {isSubmittingSince});
-    const completeBtn=document.getElementById('completeSaleBtn');let paymentConfirmed=false,orderCommitted=false;
+    if(isSubmitting)return;if(!Array.isArray(cart)||cart.length===0){showToast('Add items to the cart first.','warning');return;}
+    isSubmitting=true;const completeBtn=document.getElementById('completeSaleBtn');let paymentConfirmed=false,orderCommitted=false;
     try{
         const selectedCustomer=document.getElementById('checkoutCustomer');
         const selected=selectedCustomer?.value?(customers||[]).find(c=>String(c.id)===String(selectedCustomer.value)):null;
@@ -4912,69 +4913,33 @@ async function completeUltimateSale(){
                 showStkFailure(err);
             }
         }else{clearStkStatus();showToast(err.message||'Could not complete the sale.','error');}
-    }finally{
-        isSubmitting=false;
-        isSubmittingSince=0;
-        console.log('[Lucie Closet] Complete Sale lock released.');
-        if(completeBtn){completeBtn.disabled=false;completeBtn.innerHTML='<i class="fas fa-check"></i> Complete Sale';}
-    }
+    }finally{isSubmitting=false;if(completeBtn){completeBtn.disabled=false;completeBtn.innerHTML='<i class="fas fa-check"></i> Complete Sale';}}
 }
 window.completeUltimateSale=completeUltimateSale;window.completeOrder=completeUltimateSale;
 
-// BUILD 12: universal Complete Sale handler.
-// Keep ONE execution path for desktop, Android and iPhone.
+// BUILD 9: explicit checkout click bridge. This avoids relying solely on an inline
+// handler and gives the cashier visible feedback if checkout is not initialized.
 window.handleCompleteSaleClick = async function(event){
-    console.log('[Lucie Closet] COMPLETE SALE BUTTON CLICKED', {
-        time: new Date().toISOString(),
-        cartItems: Array.isArray(cart) ? cart.length : 'cart-unavailable',
-        cartTotal: typeof getCartSubtotal === 'function' ? getCartSubtotal() : 'unavailable',
-        selectedPayment: typeof selectedPayment !== 'undefined' ? selectedPayment : 'unavailable',
-        completeUltimateSaleType: typeof window.completeUltimateSale
-    });
-
-    if(!Array.isArray(cart) || !cart.length){
-        console.warn('[Lucie Closet] Complete Sale blocked: cart is empty.');
-        if(typeof showToast === 'function') showToast('Add at least one product before completing the sale.','warning');
+    if(event){event.preventDefault();event.stopPropagation();}
+    const btn=document.getElementById('completeSaleBtn');
+    if(btn?.disabled) return false;
+    if(!Array.isArray(cart)||!cart.length){
+        if(typeof showToast==='function') showToast('Add at least one product before completing the sale.','warning');
         return false;
     }
-
-    if(typeof window.completeUltimateSale !== 'function'){
-        console.error('[Lucie Closet] completeUltimateSale is NOT available.');
-        if(typeof showToast === 'function') showToast('Checkout is not ready. Please refresh the POS and try again.','error');
+    if(typeof window.completeUltimateSale!=='function'){
+        console.error('[Lucie Closet] completeUltimateSale is not available.');
+        if(typeof showToast==='function') showToast('Checkout is not ready. Please refresh the POS and try again.','error');
         return false;
     }
-
-    console.log('[Lucie Closet] ENTERING completeUltimateSale()');
-
     try{
-        // Do not prevent/cancel the native click event here. The button is type=button.
-        // completeUltimateSale() already owns the real submission lock.
         await window.completeUltimateSale();
-        console.log('[Lucie Closet] completeUltimateSale() returned.');
     }catch(error){
-        console.error('[Lucie Closet] Complete Sale failed:', error);
-        if(typeof showToast === 'function') showToast(error?.message || 'Could not complete the sale.','error');
+        console.error('[Lucie Closet] Complete Sale click error:',error);
+        if(typeof showToast==='function') showToast(error?.message||'Could not complete the sale.','error');
     }
-
     return false;
 };
-
-// Ensure the button has exactly one inline execution path.
-(function ensureCompleteSaleButton(){
-    function bind(){
-        const btn = document.getElementById('completeSaleBtn');
-        if(!btn) return;
-        btn.type = 'button';
-        // Remove any legacy inline handler before assigning the single canonical handler.
-        // This prevents two executions of Complete Sale from one desktop click.
-        btn.removeAttribute('onclick');
-        btn.onclick = window.handleCompleteSaleClick;
-        btn.style.touchAction = 'manipulation';
-        console.log('[Lucie Closet] Complete Sale universal handler ready.');
-    }
-    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind, {once:true});
-    else bind();
-})();
 
 // ------------------------------------------------------------
 // Profit/Loss: use recorded cost snapshots where available.
@@ -5205,7 +5170,7 @@ exportReport = function(format) {
     if (!print) { showToast('Please allow pop-ups to print the report.', 'warning'); return; }
     const total = filtered.reduce((s,o)=>s+Number(o.total||0),0);
     print.document.write(`<html><head><title>Lucie Closet Sales Report</title><style>body{font-family:Arial,sans-serif;padding:32px;color:#222}h1{margin-bottom:4px}.muted{color:#666}.summary{margin:20px 0;padding:16px;border:1px solid #ddd;border-radius:10px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:9px;border-bottom:1px solid #ddd;text-align:left}th{background:#f5f5f5}</style>
-<style id="lucie-pro-enhancements-style">
+<style id="lucie-pro-enhancements">
 /* ===== LUCIE CLOSET PRO UX ENHANCEMENTS ===== */
 :root{
   --pro-focus:rgba(122,31,43,.14);
@@ -5943,7 +5908,7 @@ document.addEventListener('DOMContentLoaded', function() {
     Manager:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','gallery','socialMediaManagerSection'],
     Accountant:['dashboard','orders','customers','reports','profit'],
     'Stock Manager':['dashboard','products','inventory','suppliers','purchases','gallery'],
-    Cashier:['dashboard','pos','orders','customers','shifts','myActivity'],
+    Cashier:['dashboard','pos','orders','customers'],
     'Sales Assistant':['dashboard','pos','orders','customers'],
     'sales_assistant':['dashboard','pos','orders','customers'],
     Employee:['dashboard','pos','orders','customers']
@@ -6592,7 +6557,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusEl=document.getElementById('socialManagerStatus');
     if(!p){if(statusEl)statusEl.textContent='Select a product first.';return;}
     if(!targets.length){if(statusEl)statusEl.textContent='Configure at least one social account and select a platform.';return;}
-    const post={product_id:p.id,product_name:p.name||'',caption,image_url:document.getElementById('socialManagerImage')?.value.trim()||p.image_url||'',targets,status:document.getElementById('socialManagerPublishStatus')?.value||'queued',created_at:new Date().toISOString()};
+    const post={product_id:p.id,product_name:p.name||'',caption,image_url:document.getElementById('socialManagerImage')?.value.trim()||p.image_url||'',targets,status:document.getElementById('socialManagerStatus')?.value||'queued',created_at:new Date().toISOString()};
     const h=getHistory();h.unshift(post);saveHistory(h);
     try{if(window.sb?.from){const r=await window.sb.from('social_publish_queue').insert([post]);if(r.error&&!/relation .* does not exist|schema cache/i.test(String(r.error.message||'')))throw r.error;}}catch(e){console.warn('Social queue DB save:',e)}
     if(statusEl){statusEl.textContent=`Post ${post.status==='draft'?'saved as draft':'queued'} for ${targets.map(x=>labels[x]).join(', ')}. Actual publishing occurs after the official platform API is connected.`;statusEl.className='lc-social-publish-status success';}
