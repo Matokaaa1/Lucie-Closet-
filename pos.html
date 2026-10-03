@@ -794,6 +794,7 @@ body:not(.authenticated) #sidebarToggle{display:none!important;}
   }
 }
 </style>
+
     <!-- Lucie Closet Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%236b21a8'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='Georgia,serif' font-size='34' font-weight='700' fill='white'%3ELC%3C/text%3E%3C/svg%3E">
     <meta name="theme-color" content="#6b21a8">
@@ -828,7 +829,7 @@ const roleMap={
  Manager:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','audit','quotations','gallery','socialMediaManagerSection'],
  Accountant:['dashboard','orders','customers','reports','profit'],
  'Stock Manager':['dashboard','products','inventory','gallery'],
- Cashier:['dashboard','pos','orders','customers']
+ Cashier:['dashboard','pos','orders','customers','shifts','myActivity']
 };
 function canonicalRole(){const u=window.currentUser||{};const raw=String(u.role_name||u.role||'Cashier').trim();return Object.keys(roleMap).find(k=>k.toLowerCase()===raw.toLowerCase())||'Cashier';}
 function allowed(section){return roleMap[canonicalRole()]?.includes(section)||false;}
@@ -1001,8 +1002,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         <!-- ===== DASHBOARD · ULTRA MODERN ===== -->
         <section id="dashboardSection" class="section-page active">
             <div id="greetingContainer"></div>
-
-            <div class="quick-actions">
+<div class="quick-actions">
                 <button class="quick-action" onclick="navigateTo('pos')"><i class="fas fa-cash-register"></i> New Sale</button>
                 <button class="quick-action" onclick="openProductModal()"><i class="fas fa-plus"></i> Add Product</button>
                 <button class="quick-action" onclick="openCustomerModal()"><i class="fas fa-user-plus"></i> Add Customer</button>
@@ -5913,7 +5913,7 @@ document.addEventListener('DOMContentLoaded', function() {
     Manager:['dashboard','pos','orders','products','inventory','customers','suppliers','purchases','returns','loyalty','expenses','shifts','reports','profit','gallery','socialMediaManagerSection'],
     Accountant:['dashboard','orders','customers','reports','profit'],
     'Stock Manager':['dashboard','products','inventory','suppliers','purchases','gallery'],
-    Cashier:['dashboard','pos','orders','customers'],
+    Cashier:['dashboard','pos','orders','customers','shifts','myActivity'],
     'Sales Assistant':['dashboard','pos','orders','customers'],
     'sales_assistant':['dashboard','pos','orders','customers'],
     Employee:['dashboard','pos','orders','customers']
