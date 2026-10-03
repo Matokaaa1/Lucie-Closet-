@@ -1012,12 +1012,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
             </div>
 
             <div class="stats-grid lc-modern-kpis" id="statsGrid">
+                <div class="stat-card lc-kpi sales"><div class="stat-icon purple"><i class="fas fa-chart-line"></i></div><div class="stat-value" id="totalSalesAll">KES 0</div><div class="stat-label">Total Sales</div><div class="lc-kpi-trend" id="totalSalesAllTrend">All paid/completed sales</div></div>
                 <div class="stat-card lc-kpi sales"><div class="stat-icon purple"><i class="fas fa-bag-shopping"></i></div><div class="stat-value" id="todaySales">KES 0</div><div class="stat-label">Today's Sales</div><div class="lc-kpi-trend" id="todaySalesTrend">↗ Live today</div></div>
                 <div class="stat-card lc-kpi orders"><div class="stat-icon blue"><i class="fas fa-receipt"></i></div><div class="stat-value" id="ordersToday">0</div><div class="stat-label">Orders Today</div><div class="lc-kpi-trend" id="ordersTrend">↗ Completed</div></div>
                 <div class="stat-card lc-kpi items"><div class="stat-icon purple"><i class="fas fa-box-open"></i></div><div class="stat-value" id="itemsSoldToday">0</div><div class="stat-label">Items Sold</div><div class="lc-kpi-trend">↗ Units today</div></div>
                 <div class="stat-card lc-kpi stock"><div class="stat-icon orange"><i class="fas fa-cubes"></i></div><div class="stat-value" id="productsInStock">0</div><div class="stat-label">Products in Stock</div><div class="lc-kpi-trend" style="color:var(--text-muted)">Catalogue health</div></div>
                 <div class="stat-card lc-kpi low"><div class="stat-icon red"><i class="fas fa-triangle-exclamation"></i></div><div class="stat-value" id="lowStock">0</div><div class="stat-label">Low Stock Items</div><div class="lc-kpi-trend" id="lowStockTrend" style="color:#ef4444">Needs attention</div></div>
                 <div class="stat-card lc-kpi customers"><div class="stat-icon green"><i class="fas fa-users"></i></div><div class="stat-value" id="totalCustomers">0</div><div class="stat-label">Total Customers</div><div class="lc-kpi-trend" style="color:#10b981">↗ Customer base</div></div>
+                <div class="stat-card lc-kpi orders"><div class="stat-icon blue"><i class="fas fa-globe"></i></div><div class="stat-value" id="onlineSalesTotal">KES 0</div><div class="stat-label">Online Customer Sales</div><div class="lc-kpi-trend" id="onlineSalesTrend">0 paid orders</div></div>
+                <div class="stat-card lc-kpi sales"><div class="stat-icon purple"><i class="fas fa-cash-register"></i></div><div class="stat-value" id="cashierSalesTotal">KES 0</div><div class="stat-label">POS / Cashier Sales</div><div class="lc-kpi-trend" id="cashierSalesTrend">0 completed sales</div></div>
             </div>
 
             <div class="lc-modern-grid">
@@ -2067,6 +2070,7 @@ async function loadData() {
 
     // Render POS/products as soon as product data is ready.
     updateStats();
+    startOrdersRealtimeSync();
     if (currentTab === 'pos') {
         renderPOSProducts();
         updateCartUI();
@@ -2100,19 +2104,72 @@ async function loadData() {
 }
 
 // ============================================================
+// UNIFIED SALES DASHBOARD
+// ============================================================
+let lucieOrdersRealtimeChannel = null;
+function startOrdersRealtimeSync() {
+    try {
+        if (!sb?.channel) return;
+        if (lucieOrdersRealtimeChannel) sb.removeChannel(lucieOrdersRealtimeChannel);
+        lucieOrdersRealtimeChannel = sb.channel('lucie-admin-orders-live')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async () => {
+                await loadOrders();
+                updateStats();
+                if (typeof renderCurrentTab === 'function') renderCurrentTab();
+            })
+            .subscribe();
+    } catch (e) {
+        console.warn('[Lucie Closet] Live order sync unavailable:', e);
+    }
+}
+
+// ============================================================
 // UPDATE STATS
 // ============================================================
 function updateStats() {
     const today = new Date().toDateString();
-    const completed = orders.filter(o => String(o.status || '').toLowerCase() === 'completed');
-    const todayOrders = completed.filter(o => new Date(o.created_at).toDateString() === today);
+    // Unified sales ledger: every paid/completed POS or online order contributes
+    // exactly once. Prefer the explicit sales_channel/payment_status columns,
+    // while retaining compatibility with older orders.
+    const norm = v => String(v ?? '').trim().toLowerCase();
+    const isSale = o => {
+        const status = norm(o?.status);
+        const paymentStatus = norm(o?.payment_status);
+        const channel = norm(o?.sales_channel);
+        const paymentMethod = norm(o?.payment_method);
+        const paid = paymentStatus === 'paid' || status === 'completed' || status === 'delivered' ||
+                     ((!!o?.payment_reference || !!o?.transaction_id) && !['pending','payment_pending','payment_failed','cancelled','canceled'].includes(status));
+        if (!paid) return false;
+        if (status === 'cancelled' || status === 'canceled' || status === 'payment_failed') return false;
+        return true;
+    };
+    const channelOf = o => {
+        const explicit = norm(o?.sales_channel);
+        if (explicit === 'online' || explicit === 'ecommerce' || explicit === 'web') return 'online';
+        if (explicit === 'pos' || explicit === 'cashier' || explicit === 'store') return 'pos';
+        return (o?.auth_user_id || o?.user_id || (o?.customer_email && String(o.customer_email).trim())) ? 'online' : 'pos';
+    };
+    const salesOrders = orders.filter(isSale);
+    const onlineSales = salesOrders.filter(o => channelOf(o) === 'online');
+    const cashierSalesFinal = salesOrders.filter(o => channelOf(o) === 'pos');
+    const todayOrders = salesOrders.filter(o => new Date(o.created_at).toDateString() === today);
     const todayRevenue = todayOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+    const totalRevenue = salesOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+    const onlineRevenue = onlineSales.reduce((sum, o) => sum + Number(o.total || 0), 0);
+    const cashierRevenue = cashierSalesFinal.reduce((sum, o) => sum + Number(o.total || 0), 0);
     const todayUnits = todayOrders.reduce((sum, o) => sum + (Array.isArray(o.items) ? o.items.reduce((n, i) => n + Number(i.qty || 0), 0) : 0), 0);
     const lowCount = products.filter(p => Number(p.stock || 0) > 0 && Number(p.stock || 0) <= Number(p.reorder_level ?? 5)).length;
     const outCount = products.filter(p => Number(p.stock || 0) <= 0).length;
     const inStock = products.filter(p => Number(p.stock || 0) > 0).length;
     const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+    set('totalSalesAll', `KES ${totalRevenue.toLocaleString('en-KE')}`);
+    set('onlineSalesTotal', `KES ${onlineRevenue.toLocaleString('en-KE')}`);
+    set('cashierSalesTotal', `KES ${cashierRevenue.toLocaleString('en-KE')}`);
+    set('onlineSalesTrend', `${onlineSales.length} paid customer orders`);
+    set('cashierSalesTrend', `${cashierSalesFinal.length} POS/cashier sales`);
+    set('totalSalesAllTrend', `${salesOrders.length} recognized sales · Online + POS`);
     set('todaySales', `KES ${todayRevenue.toLocaleString('en-KE')}`);
+    set('todaySalesTrend', `↗ ${todayOrders.length} recognized today`);
     set('bestQualityCount', products.filter(p => p.best_quality).length);
     set('totalOrders', orders.length);
     set('lowStock', lowCount + outCount);
@@ -2121,7 +2178,7 @@ function updateStats() {
     set('productsInStock', inStock);
     set('totalCustomers', customers.length);
     set('lowStockTrend', outCount ? `${outCount} out of stock` : (lowCount ? `${lowCount} need attention` : '✓ Healthy stock'));
-    set('ordersTrend', `${todayOrders.length} completed`);
+    set('ordersTrend', `${todayOrders.length} recognized`);
 }
 
 // ============================================================
@@ -3039,7 +3096,12 @@ function renderTopProducts() {
 }
 
 function getCompletedOrders() {
-    return orders.filter(o => String(o.status || '').toLowerCase() === 'completed');
+    const norm = v => String(v ?? '').trim().toLowerCase();
+    return orders.filter(o => {
+        const st=norm(o.status), ps=norm(o.payment_status);
+        if(['cancelled','canceled','payment_failed'].includes(st)) return false;
+        return ps==='paid' || ['completed','delivered'].includes(st) || ((o.payment_reference || o.transaction_id) && !['pending','payment_pending'].includes(st));
+    });
 }
 
 function chartCommonOptions() {
@@ -4840,6 +4902,8 @@ async function completeUltimateSale(){
             items,
             total:Number(total.toFixed(2)),
             payment_method:paymentMethod,
+            sales_channel:'pos',
+            payment_status:'paid',
             status:'completed',
             created_at:createdAt,
             served_by:servedBy,
@@ -4862,8 +4926,11 @@ async function completeUltimateSale(){
             items,
             total:Number(total.toFixed(2)),
             payment_method:paymentMethod,
+            sales_channel:'pos',
+            payment_status:'paid',
             status:'completed',
-            created_at:createdAt
+            created_at:createdAt,
+            paid_at:paidAt||createdAt
         };
         let orderInsertError=null;
         try{
