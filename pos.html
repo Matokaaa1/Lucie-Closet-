@@ -1664,7 +1664,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                         <span>Total</span>
                         <span id="checkoutTotal">KES 0</span>
                     </div>
-                    <button type="button" id="completeSaleBtn" class="btn btn-primary btn-block lc-complete-sale-btn" onclick="return handleCompleteSaleClick(event)"><i class="fas fa-check"></i> Complete Sale</button>
+                    <button type="button" id="completeSaleBtn" class="btn btn-primary btn-block lc-complete-sale-btn"><i class="fas fa-check"></i> Complete Sale</button>
                 </div>
             </div>
         </div>
@@ -1872,6 +1872,8 @@ let isInitialized = false;
 // ============================================================
 let pinValue = '';
 let isSubmitting = false;
+let isSubmittingSince = 0;
+const CHECKOUT_LOCK_MAX_MS = 5 * 60 * 1000;
 let currentMethod = 'pin';
 let sessionTimer = null;
 let sessionTimeout = 30;
@@ -4770,8 +4772,28 @@ async function waitForPayHeroPayment(transactionId,timeoutMs=90000){
 function extractPayHeroReceipt(data){return data?.receipt_number||data?.mpesa_receipt_number||data?.receipt||data?.data?.receipt_number||data?.data?.mpesa_receipt_number||data?.data?.mpesa_receipt||data?.transaction?.receipt_number||data?.transaction?.mpesa_receipt_number||'';}
 function withClientTimeout(promise,timeoutMs,message){return Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(message)),timeoutMs))]);}
 async function completeUltimateSale(){
-    if(isSubmitting)return;if(!Array.isArray(cart)||cart.length===0){showToast('Add items to the cart first.','warning');return;}
-    isSubmitting=true;const completeBtn=document.getElementById('completeSaleBtn');let paymentConfirmed=false,orderCommitted=false;
+    const now = Date.now();
+    const lockAge = isSubmittingSince ? now - isSubmittingSince : 0;
+    console.log('[Lucie Closet] completeUltimateSale lock check', {isSubmitting, lockAge});
+
+    // Prevent accidental double-submission, but never allow a stale lock to
+    // permanently disable checkout after an interrupted/failed attempt.
+    if(isSubmitting){
+        if(isSubmittingSince && lockAge < CHECKOUT_LOCK_MAX_MS){
+            console.warn('[Lucie Closet] Duplicate Complete Sale blocked while an active sale is processing.', {lockAge});
+            if(typeof showToast === 'function') showToast('A sale is already being processed. Please wait.','warning');
+            return;
+        }
+        console.warn('[Lucie Closet] Recovering stale Complete Sale lock.', {lockAge});
+        isSubmitting = false;
+        isSubmittingSince = 0;
+    }
+
+    if(!Array.isArray(cart)||cart.length===0){showToast('Add items to the cart first.','warning');return;}
+    isSubmitting=true;
+    isSubmittingSince=Date.now();
+    console.log('[Lucie Closet] Complete Sale lock acquired.', {isSubmittingSince});
+    const completeBtn=document.getElementById('completeSaleBtn');let paymentConfirmed=false,orderCommitted=false;
     try{
         const selectedCustomer=document.getElementById('checkoutCustomer');
         const selected=selectedCustomer?.value?(customers||[]).find(c=>String(c.id)===String(selectedCustomer.value)):null;
@@ -4890,7 +4912,12 @@ async function completeUltimateSale(){
                 showStkFailure(err);
             }
         }else{clearStkStatus();showToast(err.message||'Could not complete the sale.','error');}
-    }finally{isSubmitting=false;if(completeBtn){completeBtn.disabled=false;completeBtn.innerHTML='<i class="fas fa-check"></i> Complete Sale';}}
+    }finally{
+        isSubmitting=false;
+        isSubmittingSince=0;
+        console.log('[Lucie Closet] Complete Sale lock released.');
+        if(completeBtn){completeBtn.disabled=false;completeBtn.innerHTML='<i class="fas fa-check"></i> Complete Sale';}
+    }
 }
 window.completeUltimateSale=completeUltimateSale;window.completeOrder=completeUltimateSale;
 
@@ -4938,6 +4965,9 @@ window.handleCompleteSaleClick = async function(event){
         const btn = document.getElementById('completeSaleBtn');
         if(!btn) return;
         btn.type = 'button';
+        // Remove any legacy inline handler before assigning the single canonical handler.
+        // This prevents two executions of Complete Sale from one desktop click.
+        btn.removeAttribute('onclick');
         btn.onclick = window.handleCompleteSaleClick;
         btn.style.touchAction = 'manipulation';
         console.log('[Lucie Closet] Complete Sale universal handler ready.');
