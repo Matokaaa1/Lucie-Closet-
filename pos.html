@@ -4897,6 +4897,12 @@ window.completeUltimateSale=completeUltimateSale;window.completeOrder=completeUl
 // BUILD 9: explicit checkout click bridge. This avoids relying solely on an inline
 // handler and gives the cashier visible feedback if checkout is not initialized.
 window.handleCompleteSaleClick = async function(event){
+    console.log('[Lucie Closet] COMPLETE SALE BUTTON CLICKED', {
+        time: new Date().toISOString(),
+        cartItems: Array.isArray(cart) ? cart.length : 'cart-unavailable',
+        cartTotal: typeof getCartSubtotal === 'function' ? getCartSubtotal() : 'unavailable',
+        selectedPayment: typeof selectedPayment !== 'undefined' ? selectedPayment : 'unavailable'
+    });
     if(event){event.preventDefault();event.stopPropagation();}
     const btn=document.getElementById('completeSaleBtn');
     if(btn?.disabled) return false;
