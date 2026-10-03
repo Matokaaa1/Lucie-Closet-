@@ -1664,7 +1664,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
                         <span>Total</span>
                         <span id="checkoutTotal">KES 0</span>
                     </div>
-                    <button type="button" id="completeSaleBtn" class="btn btn-primary btn-block lc-complete-sale-btn" onclick="handleCompleteSaleClick(event)"><i class="fas fa-check"></i> Complete Sale</button>
+                    <button type="button" id="completeSaleBtn" class="btn btn-primary btn-block lc-complete-sale-btn" onclick="return handleCompleteSaleClick(event)"><i class="fas fa-check"></i> Complete Sale</button>
                 </div>
             </div>
         </div>
@@ -4894,35 +4894,57 @@ async function completeUltimateSale(){
 }
 window.completeUltimateSale=completeUltimateSale;window.completeOrder=completeUltimateSale;
 
-// BUILD 9: explicit checkout click bridge. This avoids relying solely on an inline
-// handler and gives the cashier visible feedback if checkout is not initialized.
+// BUILD 12: universal Complete Sale handler.
+// Keep ONE execution path for desktop, Android and iPhone.
 window.handleCompleteSaleClick = async function(event){
     console.log('[Lucie Closet] COMPLETE SALE BUTTON CLICKED', {
         time: new Date().toISOString(),
         cartItems: Array.isArray(cart) ? cart.length : 'cart-unavailable',
         cartTotal: typeof getCartSubtotal === 'function' ? getCartSubtotal() : 'unavailable',
-        selectedPayment: typeof selectedPayment !== 'undefined' ? selectedPayment : 'unavailable'
+        selectedPayment: typeof selectedPayment !== 'undefined' ? selectedPayment : 'unavailable',
+        completeUltimateSaleType: typeof window.completeUltimateSale
     });
-    if(event){event.preventDefault();event.stopPropagation();}
-    const btn=document.getElementById('completeSaleBtn');
-    if(btn?.disabled) return false;
-    if(!Array.isArray(cart)||!cart.length){
-        if(typeof showToast==='function') showToast('Add at least one product before completing the sale.','warning');
+
+    if(!Array.isArray(cart) || !cart.length){
+        console.warn('[Lucie Closet] Complete Sale blocked: cart is empty.');
+        if(typeof showToast === 'function') showToast('Add at least one product before completing the sale.','warning');
         return false;
     }
-    if(typeof window.completeUltimateSale!=='function'){
-        console.error('[Lucie Closet] completeUltimateSale is not available.');
-        if(typeof showToast==='function') showToast('Checkout is not ready. Please refresh the POS and try again.','error');
+
+    if(typeof window.completeUltimateSale !== 'function'){
+        console.error('[Lucie Closet] completeUltimateSale is NOT available.');
+        if(typeof showToast === 'function') showToast('Checkout is not ready. Please refresh the POS and try again.','error');
         return false;
     }
+
+    console.log('[Lucie Closet] ENTERING completeUltimateSale()');
+
     try{
+        // Do not prevent/cancel the native click event here. The button is type=button.
+        // completeUltimateSale() already owns the real submission lock.
         await window.completeUltimateSale();
+        console.log('[Lucie Closet] completeUltimateSale() returned.');
     }catch(error){
-        console.error('[Lucie Closet] Complete Sale click error:',error);
-        if(typeof showToast==='function') showToast(error?.message||'Could not complete the sale.','error');
+        console.error('[Lucie Closet] Complete Sale failed:', error);
+        if(typeof showToast === 'function') showToast(error?.message || 'Could not complete the sale.','error');
     }
+
     return false;
 };
+
+// Ensure the button has exactly one inline execution path.
+(function ensureCompleteSaleButton(){
+    function bind(){
+        const btn = document.getElementById('completeSaleBtn');
+        if(!btn) return;
+        btn.type = 'button';
+        btn.onclick = window.handleCompleteSaleClick;
+        btn.style.touchAction = 'manipulation';
+        console.log('[Lucie Closet] Complete Sale universal handler ready.');
+    }
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind, {once:true});
+    else bind();
+})();
 
 // ------------------------------------------------------------
 // Profit/Loss: use recorded cost snapshots where available.
